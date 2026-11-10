@@ -355,4 +355,16 @@ async function telegramTest() {
 if (MODE === 'daily') await daily();
 else if (MODE === 'intraday') await intraday();
 else if (MODE === 'telegram-test') await telegramTest();
+else if (MODE === 'probe') {
+  const res = await fetch('https://finance.naver.com/sise/sise_market_sum.naver?sosok=0&page=1', { headers: UA });
+  const buf = await res.arrayBuffer();
+  log('HTTP', res.status, res.headers.get('content-type'), 'bytes', buf.byteLength);
+  for (const enc of ['euc-kr', 'utf-8']) {
+    const t = new TextDecoder(enc).decode(buf);
+    const i = t.indexOf('tltle');
+    log(enc, 'tltle count', (t.match(/tltle/g) || []).length, 'code= count', (t.match(/code=\d{6}/g) || []).length);
+    if (i >= 0) { log('ROW', t.slice(Math.max(0, i - 300), i + 1500).replace(/\s+/g, ' ')); break; }
+    else log('HEAD', t.slice(0, 600).replace(/\s+/g, ' '));
+  }
+}
 else { console.error('모드: daily | intraday | telegram-test'); process.exit(1); }
