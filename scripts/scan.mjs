@@ -34,31 +34,28 @@ async function fetchText(url, enc) {
   return new TextDecoder(enc).decode(await res.arrayBuffer());
 }
 
-// 네이버 시가총액 순위 (sosok 0=코스피, 1=코스닥). 시총(억) 내림차순이라 기준 미만이 나오면 멈춤
+// 네이버 증권(모바일) 시가총액 순위 API. 시총(억) 내림차순이라 기준 미만이 나오면 멈춤
 async function universe(minCapEok) {
   const out = [];
-  for (const [sosok, market] of [[0, 'KOSPI'], [1, 'KOSDAQ']]) {
-    for (let page = 1; page <= 40; page++) {
-      const html = await fetchText(`https://finance.naver.com/sise/sise_market_sum.naver?sosok=${sosok}&page=${page}`, 'euc-kr');
-      let stop = false, found = 0;
-      for (const row of html.split(/<tr[\s>]/).slice(1)) {
-        const m = row.match(/code=(\d{6})"[^>]*class="tltle"[^>]*>([^<]+)</) || row.match(/class="tltle"[^>]*href="[^"]*code=(\d{6})"[^>]*>([^<]+)</);
-        if (!m) continue;
-        const nums = [...row.matchAll(/<td class="number[^"]*">([\s\S]*?)<\/td>/g)].map((x) => Number(x[1].replace(/<[^>]+>/g, '').replace(/[^\d.\-]/g, '')));
-        const cap = nums[4];
-        if (!Number.isFinite(cap)) continue;
-        found++;
+  const n = (v) => Number(String(v ?? '').replace(/,/g, ''));
+  for (const market of ['KOSPI', 'KOSDAQ']) {
+    for (let page = 1; page <= 30; page++) {
+      const j = JSON.parse(await fetchText(`https://m.stock.naver.com/api/stocks/marketValue/${market}?page=${page}&pageSize=100`));
+      const list = j.stocks || [];
+      let stop = !list.length;
+      for (const x of list) {
+        const cap = n(x.marketValue);
         if (cap < minCapEok) { stop = true; break; }
-        const name = m[2].trim();
+        const name = String(x.stockName || '').trim();
+        if (x.stockEndType && x.stockEndType !== 'stock') continue;          // ETF·ETN 등 제외
+        if (x.tradeStopType?.code && x.tradeStopType.code !== '1') continue;  // 거래정지 제외
         if (/스팩|(\d*우[A-C]?)$|리츠$/.test(name)) continue;
-        out.push({ code: m[1], name, market, capEok: cap, per: nums[8] || null, roe: nums[9] || null });
+        out.push({ code: x.itemCode, name, market, capEok: cap });
       }
-      if (stop || !found) break;
+      if (stop) break;
       await sleep(150);
     }
   }
-  const sam = out.find((s) => s.code === '005930');
-  if (sam && sam.capEok < 1000000) log('⚠ 시가총액 열 위치가 바뀐 것 같아요. 네이버 페이지 구조 확인 필요');
   return out;
 }
 
@@ -355,18 +352,4 @@ async function telegramTest() {
 if (MODE === 'daily') await daily();
 else if (MODE === 'intraday') await intraday();
 else if (MODE === 'telegram-test') await telegramTest();
-else if (MODE === 'probe') {
-  const tries = [
-    'https://m.stock.naver.com/api/stocks/marketValue/KOSPI?page=1&pageSize=5',
-    'https://m.stock.naver.com/api/stocks/marketValue/KOSDAQ?page=1&pageSize=3',
-    'https://api.stock.naver.com/stock/exchange/KOSPI/marketValue?page=1&pageSize=5',
-  ];
-  for (const u of tries) {
-    try { const r = await fetch(u, { headers: UA }); const t = await r.text(); log('URL', u, 'HTTP', r.status, t.slice(0, 1800).replace(/\s+/g, ' ')); }
-    catch (e) { log('URL', u, 'ERR', e.message); }
-  }
-  const html = await (await fetch('https://finance.naver.com/sise/sise_market_sum.naver?sosok=0&page=1', { headers: UA })).text();
-  const i = html.indexOf('005930');
-  log('HTML 005930 at', i, i >= 0 ? html.slice(Math.max(0, i - 400), i + 800).replace(/\s+/g, ' ') : '');
-}
 else { console.error('모드: daily | intraday | telegram-test'); process.exit(1); }
