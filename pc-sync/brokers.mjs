@@ -294,6 +294,59 @@ export function weekdays(fromDate, toDate, includeSat = false) {
   return out;
 }
 
+// ======================= 토스증권 (Open API, 등록한 IP에서만 → 내 PC에서 실행) =======================
+// 공식 명세: POST /oauth2/token(form), GET /api/v1/accounts, GET /api/v1/holdings, GET /api/v1/buying-power
+// 토스는 실현손익 API가 없어 잔고만 가져옵니다. 금액·수량은 문자열로 옴.
+const TOSS = 'https://openapi.tossinvest.com';
+const pickAmt = (v) => (v && typeof v === 'object' ? { krw: v.krw != null ? num(v.krw) : null, usd: v.usd != null ? num(v.usd) : null } : v == null ? null : num(v));
+export async function fetchToss({ clientId, clientSecret }, index = 0) {
+  const tr = await fetch(`${TOSS}/oauth2/token`, {
+    method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }),
+  });
+  const tok = await tr.json().catch(() => ({}));
+  if (!tok.access_token) throw new Error(`토스 토큰 발급 실패 (HTTP ${tr.status} ${tok.error_description || tok.message || tok.code || ''}) — 허용 IP에 이 PC의 IP가 등록돼 있는지 확인`);
+  const H = (seq) => ({ Authorization: `Bearer ${tok.access_token}`, ...(seq != null ? { 'X-Tossinvest-Account': String(seq) } : {}) });
+  const get = async (p, seq) => {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await fetch(`${TOSS}${p}`, { headers: H(seq) });
+      if (res.status === 429) { await sleep(1500 * (attempt + 1)); continue; }
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(`토스 ${p}: HTTP ${res.status} ${j.code || j.message || ''}`);
+      return j.result ?? j;
+    }
+    throw new Error(`토스 ${p}: 호출 한도 초과`);
+  };
+  const accRes = await get('/api/v1/accounts');
+  const accs = (Array.isArray(accRes) ? accRes : accRes.accounts || accRes.items || []).filter((a) => !a.accountType || a.accountType === 'BROKERAGE');
+  const items = [], accounts = [];
+  for (const [k, a] of accs.entries()) {
+    const label = accs.length > 1 ? `토스 계좌 ${index + 1}-${k + 1}` : `토스 계좌 ${index + 1}`;
+    await sleep(1100);
+    const h = await get('/api/v1/holdings', a.accountSeq);
+    for (const x of h.items || []) {
+      const qty = num(x.quantity);
+      if (!qty) continue;
+      items.push({
+        broker: '토스', account: label, code: String(x.symbol), name: x.name || String(x.symbol),
+        market: x.marketCountry === 'US' ? 'US' : 'KRX', currency: x.currency || (x.marketCountry === 'US' ? 'USD' : 'KRW'),
+        qty, avg: num(x.averagePurchasePrice), self: true, price: num(x.lastPrice),
+        rawValue: pickAmt(x.marketValue?.amount), rawCost: pickAmt(x.marketValue?.purchaseAmount),
+        dailyRate: x.dailyProfitLoss?.rate != null ? num(x.dailyProfitLoss.rate) * 100 : null,
+      });
+    }
+    let cash = null;
+    try {
+      await sleep(300);
+      const bp = await get('/api/v1/buying-power?currency=KRW', a.accountSeq);
+      const cand = typeof bp === 'object' ? (bp.buyingPower ?? bp.amount ?? bp.orderableAmount ?? bp.cashBuyingPower ?? Object.values(bp).find((v) => /^-?[\d.]+$/.test(String(v)))) : bp;
+      cash = cand != null ? num(typeof cand === 'object' ? cand.krw ?? cand.amount : cand) : null;
+    } catch (e) { console.log('[토스] 매수가능금액 조회 건너뜀:', e.message); }
+    accounts.push({ broker: '토스', account: label, cash, total: null });
+  }
+  return { items, accounts };
+}
+
 // ======================= 암호화 (브라우저 WebCrypto와 호환) =======================
 // AES-256-GCM, 키는 비밀번호에서 PBKDF2-SHA256(200,000회)로 만듭니다.
 const ITER = 200000;

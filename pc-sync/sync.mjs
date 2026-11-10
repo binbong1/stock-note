@@ -9,7 +9,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, weekdays, encryptJSON } from './brokers.mjs';
+import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, fetchToss, weekdays, encryptJSON } from './brokers.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const log = (...a) => console.log(new Date().toLocaleString('ko-KR'), '|', ...a);
@@ -87,6 +87,15 @@ async function main() {
         log(`키움 계좌 ${n} 해외 실현손익: ${rr.rows.length}건`);
       } catch (e) { log(`키움 계좌 ${n} 해외 실현손익 실패: ${e.message}`); }
     }
+  }
+  // 토스증권 (잔고만 — 토스는 실현손익 API가 없음)
+  for (const [i, t] of (cfg.toss || []).entries()) {
+    if (!t.clientId) continue;
+    try {
+      const r = await fetchToss(t, i);
+      items.push(...r.items); accounts.push(...r.accounts);
+      log(`토스 계좌 ${i + 1}: ${r.items.length}종목`);
+    } catch (e) { log(`토스 계좌 ${i + 1} 조회 실패: ${e.message}`); }
   }
   if (cfg.kis?.appkey) {
     const r = await fetchKIS(cfg.kis);

@@ -71,12 +71,13 @@ async function portfolio() {
   const fx = sum.fx?.USDKRW || 0;
   const acc = {};
   for (const h of hold.items) {
-    const s = px[h.code]; if (!s) continue;
+    const s = px[h.code]; if (!s && !h.self) continue;
     const k = h.currency === 'USD' ? fx : 1;
     const key = acctName(h.broker, h.account || h.broker);
     const o = acc[key] ||= { v: 0, c: 0, today: 0, cash: null, items: [] };
-    const v = s.close * h.qty * k, c = h.avg * h.qty * k;
-    o.v += v; o.c += c; o.today += (s.close - s.close / (1 + s.changePct / 100)) * h.qty * k;
+    const v = h.self ? h.valueKrw : s.close * h.qty * k, c = h.self ? h.costKrw : h.avg * h.qty * k;
+    o.v += v; o.c += c;
+    o.today += h.self ? (h.dailyRate != null ? v - v / (1 + h.dailyRate / 100) : 0) : (s.close - s.close / (1 + s.changePct / 100)) * h.qty * k;
     o.items.push({ name: h.name, v, pl: v - c, rate: c ? (v / c - 1) * 100 : 0 });
   }
   for (const a of hold.accounts || []) { const o = acc[acctName(a.broker, a.account)] ||= { v: 0, c: 0, today: 0, cash: null, items: [] }; if (a.cash != null) o.cash = (o.cash || 0) + a.cash; }

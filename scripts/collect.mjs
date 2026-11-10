@@ -277,8 +277,11 @@ async function main() {
       { broker: 'KIS', account: '****5678-01', code: '006260', name: 'LS', market: 'KRX', currency: 'KRW', qty: 10, avg: 131000 },
       { broker: 'KIS', account: '****5678-01', code: 'IREN', name: 'IREN', market: 'NASDAQ', currency: 'USD', qty: 40, avg: 41.2 },
     ];
-    accounts = [{ broker: '키움', account: '키움 계좌 1', cash: 1250000, total: null }, { broker: 'KIS', account: '****5678-01', cash: 830000, total: null }];
-    Object.assign(aliases, { 'KIS|****5678-01': '한투1', '키움|키움 계좌 1': '키움(미국)' });
+    holdings.push(
+      { broker: '토스', account: '토스 계좌 1', code: '005930', name: '삼성전자', market: 'KRX', currency: 'KRW', qty: 3.42, avg: 61000, self: true, price: 199500, rawValue: 682290, rawCost: 208620, dailyRate: 5.06 },
+      { broker: '토스', account: '토스 계좌 1', code: 'AAPL', name: '애플', market: 'US', currency: 'USD', qty: 0.8123, avg: 190.5, self: true, price: 268.2, rawValue: { krw: 301700, usd: 217.86 }, rawCost: { krw: 214300, usd: 154.74 }, dailyRate: -0.8 });
+    accounts = [{ broker: '키움', account: '키움 계좌 1', cash: 1250000, total: null }, { broker: 'KIS', account: '****5678-01', cash: 830000, total: null }, { broker: '토스', account: '토스 계좌 1', cash: 12000, total: null }];
+    Object.assign(aliases, { 'KIS|****5678-01': '한투1', '키움|키움 계좌 1': '키움(미국)', '토스|토스 계좌 1': '토스' });
     // 샘플용 과거 기록·실현손익
     let v = 9000000;
     history.days = [];
@@ -337,7 +340,9 @@ async function main() {
     }
   }
   // 보유 종목 중 watchlist 에 없는 것은 자동으로 분석 대상에 추가 (종목명만 공개, 수량·평단은 암호화)
+  // 토스(주식모으기)처럼 증권사가 현재가·평가금액을 직접 주는 종목(self)은 분석 대상에 넣지 않음
   for (const h of holdings) {
+    if (h.self) continue;
     if (!cfg.stocks.some((s) => s.code === h.code)) {
       cfg.stocks.push({ name: h.name, code: h.code, market: h.market, sector: '미분류' });
     }
@@ -383,6 +388,15 @@ async function main() {
   }
 
   await fs.mkdir(path.join(ROOT, 'data'), { recursive: true });
+  // self 종목 원화 환산 (평가금액·매입금액)
+  {
+    const fx = result.fx.USDKRW || 0;
+    const krw = (raw, cur, fallback) => (raw && typeof raw === 'object' ? (raw.krw ?? (raw.usd != null ? raw.usd * fx : null)) : raw != null ? (cur === 'USD' ? raw * fx : raw) : fallback);
+    for (const h of holdings) if (h.self) {
+      h.valueKrw = Math.round(krw(h.rawValue, h.currency, h.price * h.qty * (h.currency === 'USD' ? fx : 1)));
+      h.costKrw = Math.round(krw(h.rawCost, h.currency, h.avg * h.qty * (h.currency === 'USD' ? fx : 1)));
+    }
+  }
   if (pw && (holdings.length || realized.rows.length)) {
     await fs.writeFile(holdFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, items: holdings, accounts, aliases }, pw)));
 
@@ -394,23 +408,23 @@ async function main() {
       const byStock = {};
       let stockValue = 0, cost = 0;
       for (const h of holdings) {
-        const s = px[h.code]; if (!s) continue;
+        const s = px[h.code]; if (!s && !h.self) continue;
         const k = h.currency === 'USD' ? fx : 1;
-        const v = s.close * h.qty * k, c = h.avg * h.qty * k;
+        const v = s ? s.close * h.qty * k : h.valueKrw, c = s ? h.avg * h.qty * k : h.costKrw;
         stockValue += v; cost += c;
-        const o = byStock[h.code] ||= { name: h.name, v: 0, c: 0 };
+        const o = byStock[h.code] ||= { name: h.name, v: 0, c: 0 };  // self 종목 포함
         o.v += v; o.c += c;
       }
       // 계좌별 합계 (키: "증권사|계좌")
       const byAccount = {};
       for (const h of holdings) {
-        const s = px[h.code]; if (!s) continue;
+        const s = px[h.code]; if (!s && !h.self) continue;
         const k = h.currency === 'USD' ? fx : 1;
         const o = byAccount[`${h.broker}|${h.account || h.broker}`] ||= { stockValue: 0, cost: 0, cash: null, pos: {} };
-        o.stockValue += s.close * h.qty * k; o.cost += h.avg * h.qty * k;
+        o.stockValue += s ? s.close * h.qty * k : h.valueKrw; o.cost += s ? h.avg * h.qty * k : h.costKrw;
         // 입출금 추정용: 종목별 [수량, 원화 환산 종가]
         const ps = (o.pos ||= {})[h.code] || [0, 0];
-        o.pos[h.code] = [ps[0] + h.qty, Math.round(s.close * k * 100) / 100];
+        o.pos[h.code] = [ps[0] + h.qty, Math.round((s ? s.close * k : h.valueKrw / h.qty) * 100) / 100];
       }
       for (const a of accounts) {
         const o = byAccount[`${a.broker}|${a.account}`] ||= { stockValue: 0, cost: 0, cash: null, pos: {} };

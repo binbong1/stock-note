@@ -153,6 +153,7 @@ function holdings() {
   if (!AUTO) return manual;
   const out = {};
   for (const h of AUTO.items) {
+    if (h.self) continue;   // 토스 등 증권사 시세 종목은 portfolio()에서 따로 처리
     if (ACCT !== 'all' && acctKey(h.broker, h.account) !== ACCT) continue;
     const o = out[h.code] ||= { qty: 0, cost: 0, brokers: [] };
     o.qty += h.qty; o.cost += h.qty * h.avg;
@@ -175,6 +176,23 @@ function portfolio() {
     if (qty) { any = true; value += v; cost += c; today += toKRW(s, (s.close - prevClose) * qty); }
     return { s, qty, avg, value: v, cost: c, brokers: p.brokers, ret: qty && avg ? (s.close / avg - 1) * 100 : null };
   });
+  // 토스(주식모으기) 등 self 종목: 전체 보기에서는 한 줄로 묶고, 해당 계좌를 고르면 종목별로
+  const selfItems = (AUTO?.items || []).filter((h) => h.self && (ACCT === 'all' || acctKey(h.broker, h.account) === ACCT));
+  const dayPl = (h) => (h.dailyRate != null ? h.valueKrw - h.valueKrw / (1 + h.dailyRate / 100) : 0);
+  if (selfItems.length && ACCT === 'all') {
+    const groups = {};
+    for (const h of selfItems) (groups[acctKey(h.broker, h.account)] ||= []).push(h);
+    for (const [k, list] of Object.entries(groups)) {
+      const v = list.reduce((t, h) => t + (h.valueKrw || 0), 0), c = list.reduce((t, h) => t + (h.costKrw || 0), 0), td = list.reduce((t, h) => t + dayPl(h), 0);
+      rows.push({ s: { code: '__group', name: (acctName(k) === '토스' ? '토스' : acctName(k)) + ' 주식모으기', currency: 'KRW', changePct: v ? td / (v - td) * 100 : null }, group: k, n: list.length, qty: list.length, avg: null, value: v, cost: c, ret: c ? (v / c - 1) * 100 : null });
+      any = true; value += v; cost += c; today += td;
+    }
+  } else {
+    for (const h of selfItems) {
+      rows.push({ s: { code: h.code, name: h.name, close: h.price, currency: h.currency, changePct: h.dailyRate }, qty: h.qty, avg: h.avg, value: h.valueKrw, cost: h.costKrw, ret: h.costKrw ? (h.valueKrw / h.costKrw - 1) * 100 : null, brokers: [h.broker] });
+      any = true; value += h.valueKrw || 0; cost += h.costKrw || 0; today += dayPl(h);
+    }
+  }
   rows.forEach((r) => r.weight = value && r.qty ? r.value / value * 100 : null);
   // 예수금 (선택한 계좌 기준)
   let cash = null;
@@ -190,6 +208,11 @@ function accountSummary() {
   const px = Object.fromEntries(DATA.stocks.map((s) => [s.code, s]));
   const acc = {};
   for (const h of AUTO.items) {
+    if (h.self) {
+      const o = acc[acctKey(h.broker, h.account)] ||= { v: 0, c: 0, n: 0, cash: null, today: 0 };
+      o.v += h.valueKrw || 0; o.c += h.costKrw || 0; o.n++; o.today += h.dailyRate != null ? h.valueKrw - h.valueKrw / (1 + h.dailyRate / 100) : 0;
+      continue;
+    }
     const s = px[h.code]; if (!s) continue;
     const k = acctKey(h.broker, h.account), o = acc[k] ||= { v: 0, c: 0, n: 0, cash: null, today: 0 };
     const fx = h.currency === 'USD' ? (DATA.fx.USDKRW || 0) : 1;
@@ -214,7 +237,12 @@ function viewHome() {
   const rows = P.rows.filter((r) => ACCT === 'all' || r.qty > 0).sort((a, b) => (b.value || 0) - (a.value || 0) || a.s.name.localeCompare(b.s.name));
   const held = rows.filter((r) => r.qty > 0), watch = rows.filter((r) => !r.qty);
   const px = (s, v) => s.currency === 'USD' ? '$' + (+v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : won(v);
-  const tr = ({ s, qty, avg, value, cost, ret, weight, brokers }) => `<tr>
+  const tr = ({ s, qty, avg, value, cost, ret, weight, brokers, group, n }) => group ? `<tr>
+    <td><span class="name">${esc(s.name)}</span><div class="sub">${n}종목 · <button type="button" data-acct="${esc(group)}" style="height:auto;padding:0 6px;font-size:12px">종목 보기</button></div></td>
+    <td class="num"><div class="sub ${cls(s.changePct)}">${sign(s.changePct)}</div></td><td class="num">–</td><td class="num">–</td>
+    <td class="num">${won(cost)}</td><td class="num">${won(value)}</td>
+    <td class="num ${cls(ret)}">${signWon(value - cost)}<div class="sub ${cls(ret)}">${sign(ret)}</div></td>
+    <td class="num">${weight == null ? '–' : weight.toFixed(1) + '%'}</td></tr>` : `<tr>
     <td>${popName(s.code, s.name, esc(s.code) + (brokers ? ' · ' + brokers.map(esc).join('·') : ''))}</td>
     <td class="num">${fmt(s.close, s.currency)}<div class="sub ${cls(s.changePct)}">${sign(s.changePct)}</div></td>
     <td class="num">${qty ? px(s, avg) : '–'}</td>
