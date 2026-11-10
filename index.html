@@ -229,13 +229,28 @@ function accountSummary() {
   </table></div><p class="mute" style="font-size:12px;margin:8px 0 0">계좌 이름을 누르면 그 계좌만 볼 수 있어요. 해외 종목은 오늘 환율(${DATA.fx.USDKRW || '–'}원)로 환산.</p></section>`;
 }
 
+let HSORT = store.get('stocknote.hsort', { key: null, dir: null });
 function viewHome() {
   const P = portfolio();
   const totRet = P.cost ? (P.value / P.cost - 1) * 100 : null;
   const upd = new Date(DATA.updatedAt).toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'});
-  // 보유 종목은 비중(현재 금액) 큰 순, 관심 종목(미보유)은 그 아래
-  const rows = P.rows.filter((r) => ACCT === 'all' || r.qty > 0).sort((a, b) => (b.value || 0) - (a.value || 0) || a.s.name.localeCompare(b.s.name));
-  const held = rows.filter((r) => r.qty > 0), watch = rows.filter((r) => !r.qty);
+  // 열 제목을 누르면 오름차순 → 내림차순 → 정렬 없음 순서로 바뀜
+  const rows = P.rows.filter((r) => ACCT === 'all' || r.qty > 0);
+  const watch = rows.filter((r) => !r.qty);
+  const SORTV = {
+    name: (r) => r.s.name, price: (r) => (r.group ? null : toKRW(r.s, r.s.close)), avg: (r) => (r.group || !r.avg ? null : toKRW(r.s, r.avg)),
+    qty: (r) => (r.group ? null : +r.qty), cost: (r) => r.cost, value: (r) => r.value, pl: (r) => r.value - r.cost, weight: (r) => r.weight,
+  };
+  let held = rows.filter((r) => r.qty > 0);
+  if (HSORT.key && SORTV[HSORT.key]) {
+    const f = SORTV[HSORT.key], dir = HSORT.dir === 'asc' ? 1 : -1;
+    held = [...held].sort((a, b) => {
+      const x = f(a), y = f(b);
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;   // 값 없는 줄(토스 묶음의 현재가 등)은 항상 아래
+      return (typeof x === 'string' ? x.localeCompare(y, 'ko') : x - y) * dir;
+    });
+  }
+  const th = (key, label) => { const on = HSORT.key === key; const arrow = on ? (HSORT.dir === 'asc' ? ' ▲' : ' ▼') : ''; return `<th scope="col" aria-sort="${on ? (HSORT.dir === 'asc' ? 'ascending' : 'descending') : 'none'}" style="${key === 'name' ? 'text-align:left' : ''}"><button type="button" data-hsort="${key}" style="height:auto;padding:2px 4px;border:none;background:none;font:inherit;color:${on ? 'var(--ink)' : 'var(--mute)'};font-weight:${on ? 700 : 500};cursor:pointer">${label}${arrow}</button></th>`; };
   const px = (s, v) => s.currency === 'USD' ? '$' + (+v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : won(v);
   const tr = ({ s, qty, avg, value, cost, ret, weight, brokers, group, n }) => group ? `<tr>
     <td><span class="name">${esc(s.name)}</span><div class="sub">${n}종목 · <button type="button" data-acct="${esc(group)}" style="height:auto;padding:0 6px;font-size:12px">종목 보기</button></div></td>
@@ -270,9 +285,9 @@ function viewHome() {
   </section>
   ${accountSummary()}
   <section class="card" aria-labelledby="t1">
-    <div style="display:flex;justify-content:space-between;margin-bottom:14px"><h2 id="t1">보유 종목 <span class="mute" style="font-size:13px;font-weight:500">비중 큰 순</span></h2><a href="#/holdings" style="font-size:14px">보유 정보</a></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px"><h2 id="t1">보유 종목 <span class="mute" style="font-size:13px;font-weight:500">${HSORT.key ? '' : '열 제목을 누르면 정렬돼요'}</span></h2><a href="#/holdings" style="font-size:14px">보유 정보</a></div>
     <div class="scroll"><table style="min-width:900px">
-      <thead><tr><th scope="col">종목</th><th scope="col">현재가</th><th scope="col">매수가</th><th scope="col">주식수</th><th scope="col">매수금액</th><th scope="col">현재금액</th><th scope="col">평가손익</th><th scope="col">비중</th></tr></thead>
+      <thead><tr>${th('name', '종목')}${th('price', '현재가')}${th('avg', '매수가')}${th('qty', '주식수')}${th('cost', '매수금액')}${th('value', '현재금액')}${th('pl', '평가손익')}${th('weight', '비중')}</tr></thead>
       <tbody>${held.length ? held.map(tr).join('') : '<tr><td colspan="8" class="mute">보유 종목이 없어요.</td></tr>'}
       ${held.length ? `<tr style="font-weight:600;background:#FAFAF8"><td>합계</td><td></td><td></td><td></td><td class="num">${won(P.cost)}</td><td class="num">${won(P.value)}</td><td class="num ${cls(totRet)}">${signWon(P.value - P.cost)}<div class="sub ${cls(totRet)}">${sign(totRet)}</div></td><td class="num">100%</td></tr>` : ''}</tbody>
     </table></div>
@@ -284,6 +299,11 @@ function viewHome() {
     <ul class="list">${(() => { const codes = new Set(held.map((r) => r.s.code)); const ds = DATA.disclosures.filter((d) => ACCT === 'all' || codes.has(d.code)); return ds.length ? ds.slice(0, 10).map((d) => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener" style="color:var(--ink);font-weight:500">${esc(d.title)}</a><div class="mute" style="font-size:13px">${esc(d.name)} · ${esc(d.date)}</div></li>`).join('') : '<li class="mute">최근 공시가 없어요.</li>'; })()}</ul>
   </section>`;
   bindLock(); bindAcct();
+  document.querySelectorAll('[data-hsort]').forEach((b) => b.onclick = () => {
+    const k = b.dataset.hsort;
+    HSORT = HSORT.key !== k ? { key: k, dir: 'asc' } : HSORT.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: null };
+    store.set('stocknote.hsort', HSORT); viewHome();
+  });
 }
 
 function chartSvg(c) {
