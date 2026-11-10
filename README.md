@@ -97,6 +97,7 @@ GitHub(공개 저장소)에는 올라가지 않으니 금액이 노출되지 않
    - `KIS_APPKEY` : App Key
    - `KIS_APPSECRET` : App Secret
    - `KIS_ACCOUNT` : 계좌번호 `12345678-01` 형식 (앞 8자리-뒤 2자리)
+   - 계좌가 2개 이상이면 두 번째 계좌는 `KIS_APPKEY_2`, `KIS_APPSECRET_2`, `KIS_ACCOUNT_2`로 추가 (세 번째는 `_3`)
 4. Actions 탭 → **Run workflow** → 사이트에서 비밀번호로 잠금 해제
 
 ## B. 키움증권 (내 PC에서 하루 한 번 실행)

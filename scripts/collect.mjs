@@ -257,11 +257,14 @@ async function main() {
       { broker: 'KIS', code: 'IREN', name: 'IREN', market: 'NASDAQ', currency: 'USD', qty: 40, avg: 41.2 },
     ];
   } else if (pw) {
-    if (ENV.KIS_APPKEY && ENV.KIS_APPSECRET && ENV.KIS_ACCOUNT) {
+    // 한국투자증권 계좌가 여러 개면 KIS_APPKEY_2 / KIS_APPSECRET_2 / KIS_ACCOUNT_2 … 로 추가
+    for (const [i, sfx] of ['', '_2', '_3'].entries()) {
+      const appkey = ENV['KIS_APPKEY' + sfx], appsecret = ENV['KIS_APPSECRET' + sfx], account = ENV['KIS_ACCOUNT' + sfx];
+      if (!appkey || !appsecret || !account) continue;
       try {
-        const k = await fetchKIS({ appkey: ENV.KIS_APPKEY, appsecret: ENV.KIS_APPSECRET, account: ENV.KIS_ACCOUNT });
-        holdings.push(...k); log(`한국투자증권 잔고 ${k.length}종목`);
-      } catch (e) { result.errors.push(`한국투자증권 잔고: ${e.message}`); }
+        const k = await fetchKIS({ appkey, appsecret, account });
+        holdings.push(...k); log(`한국투자증권 계좌 ${i + 1} 잔고 ${k.length}종목`);
+      } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 잔고: ${e.message}`); }
     }
     try {
       const box = JSON.parse(await fs.readFile(localFile, 'utf8'));

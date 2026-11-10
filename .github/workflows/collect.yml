@@ -31,6 +31,12 @@ jobs:
           KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
           KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
           KIS_ACCOUNT: ${{ secrets.KIS_ACCOUNT }}
+          KIS_APPKEY_2: ${{ secrets.KIS_APPKEY_2 }}
+          KIS_APPSECRET_2: ${{ secrets.KIS_APPSECRET_2 }}
+          KIS_ACCOUNT_2: ${{ secrets.KIS_ACCOUNT_2 }}
+          KIS_APPKEY_3: ${{ secrets.KIS_APPKEY_3 }}
+          KIS_APPSECRET_3: ${{ secrets.KIS_APPSECRET_3 }}
+          KIS_ACCOUNT_3: ${{ secrets.KIS_ACCOUNT_3 }}
         run: node scripts/collect.mjs
 
       - name: 결과 저장(커밋)
