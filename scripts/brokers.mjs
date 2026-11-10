@@ -144,8 +144,8 @@ async function kiwoomClient({ appkey, secretkey }, index = 0) {
     body: JSON.stringify({ grant_type: 'client_credentials', appkey, secretkey }),
   }, '키움 토큰');
   if (!tok.token) throw new Error(`키움 토큰 발급 실패: ${tok.return_msg || ''} (PC의 IP가 등록돼 있는지 확인)`);
-  const post = async (apiId, body, cont = 'N', next = '') => {
-    const { json, headers } = await call(`${KW_BASE}/api/dostk/acnt`, {
+  const post = async (apiId, body, cont = 'N', next = '', urlPath = '/api/dostk/acnt') => {
+    const { json, headers } = await call(`${KW_BASE}${urlPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=UTF-8', authorization: `Bearer ${tok.token}`,
@@ -203,19 +203,75 @@ export async function fetchKiwoomRealized(cfg, days, index = 0) {
       }
       if (!r.more) break;
       cont = 'Y'; next = r.next;
-      await sleep(250);
+      await sleep(220);
     }
-    await sleep(250);
+    await sleep(220);
   }
   return { account: c.label, rows };
 }
 
-// 조회 기간의 평일 목록 (YYYYMMDD)
-export function weekdays(fromDate, toDate) {
+// ----- 키움 미국주식 (공식 명세: /api/us/acnt · ust21070 잔고, ust21120 예수금, ust21640 일별 종목별 실현손익) -----
+export async function fetchKiwoomUS(cfg, index = 0) {
+  const c = await kiwoomClient(cfg, index);
+  const label = `${c.label} (해외)`;
+  const items = [], account = { broker: '키움', account: label, cash: null, total: null };
+  let cont = 'N', next = '';
+  for (let page = 0; page < 10; page++) {
+    const r = await c.post('ust21070', { stex_tp: '', stk_cd: '' }, cont, next, '/api/us/acnt');
+    for (const x of r.json.result_list || []) {
+      const qty = num(x.poss_qty);
+      const code = String(x.stk_cd || '').trim();
+      if (qty > 0 && code) items.push({ broker: '키움', account: label, code, name: String(x.frgn_stk_nm || code).trim(), market: 'US', currency: String(x.crnc_code || 'USD').trim() || 'USD', qty, avg: num(x.frgn_stk_book_uv) });
+    }
+    if (!r.more) break;
+    cont = 'Y'; next = r.next;
+    await sleep(300);
+  }
+  try {
+    const r = await c.post('ust21120', { cmsn_incl_tp: '', exrt_tp: '' }, 'N', '', '/api/us/acnt');
+    const fxCash = (r.json.result_list || []).reduce((t, x) => t + num(x.chg_entr), 0);
+    account.cash = num(r.json.won_entr) + fxCash;
+    account.total = num(r.json.aset_evlt_amt) || null;
+  } catch (e) { console.log(`[키움 계좌 ${index + 1}] 해외 예수금 조회 건너뜀: ${e.message}`); }
+  return { items: items.filter((h) => h.currency === 'USD'), accounts: [account] };
+}
+
+// 하루씩 조회. 금액은 응답의 환율(exch_rate)로 원화 환산해서 저장
+export async function fetchKiwoomUSRealized(cfg, days, index = 0) {
+  const c = await kiwoomClient(cfg, index);
+  const label = `${c.label} (해외)`;
+  const rows = [];
+  for (const day of days) {
+    let cont = 'N', next = '';
+    for (let page = 0; page < 10; page++) {
+      const r = await c.post('ust21640', { stex_tp: '', stk_cd: '', cntr_dt: day, fc_krw_tp: '0' }, cont, next, '/api/us/acnt');
+      for (const x of r.json.result_list || []) {
+        const qty = num(x.cntr_sellq);
+        if (!qty) continue;
+        const fx = num(x.exch_rate) || 1;
+        rows.push({
+          date: dash(day), broker: '키움', account: label, currency: String(x.crnc_code || 'USD').trim(),
+          code: String(x.stk_cd || '').trim(), name: String(x.stk_nm || x.stk_cd || '').trim(),
+          qty, sellAmt: Math.round(qty * num(x.cntr_sella) * fx), buyPrice: Math.round(num(x.avg_buy_uv) * fx),
+          pl: Math.round(num(x.pl_amt) * fx), rate: num(x.pl_rt), fee: Math.round(num(x.cmsn) * fx), tax: Math.round(num(x.altx) * fx),
+          usd: { sellPrice: num(x.cntr_sella), buyPrice: num(x.avg_buy_uv), pl: num(x.pl_amt), fx },
+        });
+      }
+      if (!r.more) break;
+      cont = 'Y'; next = r.next;
+      await sleep(220);
+    }
+    await sleep(220);
+  }
+  return { account: label, rows };
+}
+
+// 조회 기간의 날짜 목록 (YYYYMMDD). 기본은 평일, includeSat 이면 토요일도 포함(미국장 시차 대비)
+export function weekdays(fromDate, toDate, includeSat = false) {
   const out = [];
   for (let d = new Date(fromDate); d <= toDate; d = new Date(d.getTime() + 86400000)) {
     const w = d.getUTCDay();
-    if (w !== 0 && w !== 6) out.push(ymd(d));
+    if (w !== 0 && (w !== 6 || includeSat)) out.push(ymd(d));
   }
   return out;
 }

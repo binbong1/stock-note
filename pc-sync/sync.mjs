@@ -9,7 +9,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fetchKiwoom, fetchKiwoomRealized, fetchKIS, fetchKISRealized, weekdays, encryptJSON } from './brokers.mjs';
+import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, weekdays, encryptJSON } from './brokers.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const log = (...a) => console.log(new Date().toLocaleString('ko-KR'), '|', ...a);
@@ -41,22 +41,51 @@ async function main() {
   const today = kst.toISOString().slice(0, 10);
   const items = [], accounts = [], realized = [];
 
+  // 키움 계좌마다 국내·미국 잔고를 모두 확인 (config 의 market 을 "kr" 또는 "us" 로 정하면 그쪽만)
   for (const [i, k] of (cfg.kiwoom || []).entries()) {
     if (!k.appkey) continue;
-    const r = await fetchKiwoom(k, i);
-    items.push(...r.items); accounts.push(...r.accounts);
-    log(`키움 계좌 ${i + 1}: ${r.items.length}종목`);
-    try {
-      const key = `kiwoom:${i}`;
-      const back = state[key] ? 14 : 365;
-      const from = new Date(kst.getTime() - back * 86400000);
-      if (!state[key]) log(`키움 계좌 ${i + 1}: 처음이라 1년치 실현손익을 가져와요 (1~2분 걸려요)`);
-      const rr = await fetchKiwoomRealized(k, weekdays(from, kst), i);
-      realized.push({ broker: '키움', account: rr.account, from: from.toISOString().slice(0, 10), to: today, rows: rr.rows });
-      state[key] = today;
-      log(`키움 계좌 ${i + 1}: 실현손익 ${rr.rows.length}건`);
-    } catch (e) {
-      log(`키움 계좌 ${i + 1}: 실현손익 실패 → 잔고만 올려요 (${e.message})`);
+    const mode = (k.market || 'auto').toLowerCase();
+    const n = i + 1;
+
+    let krCount = 0;
+    if (mode !== 'us') {
+      try {
+        const r = await fetchKiwoom(k, i);
+        items.push(...r.items); krCount = r.items.length;
+        if (r.items.length || mode === 'kr') accounts.push(...r.accounts);
+        log(`키움 계좌 ${n} 국내: ${r.items.length}종목`);
+      } catch (e) { log(`키움 계좌 ${n} 국내 잔고 조회 실패: ${e.message}`); if (/토큰/.test(e.message)) throw e; }
+    }
+    if (mode !== 'kr') {
+      try {
+        const r = await fetchKiwoomUS(k, i);
+        items.push(...r.items); accounts.push(...r.accounts);
+        log(`키움 계좌 ${n} 해외(미국): ${r.items.length}종목`);
+      } catch (e) { log(`키움 계좌 ${n} 해외 잔고 조회 실패: ${e.message}`); }
+    }
+
+    // 실현손익: 처음 1년치, 이후 최근 14일
+    if (mode === 'kr' || (mode === 'auto' && krCount > 0)) {
+      try {
+        const key = `kiwoom:${i}`;
+        const from = new Date(kst.getTime() - (state[key] ? 14 : 365) * 86400000);
+        if (!state[key]) log(`키움 계좌 ${n} 국내: 처음이라 1년치 실현손익을 가져와요 (1~2분)`);
+        const rr = await fetchKiwoomRealized(k, weekdays(from, kst), i);
+        realized.push({ broker: '키움', account: rr.account, from: from.toISOString().slice(0, 10), to: today, rows: rr.rows });
+        state[key] = today;
+        log(`키움 계좌 ${n} 국내 실현손익: ${rr.rows.length}건`);
+      } catch (e) { log(`키움 계좌 ${n} 국내 실현손익 실패: ${e.message}`); }
+    }
+    if (mode !== 'kr') {
+      try {
+        const key = `kiwoom-us:${i}`;
+        const from = new Date(kst.getTime() - (state[key] ? 14 : 365) * 86400000);
+        if (!state[key]) log(`키움 계좌 ${n} 해외: 처음이라 1년치 실현손익을 가져와요 (2~3분)`);
+        const rr = await fetchKiwoomUSRealized(k, weekdays(from, kst, true), i);
+        realized.push({ broker: '키움', account: rr.account, from: from.toISOString().slice(0, 10), to: today, rows: rr.rows });
+        state[key] = today;
+        log(`키움 계좌 ${n} 해외 실현손익: ${rr.rows.length}건`);
+      } catch (e) { log(`키움 계좌 ${n} 해외 실현손익 실패: ${e.message}`); }
     }
   }
   if (cfg.kis?.appkey) {
