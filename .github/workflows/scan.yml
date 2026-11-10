@@ -13,7 +13,7 @@ on:
         required: true
         default: daily
         type: choice
-        options: [daily, intraday, telegram-test, probe]
+        options: [daily, intraday, telegram-test]
 
 permissions:
   contents: write
@@ -48,7 +48,7 @@ jobs:
         run: |
           git config user.name "stock-note-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/signals.json 2>/dev/null || true
+          git add data/signals.json data/stocks 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "바뀐 신호 없음"
           else

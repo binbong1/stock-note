@@ -49,6 +49,31 @@ async function universe(minCapEok) {
   return out;
 }
 
+// ------------------------------------------------------------------ 종목 상세 (사이트 팝업·상세 페이지용)
+const N = (v) => { const x = Number(String(v ?? '').replace(/[,+%배원억]/g, '')); return Number.isFinite(x) ? x : null; };
+function financeTable(j) {
+  const fi = j?.financeInfo; if (!fi) return null;
+  const periods = (fi.trTitleList || []).map((t) => ({ key: t.key, title: t.title, est: t.isConsensus === 'Y' }));
+  const rows = {};
+  for (const r of fi.rowList || []) rows[r.title] = Object.fromEntries(periods.map((p) => [p.key, r.columns?.[p.key]?.value ?? null]));
+  return { periods, rows };
+}
+async function stockDetail(code, bars) {
+  const get = async (x) => JSON.parse(await fetchText(`https://m.stock.naver.com/api/stock/${code}/${x}`));
+  const [integ, annual, quarter] = await Promise.all([get('integration').catch(() => null), get('finance/annual').catch(() => null), get('finance/quarter').catch(() => null)]);
+  const info = {}, infoDesc = {};
+  for (const t of integ?.totalInfos || []) { info[t.key] = t.value; if (t.valueDesc) infoDesc[t.key] = t.valueDesc; }
+  const sum = annual?.corporationSummary || quarter?.corporationSummary || {};
+  return {
+    code, name: integ?.stockName, updatedAt: new Date().toISOString(),
+    bars: bars.slice(-250).map((b) => [b.date, b.open, b.high, b.low, b.close, b.volume]),
+    info, infoDesc, annual: financeTable(annual), quarter: financeTable(quarter),
+    summary: [sum.comment1, sum.comment2, sum.comment3].filter(Boolean),
+    deals: (integ?.dealTrendInfos || []).slice(0, 10).map((d) => ({ date: d.bizdate, foreign: N(d.foreignerPureBuyQuant), organ: N(d.organPureBuyQuant), individual: N(d.individualPureBuyQuant), close: N(d.closePrice), foreignRatio: d.foreignerHoldRatio })),
+    researches: (integ?.researches || []).slice(0, 8).map((r) => ({ id: r.id, broker: r.bnm, title: r.tit, date: r.wdt })),
+  };
+}
+
 // ------------------------------------------------------------------ 텔레그램
 const ALERTS = await (async () => { try { return JSON.parse(await fs.readFile(path.join(ROOT, 'config', 'alerts.json'), 'utf8')); } catch { return { paused: false, custom: [] }; } })();
 const alertsPaused = () => ALERTS.paused && (!ALERTS.pausedUntil || ALERTS.pausedUntil >= kstDate());
@@ -217,6 +242,27 @@ async function daily() {
     history,
   };
   await writeSignals(sig);
+
+  // 신호 종목 + 내 보유·관심(국내) 종목의 상세 자료 저장
+  if (!SAMPLE) {
+    const want = new Map();
+    for (const x of [...breakouts, ...stage2, ...stage1.slice(0, 40), ...custom]) want.set(x.code, rows.find((r) => r.code === x.code)?.bars || null);
+    try {
+      const summary = JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'summary.json'), 'utf8'));
+      for (const st of summary.stocks || []) if (/^\d{6}$/.test(st.code) && !want.has(st.code)) want.set(st.code, rows.find((r) => r.code === st.code)?.bars || null);
+    } catch {}
+    await fs.mkdir(path.join(ROOT, 'data', 'stocks'), { recursive: true });
+    let n = 0;
+    for (const [code, bars0] of want) {
+      try {
+        const bars = bars0 || await dailyBars(code);
+        await fs.writeFile(path.join(ROOT, 'data', 'stocks', `${code}.json`), JSON.stringify(await stockDetail(code, bars)));
+        n++;
+      } catch (e) { log(`상세 자료 실패 ${code}: ${e.message}`); }
+      await sleep(150);
+    }
+    log(`종목 상세 자료 ${n}개 저장`);
+  }
   log(`완료: 3 Stage 돌파 ${breakouts.length} · 2 Stage 관찰 ${stage2.length} · 1 Stage ${stage1.length}`);
 
   // 장 마감 요약·종가 돌파 알림은 거래일마다 한 번만 (같은 날 스캔을 다시 돌려도 재전송 안 함)
@@ -308,9 +354,4 @@ async function telegramTest() {
 if (MODE === 'daily') await daily();
 else if (MODE === 'intraday') await intraday();
 else if (MODE === 'telegram-test') await telegramTest();
-else if (MODE === 'probe') {
-  for (const u of ['basic', 'integration', 'finance/annual', 'finance/quarter'].map((x) => `https://m.stock.naver.com/api/stock/251970/${x}`)) {
-    try { const r = await fetch(u, { headers: UA }); const t = await r.text(); log('URL', u, r.status, t.length, t.slice(0, 3500).replace(/\s+/g, ' ')); } catch (e) { log('ERR', u, e.message); }
-  }
-}
 else { console.error('모드: daily | intraday | telegram-test'); process.exit(1); }
