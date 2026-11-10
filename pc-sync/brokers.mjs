@@ -37,15 +37,28 @@ async function kisClient({ appkey, appsecret, account }) {
     body: JSON.stringify({ grant_type: 'client_credentials', appkey, appsecret }),
   }, 'KIS 토큰');
   if (!tok.access_token) throw new Error('KIS 토큰 발급 실패');
+  // 호출 간격을 0.7초 이상 두고, '초당 거래건수 초과'면 잠시 쉬었다가 최대 6번 재시도
+  // (신규 발급 키는 처음 며칠 동안 초당 허용 건수가 낮음)
+  let lastAt = 0;
   const get = async (path, trId, params, trCont = '') => {
-    const { json, headers } = await call(`${KIS_BASE}${path}?${new URLSearchParams(params)}`, {
-      headers: {
-        'content-type': 'application/json; charset=utf-8', authorization: `Bearer ${tok.access_token}`,
-        appkey, appsecret, tr_id: trId, custtype: 'P', tr_cont: trCont,
-      },
-    }, `KIS ${trId}`);
-    if (json.rt_cd && json.rt_cd !== '0') throw new Error(`KIS ${trId}: ${json.msg1}`);
-    return { json, more: ['M', 'F'].includes(headers.get('tr_cont')) };
+    for (let attempt = 0; ; attempt++) {
+      const wait = lastAt + 700 - Date.now();
+      if (wait > 0) await sleep(wait);
+      lastAt = Date.now();
+      try {
+        const { json, headers } = await call(`${KIS_BASE}${path}?${new URLSearchParams(params)}`, {
+          headers: {
+            'content-type': 'application/json; charset=utf-8', authorization: `Bearer ${tok.access_token}`,
+            appkey, appsecret, tr_id: trId, custtype: 'P', tr_cont: trCont,
+          },
+        }, `KIS ${trId}`);
+        if (json.rt_cd && json.rt_cd !== '0') throw new Error(`KIS ${trId}: ${json.msg1}`);
+        return { json, more: ['M', 'F'].includes(headers.get('tr_cont')) };
+      } catch (e) {
+        if (attempt < 6 && /초당|EGW00201|거래건수/.test(e.message)) { await sleep(1500 * (attempt + 1)); continue; }
+        throw e;
+      }
+    }
   };
   const c = { cano, prdt, label: mask(`${cano}-${prdt}`), get };
   kisClients.set(appkey, c);
@@ -114,10 +127,8 @@ export async function fetchKISRealized(cfg, fromYmd, toYmd) {
       }
       if (!more) break;
       fk = json.ctx_area_fk100 || ''; nk = json.ctx_area_nk100 || ''; cont = 'N';
-      await sleep(350);
     }
     start = new Date(Date.UTC(chunkEnd.getUTCFullYear(), chunkEnd.getUTCMonth(), chunkEnd.getUTCDate() + 1));
-    await sleep(350);
   }
   return { account: c.label, rows };
 }
