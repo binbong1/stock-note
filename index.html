@@ -78,9 +78,51 @@ const won = (v) => v == null ? '–' : Math.round(v).toLocaleString('ko-KR');
 const sign = (v, unit = '%') => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + unit;
 const signWon = (v) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.round(Math.abs(v)).toLocaleString('ko-KR');
 const cls = (v) => v > 0 ? 'up' : v < 0 ? 'down' : '';
-let DATA = null;
+let DATA = null, ENC = null, AUTO = null;
 
-function holdings() { return store.get('stocknote.holdings', {}); }
+const b64 = (t) => Uint8Array.from(atob(t), (c) => c.charCodeAt(0));
+async function decryptBox(box, pw) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(box.salt), iterations: box.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(box.iv) }, key, b64(box.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+function savedPw() { try { return sessionStorage.getItem('stocknote.pw') || localStorage.getItem('stocknote.pw'); } catch { return null; } }
+async function unlock(pw, remember) {
+  AUTO = await decryptBox(ENC, pw);
+  try { (remember ? localStorage : sessionStorage).setItem('stocknote.pw', pw); } catch {}
+}
+function lockCard() {
+  if (!ENC || AUTO) return '';
+  return `<section class="card" aria-labelledby="lk"><form id="unlock" style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px">
+    <div style="flex:1 1 260px"><h2 id="lk">증권사 잔고 잠금 해제</h2><p class="mute" style="margin:2px 0 0;font-size:13px">키움·한국투자증권에서 자동으로 가져온 보유 수량과 평단은 암호화돼 있어요.</p></div>
+    <div><label for="pw" style="display:block;font-size:13px;color:var(--mute)">비밀번호</label><input id="pw" type="password" autocomplete="current-password" style="height:44px;width:200px"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:14px;height:44px"><input id="rem" type="checkbox" style="height:auto"> 이 기기에서 기억</label>
+    <button class="primary" type="submit">열기</button><span id="lkmsg" class="down" style="font-size:13px"></span></form></section>`;
+}
+function bindLock() {
+  const f = document.getElementById('unlock'); if (!f) return;
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    try { await unlock(document.getElementById('pw').value, document.getElementById('rem').checked); route(); }
+    catch { document.getElementById('lkmsg').textContent = '비밀번호가 맞지 않아요'; }
+  };
+}
+function lockOut() { try { sessionStorage.removeItem('stocknote.pw'); localStorage.removeItem('stocknote.pw'); } catch {} AUTO = null; route(); }
+
+function holdings() {
+  const manual = store.get('stocknote.holdings', {});
+  if (!AUTO) return manual;
+  const out = {};
+  for (const h of AUTO.items) {
+    const o = out[h.code] ||= { qty: 0, cost: 0, brokers: [] };
+    o.qty += h.qty; o.cost += h.qty * h.avg;
+    if (!o.brokers.includes(h.broker)) o.brokers.push(h.broker);
+  }
+  for (const k in out) { out[k].avg = out[k].qty ? out[k].cost / out[k].qty : 0; out[k].auto = true; }
+  for (const k in manual) if (!out[k]) out[k] = manual[k];
+  return out;
+}
 function toKRW(s, v) { return s.currency === 'USD' ? v * (DATA.fx.USDKRW || 0) : v; }
 
 function portfolio() {
@@ -92,7 +134,7 @@ function portfolio() {
     const v = toKRW(s, s.close * qty), c = toKRW(s, avg * qty);
     const prevClose = s.close / (1 + s.changePct / 100);
     if (qty) { any = true; value += v; cost += c; today += toKRW(s, (s.close - prevClose) * qty); }
-    return { s, qty, avg, value: v, ret: qty && avg ? (s.close / avg - 1) * 100 : null };
+    return { s, qty, avg, value: v, brokers: p.brokers, ret: qty && avg ? (s.close / avg - 1) * 100 : null };
   });
   rows.forEach((r) => r.weight = value && r.qty ? r.value / value * 100 : null);
   return { rows, value, cost, today, any };
@@ -111,6 +153,7 @@ function viewHome() {
   $app.innerHTML = `
   ${DATA.sample ? '<div class="banner">지금 보이는 숫자는 <b>샘플(가짜) 데이터</b>예요. GitHub Actions가 처음 실행되면 실제 데이터로 바뀝니다.</div>' : ''}
   ${DATA.errors?.length ? `<div class="banner err">일부 데이터를 못 가져왔어요: ${DATA.errors.map(esc).join(' · ')}</div>` : ''}
+  ${lockCard()}
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
     <div><h1>오늘의 내 포트폴리오</h1><p class="mute" style="margin:4px 0 0">마지막 업데이트 ${esc(upd)} · 기준일 ${esc(DATA.stocks[0]?.date)}</p></div>
     ${DATA.fx.USDKRW ? `<span class="mute num" style="font-size:13px">USD/KRW ${DATA.fx.USDKRW}</span>` : ''}
@@ -126,8 +169,8 @@ function viewHome() {
       <div style="display:flex;justify-content:space-between;margin-bottom:14px"><h2 id="t1">보유·관심 종목</h2><a href="#/holdings" style="font-size:14px">보유 정보 수정</a></div>
       <div class="scroll"><table style="min-width:720px">
         <thead><tr><th scope="col">종목</th><th scope="col">현재가</th><th scope="col">오늘</th><th scope="col">내 수익률</th><th scope="col">비중</th><th scope="col">52주 고가 대비</th><th scope="col" style="text-align:left;padding-left:20px">추세 상태</th></tr></thead>
-        <tbody>${P.rows.map(({s, ret, weight}) => `<tr>
-          <td><a class="name" href="#/stock/${encodeURIComponent(s.code)}">${esc(s.name)}</a><div class="sub">${esc(s.code)} · ${esc(s.sector)}</div></td>
+        <tbody>${P.rows.map(({s, ret, weight, brokers}) => `<tr>
+          <td><a class="name" href="#/stock/${encodeURIComponent(s.code)}">${esc(s.name)}</a><div class="sub">${esc(s.code)} · ${esc(s.sector)}${brokers ? ' · ' + brokers.map(esc).join('·') : ''}</div></td>
           <td class="num">${fmt(s.close, s.currency)}</td>
           <td class="num ${cls(s.changePct)}">${sign(s.changePct)}</td>
           <td class="num ${cls(ret)}">${sign(ret)}</td>
@@ -157,6 +200,7 @@ function viewHome() {
     <h2 id="t4" style="margin-bottom:16px">섹터 상대강도 <span class="mute" style="font-size:13px;font-weight:500">최근 3개월 · 국내는 코스피, 미국은 나스닥 대비</span></h2>
     <div class="bars">${sec.map(([k, v]) => `<div><div style="display:flex;justify-content:space-between;font-size:14px"><span style="font-weight:500">${esc(k)}</span><span class="num ${cls(v)}">${sign(v, '%p')}</span></div><div class="track"><div class="fill" style="width:${Math.max(3, Math.abs(v) / maxAbs * 100)}%;background:${v >= 0 ? 'var(--up)' : 'var(--down)'}"></div></div></div>`).join('')}</div>
   </section>`;
+  bindLock();
 }
 
 function chartSvg(c) {
@@ -239,21 +283,26 @@ function viewStock(code) {
 }
 
 function viewHoldings() {
-  const h = holdings();
+  const h = store.get('stocknote.holdings', {});
   $app.innerHTML = `
+  ${lockCard()}
+  ${AUTO ? `<div class="banner" style="background:#EEF6EE;color:#1E5631">증권사에서 자동으로 가져온 종목 ${new Set(AUTO.items.map((h) => h.code)).size}개는 입력하지 않아도 돼요 (${esc(new Date(AUTO.updatedAt).toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'}))} 기준). 아래에서는 자동 연동이 안 된 종목만 입력하세요. <button type="button" id="lockout" style="height:32px;margin-left:8px">잠그기</button></div>` : ''}
   <div><h1>보유 정보 입력</h1><p class="mute" style="margin:4px 0 0">수량과 평균 매수가는 <b>이 브라우저에만</b> 저장되고 GitHub에는 올라가지 않아요. 다른 기기에서는 다시 입력해야 해요.</p></div>
   <section class="card"><form id="hf"><div class="scroll"><table style="min-width:560px">
     <thead><tr><th scope="col">종목</th><th scope="col">현재가</th><th scope="col">보유 수량</th><th scope="col">평균 매수가</th></tr></thead>
     <tbody>${DATA.stocks.map((s) => `<tr><td><span class="name">${esc(s.name)}</span><div class="sub">${esc(s.code)}</div></td><td class="num">${fmt(s.close, s.currency)}</td>
-      <td><label class="sr" for="q-${esc(s.code)}">${esc(s.name)} 수량</label><input class="small num" id="q-${esc(s.code)}" name="q-${esc(s.code)}" inputmode="decimal" value="${esc(h[s.code]?.qty ?? '')}"></td>
-      <td><label class="sr" for="a-${esc(s.code)}">${esc(s.name)} 평균 매수가</label><input class="small num" id="a-${esc(s.code)}" name="a-${esc(s.code)}" inputmode="decimal" placeholder="${s.currency === 'USD' ? '달러' : '원'}" value="${esc(h[s.code]?.avg ?? '')}"></td></tr>`).join('')}</tbody>
+      ${holdings()[s.code]?.auto ? `<td colspan="2" style="text-align:right" class="mute">자동 연동 · ${holdings()[s.code].qty.toLocaleString('ko-KR')}주 · 평단 ${fmt(holdings()[s.code].avg, s.currency)}</td>` : `<td><label class="sr" for="q-${esc(s.code)}">${esc(s.name)} 수량</label><input class="small num" id="q-${esc(s.code)}" name="q-${esc(s.code)}" inputmode="decimal" value="${esc(h[s.code]?.qty ?? '')}"></td>
+      <td><label class="sr" for="a-${esc(s.code)}">${esc(s.name)} 평균 매수가</label><input class="small num" id="a-${esc(s.code)}" name="a-${esc(s.code)}" inputmode="decimal" placeholder="${s.currency === 'USD' ? '달러' : '원'}" value="${esc(h[s.code]?.avg ?? '')}"></td>`}</tr>`).join('')}</tbody>
   </table></div>
   <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="primary" type="submit">저장하고 대시보드로</button></div></form></section>`;
+  bindLock();
+  const lo = document.getElementById('lockout'); if (lo) lo.onclick = lockOut;
   document.getElementById('hf').onsubmit = (e) => {
     e.preventDefault();
     const out = {};
     DATA.stocks.forEach((s) => {
-      const q = parseFloat(String(document.getElementById('q-' + s.code).value).replace(/,/g, ''));
+      const qi = document.getElementById('q-' + s.code); if (!qi) return;
+      const q = parseFloat(String(qi.value).replace(/,/g, ''));
       const a = parseFloat(String(document.getElementById('a-' + s.code).value).replace(/,/g, ''));
       if (q > 0) out[s.code] = { qty: q, avg: a > 0 ? a : 0 };
     });
@@ -275,7 +324,13 @@ function route() {
 
 fetch('data/summary.json?t=' + Date.now())
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then((d) => { DATA = d; route(); })
+  .then(async (d) => {
+    DATA = d;
+    try { const r = await fetch('data/holdings.enc.json?t=' + Date.now()); if (r.ok) ENC = await r.json(); } catch {}
+    const pw = savedPw();
+    if (ENC && pw) { try { await unlock(pw, !!localStorage.getItem('stocknote.pw')); } catch { AUTO = null; } }
+    route();
+  })
   .catch((e) => { $app.innerHTML = `<div class="banner err">data/summary.json 을 불러오지 못했어요 (${esc(e.message)}). GitHub Actions가 한 번 실행됐는지 확인해 주세요.</div>`; });
 window.addEventListener('hashchange', route);
 </script>

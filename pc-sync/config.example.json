@@ -1,0 +1,18 @@
+{
+  "password": "사이트 잠금 비밀번호(GitHub의 HOLDINGS_PASSWORD와 똑같이)",
+  "github": {
+    "owner": "내 GitHub 아이디",
+    "repo": "stock-note",
+    "branch": "main",
+    "token": "github_pat_로 시작하는 토큰",
+    "runWorkflow": true
+  },
+  "kiwoom": [
+    { "appkey": "키움 계좌 App Key", "secretkey": "키움 계좌 Secret Key" }
+  ],
+  "kis": {
+    "appkey": "",
+    "appsecret": "",
+    "account": "12345678-01"
+  }
+}

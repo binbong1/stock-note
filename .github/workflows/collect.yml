@@ -27,6 +27,10 @@ jobs:
       - name: 시세·지표·공시 수집
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          HOLDINGS_PASSWORD: ${{ secrets.HOLDINGS_PASSWORD }}
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+          KIS_ACCOUNT: ${{ secrets.KIS_ACCOUNT }}
         run: node scripts/collect.mjs
 
       - name: 결과 저장(커밋)
@@ -38,5 +42,6 @@ jobs:
             echo "바뀐 데이터 없음"
           else
             git commit -m "데이터 업데이트 $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M')"
+            git pull --rebase
             git push
           fi

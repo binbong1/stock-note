@@ -9,12 +9,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { fetchKIS, encryptJSON, decryptJSON } from './brokers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLE = process.argv.includes('--sample');
 const DART_KEY = process.env.DART_API_KEY || '';
 const UA = { 'User-Agent': 'Mozilla/5.0 (stock-note personal dashboard)' };
-const KR_MARKETS = { KOSPI: '.KS', KOSDAQ: '.KQ' };
+const KR_MARKETS = { KOSPI: '.KS', KOSDAQ: '.KQ', KRX: '.KS' };
+const ENV = process.env;
 
 const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
 const round = (v, n = 2) => (v == null || !isFinite(v) ? null : Math.round(v * 10 ** n) / 10 ** n);
@@ -68,7 +70,9 @@ async function getBars(stock) {
   if (KR_MARKETS[stock.market]) {
     try { return await fromNaver(stock.code); }
     catch (e) { log(`네이버 실패(${stock.name}) → 야후로 재시도:`, e.message); }
-    return fromYahoo(stock.code + KR_MARKETS[stock.market]);
+    try { return await fromYahoo(stock.code + KR_MARKETS[stock.market]); }
+    catch (e) { if (stock.market !== 'KRX') throw e; }
+    return fromYahoo(stock.code + '.KQ');
   }
   return fromYahoo(stock.code);
 }
@@ -240,6 +244,43 @@ async function main() {
   const st = cfg.settings;
   const result = { updatedAt: new Date().toISOString(), sample: SAMPLE, settings: st, fx: {}, stocks: [], disclosures: [], errors: [] };
 
+  // ----- 증권사 잔고 (금액은 암호화해서만 저장) -----
+  const holdFile = path.join(ROOT, 'data', 'holdings.enc.json');
+  const localFile = path.join(ROOT, 'data', 'holdings-local.enc.json');
+  const pw = SAMPLE ? 'sample1234' : ENV.HOLDINGS_PASSWORD;
+  let holdings = [];
+  if (SAMPLE) {
+    holdings = [
+      { broker: '키움', code: '083650', name: '비에이치아이', market: 'KRX', currency: 'KRW', qty: 120, avg: 38500 },
+      { broker: '키움', code: '062040', name: '산일전기', market: 'KRX', currency: 'KRW', qty: 15, avg: 88000 },
+      { broker: 'KIS', code: '006260', name: 'LS', market: 'KRX', currency: 'KRW', qty: 10, avg: 131000 },
+      { broker: 'KIS', code: 'IREN', name: 'IREN', market: 'NASDAQ', currency: 'USD', qty: 40, avg: 41.2 },
+    ];
+  } else if (pw) {
+    if (ENV.KIS_APPKEY && ENV.KIS_APPSECRET && ENV.KIS_ACCOUNT) {
+      try {
+        const k = await fetchKIS({ appkey: ENV.KIS_APPKEY, appsecret: ENV.KIS_APPSECRET, account: ENV.KIS_ACCOUNT });
+        holdings.push(...k); log(`한국투자증권 잔고 ${k.length}종목`);
+      } catch (e) { result.errors.push(`한국투자증권 잔고: ${e.message}`); }
+    }
+    try {
+      const box = JSON.parse(await fs.readFile(localFile, 'utf8'));
+      const local = decryptJSON(box, pw);
+      holdings.push(...local.items.filter((h) => !(ENV.KIS_APPKEY && h.broker === 'KIS')));
+      result.localSyncAt = local.updatedAt;
+      log(`PC 동기화 잔고 ${local.items.length}종목 (${local.updatedAt})`);
+    } catch (e) {
+      if (e.code !== 'ENOENT') result.errors.push(`PC 동기화 잔고 해독 실패(비밀번호가 같은지 확인): ${e.message}`);
+    }
+  }
+  // 보유 종목 중 watchlist 에 없는 것은 자동으로 분석 대상에 추가 (종목명만 공개, 수량·평단은 암호화)
+  for (const h of holdings) {
+    if (!cfg.stocks.some((s) => s.code === h.code)) {
+      cfg.stocks.push({ name: h.name, code: h.code, market: h.market, sector: '미분류' });
+    }
+  }
+  result.hasHoldings = holdings.length > 0;
+
   const bench = {};
   const benchSymbol = (m) => (KR_MARKETS[m] ? '^KS11' : '^IXIC');
   if (SAMPLE) {
@@ -279,6 +320,11 @@ async function main() {
   }
 
   await fs.mkdir(path.join(ROOT, 'data'), { recursive: true });
+  if (holdings.length && pw) {
+    await fs.writeFile(holdFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, items: holdings }, pw)));
+  } else {
+    await fs.rm(holdFile, { force: true });
+  }
   await fs.writeFile(path.join(ROOT, 'data', 'summary.json'), JSON.stringify(result));
   log(`저장 완료 · 종목 ${result.stocks.length}개 · 공시 ${result.disclosures.length}건 · 오류 ${result.errors.length}건`);
   if (!result.stocks.length) process.exit(1);
