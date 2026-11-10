@@ -153,7 +153,11 @@ async function kiwoomClient({ appkey, secretkey }, index = 0) {
       },
       body: JSON.stringify(body),
     }, `키움 ${apiId}`);
-    if (json.return_code !== 0 && json.return_code !== '0') throw new Error(`키움 ${apiId}: ${json.return_msg}`);
+    if (json.return_code !== 0 && json.return_code !== '0') {
+      // 거래가 없는 날은 오류 코드로 '조회내역이 없습니다'가 옴 → 빈 결과로 처리
+      if (/조회내역이 없|조회할 내역이 없|571758/.test(String(json.return_msg))) return { json: {}, more: false, next: '' };
+      throw new Error(`키움 ${apiId}: ${json.return_msg}`);
+    }
     return { json, more: headers.get('cont-yn') === 'Y', next: headers.get('next-key') || '' };
   };
   const c = { label: `키움 계좌 ${index + 1}`, post };
