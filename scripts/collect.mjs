@@ -257,6 +257,10 @@ async function main() {
     catch (e) { if (e.code !== 'ENOENT') result.errors.push(`${path.basename(file)} 해독 실패(비밀번호 변경?) → 새로 시작`); return fallback; }
   };
   let holdings = [], accounts = [];
+  // 계좌 별칭 (config/accounts.json). KIS#n 은 n번째 한국투자증권 계좌
+  const aliasCfg = (await fs.readFile(path.join(ROOT, 'config', 'accounts.json'), 'utf8').then(JSON.parse).catch(() => ({}))).aliases || {};
+  const aliases = {};
+  for (const [k, v] of Object.entries(aliasCfg)) if (!k.startsWith('KIS#')) aliases[k] = v;
   let history = pw ? await readEnc(histFile, { days: [] }) : { days: [] };
   let realized = pw ? await readEnc(realFile, { rows: [], sources: {} }) : { rows: [], sources: {} };
   const mergeRealized = (src) => {
@@ -274,6 +278,7 @@ async function main() {
       { broker: 'KIS', account: '****5678-01', code: 'IREN', name: 'IREN', market: 'NASDAQ', currency: 'USD', qty: 40, avg: 41.2 },
     ];
     accounts = [{ broker: '키움', account: '키움 계좌 1', cash: 1250000, total: null }, { broker: 'KIS', account: '****5678-01', cash: 830000, total: null }];
+    Object.assign(aliases, { 'KIS|****5678-01': '한투1', '키움|키움 계좌 1': '키움(미국)' });
     // 샘플용 과거 기록·실현손익
     let v = 9000000;
     history.days = [];
@@ -281,7 +286,13 @@ async function main() {
       const d = new Date(kstNow.getTime() - i * 86400000); const w = d.getUTCDay();
       if (w === 0 || w === 6) continue;
       v *= 1 + (Math.sin(i / 9) * 0.012 + (i % 7 - 3) * 0.002);
-      history.days.push({ date: d.toISOString().slice(0, 10), stockValue: Math.round(v), cost: 9532480, cash: 2080000, total: Math.round(v) + 2080000 });
+      const pA = Math.round(v * 0.4 / 100), pB = Math.round(v * 0.6 / 100);
+      const cashB = 1250000 + (i < 60 ? 1000000 : 0) - (i < 20 ? 300000 : 0);   // 60일 전 100만 입금, 20일 전 30만 출금
+      const A = { stockValue: pA * 100, cost: 3800000, cash: 830000, pos: { '006260': [100, pA] } };
+      const Bk = { stockValue: pB * 100, cost: 5700000, cash: cashB, pos: { '083650': [100, pB] } };
+      A.total = A.stockValue + A.cash; Bk.total = Bk.stockValue + Bk.cash;
+      history.days.push({ date: d.toISOString().slice(0, 10), stockValue: A.stockValue + Bk.stockValue, cost: 9500000, cash: A.cash + Bk.cash, total: A.total + Bk.total,
+        byAccount: { 'KIS|****5678-01': A, '키움|키움 계좌 1': Bk } });
     }
     const names = [['005930', '삼성전자'], ['000660', 'SK하이닉스'], ['083650', '비에이치아이'], ['012450', '한화에어로스페이스'], ['267260', 'HD현대일렉트릭']];
     realized = { rows: [], sources: { '키움|키움 계좌 1': { from: '2025-11-10' }, 'KIS|****5678-01': { from: '2025-11-10' } } };
@@ -300,6 +311,7 @@ async function main() {
       try {
         const k = await fetchKIS(kcfg);
         holdings.push(...k.items); accounts.push(...k.accounts);
+        if (aliasCfg[`KIS#${i + 1}`]) aliases[`KIS|${k.accounts[0].account}`] = aliasCfg[`KIS#${i + 1}`];
         log(`한국투자증권 계좌 ${i + 1} 잔고 ${k.items.length}종목`);
       } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 잔고: ${e.message}`); continue; }
       try {
@@ -372,7 +384,7 @@ async function main() {
 
   await fs.mkdir(path.join(ROOT, 'data'), { recursive: true });
   if (pw && (holdings.length || realized.rows.length)) {
-    await fs.writeFile(holdFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, items: holdings, accounts }, pw)));
+    await fs.writeFile(holdFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, items: holdings, accounts, aliases }, pw)));
 
     // 일별 잔고 기록: 평일에만, 같은 날 여러 번 돌면 마지막 값으로 덮어씀
     const wd = kstNow.getUTCDay();
@@ -394,11 +406,14 @@ async function main() {
       for (const h of holdings) {
         const s = px[h.code]; if (!s) continue;
         const k = h.currency === 'USD' ? fx : 1;
-        const o = byAccount[`${h.broker}|${h.account || h.broker}`] ||= { stockValue: 0, cost: 0, cash: null };
+        const o = byAccount[`${h.broker}|${h.account || h.broker}`] ||= { stockValue: 0, cost: 0, cash: null, pos: {} };
         o.stockValue += s.close * h.qty * k; o.cost += h.avg * h.qty * k;
+        // 입출금 추정용: 종목별 [수량, 원화 환산 종가]
+        const ps = (o.pos ||= {})[h.code] || [0, 0];
+        o.pos[h.code] = [ps[0] + h.qty, Math.round(s.close * k * 100) / 100];
       }
       for (const a of accounts) {
-        const o = byAccount[`${a.broker}|${a.account}`] ||= { stockValue: 0, cost: 0, cash: null };
+        const o = byAccount[`${a.broker}|${a.account}`] ||= { stockValue: 0, cost: 0, cash: null, pos: {} };
         if (a.cash != null) o.cash = (o.cash || 0) + a.cash;
       }
       for (const o of Object.values(byAccount)) {
@@ -412,7 +427,7 @@ async function main() {
         byStock: Object.fromEntries(Object.entries(byStock).map(([k, o]) => [k, { name: o.name, v: Math.round(o.v), c: Math.round(o.c) }])), byAccount };
       history.days = history.days.filter((d) => d.date !== today).concat(day).sort((x, y) => x.date.localeCompare(y.date));
     }
-    await fs.writeFile(histFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...history }, pw)));
+    await fs.writeFile(histFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...history, aliases }, pw)));
     realized.rows.sort((x, y) => y.date.localeCompare(x.date));
     await fs.writeFile(realFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...realized }, pw)));
   } else if (!pw) {

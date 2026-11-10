@@ -5,7 +5,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decryptJSON } from './brokers.mjs';
+import { decryptJSON, encryptJSON } from './brokers.mjs';
 import { UA, kstNow, r2, dailyBars, weightedReturn, rsFromCut, classify, riskPlan } from './strategy-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -42,6 +42,11 @@ async function file(p, ttl = 60000) {
   return v;
 }
 const enc = async (p) => { const box = await file(p); return box ? decryptJSON(box, CFG.password) : null; };
+async function saveRaw(p, obj, message) {
+  const cur = await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`);
+  await gh('PUT', `/contents/${p}`, { message, content: Buffer.from(JSON.stringify(obj)).toString('base64'), sha: cur?.sha, branch: GH.branch || 'main' });
+  cache.delete(p);
+}
 async function saveJSON(p, obj, message) {
   const cur = await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`);
   await gh('PUT', `/contents/${p}`, { message, content: Buffer.from(JSON.stringify(obj, null, 2) + '\n').toString('base64'), sha: cur?.sha, branch: GH.branch || 'main' });
@@ -56,10 +61,12 @@ async function tg(method, body) {
 const reply = (text) => tg('sendMessage', { chat_id: TG.chatId, text, parse_mode: 'HTML', disable_web_page_preview: true });
 
 // ---------------------------------------------------------------- 공통 계산
-const acctName = (broker, account) => (String(account).startsWith(broker) ? account : (broker === 'KIS' ? '한투 ' : broker + ' ') + account);
+let ALIASES = {};
+const acctName = (broker, account) => ALIASES[`${broker}|${account}`] || (String(account).startsWith(broker) ? account : (broker === 'KIS' ? '한투 ' : broker + ' ') + account);
 async function portfolio() {
   const [sum, hold] = await Promise.all([file('data/summary.json'), enc('data/holdings.enc.json')]);
   if (!sum || !hold) throw new Error('데이터를 불러오지 못했어요');
+  ALIASES = hold.aliases || {};
   const px = Object.fromEntries(sum.stocks.map((s) => [s.code, s]));
   const fx = sum.fx?.USDKRW || 0;
   const acc = {};
@@ -117,6 +124,7 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>분석 삼성전자</b> — 종목의 Stage·피벗·손절가
 • <b>감시</b> / <b>감시 추가 삼성전자</b> [가격] / <b>감시 삭제 삼성전자</b>
 • <b>기준</b> / <b>기준 RS 80</b> — 스캔 기준 보기·바꾸기
+• <b>입금 한투1 100만</b> [날짜] / <b>출금 키움(미국) 50만</b> / <b>입출금</b> — 수익률 계산용 입출금 기록
 • <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b>`;
 
 const KEYS = {
@@ -144,6 +152,7 @@ async function cmdStatus(detail) {
 
 async function cmdRealized(arg) {
   const R = await enc('data/realized.enc.json');
+  ALIASES = (await enc('data/holdings.enc.json').catch(() => null))?.aliases || ALIASES;
   if (!R) return '실현손익 데이터가 아직 없어요.';
   const t = today(), y = t.slice(0, 4), m = t.slice(0, 7);
   const back = (d) => new Date(kstNow().getTime() - d * 86400000).toISOString().slice(0, 10);
@@ -255,6 +264,38 @@ async function cmdAlerts(on, arg) {
   return on ? '🔔 알림을 다시 켰어요.' : `🔕 알림을 ${alerts.pausedUntil ? alerts.pausedUntil + '까지' : '켤 때까지'} 멈췄어요. "알림 켜기"로 다시 켤 수 있어요.`;
 }
 
+// 입출금 직접 기록 → data/flows.enc.json (암호화). 자산 추이의 추정값 대신 사용
+async function cmdFlow(kind, args) {
+  const hold = await enc('data/holdings.enc.json');
+  ALIASES = hold?.aliases || {};
+  const keys = new Set([...(hold?.items || []).map((h) => `${h.broker}|${h.account || h.broker}`), ...(hold?.accounts || []).map((a) => `${a.broker}|${a.account}`)]);
+  const named = [...keys].map((k) => { const [b, a] = k.split('|'); return [k, acctName(b, a)]; });
+  const flows = (await enc('data/flows.enc.json').catch(() => null)) || { rows: [] };
+  if (kind === 'list') {
+    const rows = flows.rows.slice(-15).reverse();
+    return rows.length ? ['<b>💵 직접 기록한 입출금</b>', ...rows.map((r) => `· ${r.date} ${esc(named.find(([k]) => k === r.account)?.[1] || r.account)} ${r.amount > 0 ? '입금' : '출금'} ${won(Math.abs(r.amount))}원`), '', '지우기: 입출금 삭제 2026-11-12 한투1'].join('\n') : '직접 기록한 입출금이 없어요. 예) 입금 한투1 1000000';
+  }
+  const date = args.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a)) || today();
+  const rest = args.filter((a) => a !== date);
+  const amtTok = rest.find((a) => /^[\d,]+(원|만원?)?$/.test(a));
+  const name = rest.filter((a) => a !== amtTok).join(' ');
+  const hit = named.filter(([, n]) => n === name || n.replace(/\s/g, '') === name.replace(/\s/g, '') || n.includes(name));
+  if (hit.length !== 1) return `계좌를 정확히 적어 주세요: ${named.map(([, n]) => n).join(', ')}`;
+  if (kind === 'delete') {
+    const before = flows.rows.length;
+    flows.rows = flows.rows.filter((r) => !(r.date === date && r.account === hit[0][0]));
+    if (before === flows.rows.length) return `${date} ${esc(hit[0][1])} 기록이 없어요.`;
+  } else {
+    if (!amtTok) return '금액을 적어 주세요. 예) 입금 한투1 1000000 (또는 100만)';
+    let amount = Number(amtTok.replace(/[,원만]/g, '')) * (/만/.test(amtTok) ? 10000 : 1);
+    if (kind === 'out') amount = -amount;
+    flows.rows = flows.rows.filter((r) => !(r.date === date && r.account === hit[0][0])).concat({ date, account: hit[0][0], amount });
+    flows.rows.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  await saveRaw('data/flows.enc.json', encryptJSON(flows, CFG.password), `봇: 입출금 기록`);
+  return kind === 'delete' ? `${date} ${esc(hit[0][1])} 입출금 기록을 지웠어요.` : `💵 ${date} <b>${esc(hit[0][1])}</b> ${kind === 'in' ? '입금' : '출금'} ${won(Math.abs(Number(amtTok.replace(/[,원만]/g, '')) * (/만/.test(amtTok) ? 10000 : 1)))}원을 기록했어요.\n자산 추이 수익률에 바로 반영돼요 (사이트 새로고침).`;
+}
+
 async function handle(text) {
   const t = text.trim().replace(/^\//, '');
   const [cmd, ...args] = t.split(/\s+/);
@@ -265,6 +306,9 @@ async function handle(text) {
   if (/^(신호|시그널|signals?)$/i.test(cmd)) return cmdSignals();
   if (/^(분석|종목|조회)$/.test(cmd)) return cmdAnalyze(args.join(' '));
   if (/^감시$/.test(cmd)) return cmdWatch(args);
+  if (/^입금$/.test(cmd)) return cmdFlow('in', args);
+  if (/^출금$/.test(cmd)) return cmdFlow('out', args);
+  if (/^입출금$/.test(cmd)) return args[0] === '삭제' ? cmdFlow('delete', args.slice(1)) : cmdFlow('list', args);
   if (/^기준$/.test(cmd)) return cmdCriteria(args);
   if (/^알림$/.test(cmd) && /끄|중지|멈/.test(args[0] || '')) return cmdAlerts(false, args.slice(1).join(' '));
   if (/^알림$/.test(cmd) && /켜|시작|재개/.test(args[0] || '')) return cmdAlerts(true);

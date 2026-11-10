@@ -308,4 +308,9 @@ async function telegramTest() {
 if (MODE === 'daily') await daily();
 else if (MODE === 'intraday') await intraday();
 else if (MODE === 'telegram-test') await telegramTest();
+else if (MODE === 'probe') {
+  for (const u of ['basic', 'integration', 'finance/annual', 'finance/quarter'].map((x) => `https://m.stock.naver.com/api/stock/251970/${x}`)) {
+    try { const r = await fetch(u, { headers: UA }); const t = await r.text(); log('URL', u, r.status, t.length, t.slice(0, 3500).replace(/\s+/g, ' ')); } catch (e) { log('ERR', u, e.message); }
+  }
+}
 else { console.error('모드: daily | intraday | telegram-test'); process.exit(1); }
