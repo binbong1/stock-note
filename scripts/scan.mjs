@@ -219,7 +219,15 @@ async function daily() {
   await writeSignals(sig);
   log(`완료: 3 Stage 돌파 ${breakouts.length} · 2 Stage 관찰 ${stage2.length} · 1 Stage ${stage1.length}`);
 
-  if (!SAMPLE) {
+  // 장 마감 요약·종가 돌파 알림은 거래일마다 한 번만 (같은 날 스캔을 다시 돌려도 재전송 안 함)
+  const alreadySent = prev.summarySentFor === sig.asOf;
+  sig.summarySentFor = prev.summarySentFor;
+  const closed = kstNow().toISOString().slice(11, 16) >= '15:30' || sig.asOf < kstDate();
+  if (!SAMPLE && alreadySent) log(`${sig.asOf} 요약은 이미 보냈어요 → 생략`);
+  if (!SAMPLE && !closed) log('장 마감 전이라 요약을 보내지 않아요');
+  if (!SAMPLE && !alreadySent && closed) {
+    sig.summarySentFor = sig.asOf;
+    await writeSignals(sig);
     for (const s of breakouts) await telegram(alertText(s, 'close'));
     const top = stage2.slice(0, 10).map((s) => `· ${esc(s.name)} 피벗 ${fmt(s.pivot)} (−${s.toPivotPct}%) RS ${s.rs}`).join('\n');
     await telegram(`📋 <b>장 마감 스캔 ${sig.asOf}</b>\n3 Stage 돌파 ${breakouts.length}개 · 2 Stage 관찰 ${stage2.length}개\n${top ? '\n<b>내일 돌파 감시 (피벗 가까운 순)</b>\n' + top : ''}\n<a href="${SITE}">전체 보기</a>`);
