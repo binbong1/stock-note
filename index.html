@@ -62,7 +62,7 @@
 <body>
 <header><div class="wrap bar">
   <a class="logo" href="#/"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg></span>내 주식 노트</a>
-  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/holdings" id="nav-hold">보유 정보 입력</a></nav>
+  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/history" id="nav-hist">자산 추이</a><a href="#/realized" id="nav-real">실현손익</a><a href="#/holdings" id="nav-hold">보유 정보</a></nav>
 </div></header>
 <div class="wrap"><main id="app"><p class="mute">불러오는 중…</p></main></div>
 
@@ -78,7 +78,7 @@ const won = (v) => v == null ? '–' : Math.round(v).toLocaleString('ko-KR');
 const sign = (v, unit = '%') => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(2) + unit;
 const signWon = (v) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.round(Math.abs(v)).toLocaleString('ko-KR');
 const cls = (v) => v > 0 ? 'up' : v < 0 ? 'down' : '';
-let DATA = null, ENC = null, AUTO = null;
+let DATA = null, ENC = null, AUTO = null, ENC_H = null, ENC_R = null, HIST = null, REAL = null;
 
 const b64 = (t) => Uint8Array.from(atob(t), (c) => c.charCodeAt(0));
 async function decryptBox(box, pw) {
@@ -90,6 +90,8 @@ async function decryptBox(box, pw) {
 function savedPw() { try { return sessionStorage.getItem('stocknote.pw') || localStorage.getItem('stocknote.pw'); } catch { return null; } }
 async function unlock(pw, remember) {
   AUTO = await decryptBox(ENC, pw);
+  HIST = ENC_H ? await decryptBox(ENC_H, pw) : null;
+  REAL = ENC_R ? await decryptBox(ENC_R, pw) : null;
   try { (remember ? localStorage : sessionStorage).setItem('stocknote.pw', pw); } catch {}
 }
 function lockCard() {
@@ -108,7 +110,7 @@ function bindLock() {
     catch { document.getElementById('lkmsg').textContent = '비밀번호가 맞지 않아요'; }
   };
 }
-function lockOut() { try { sessionStorage.removeItem('stocknote.pw'); localStorage.removeItem('stocknote.pw'); } catch {} AUTO = null; route(); }
+function lockOut() { try { sessionStorage.removeItem('stocknote.pw'); localStorage.removeItem('stocknote.pw'); } catch {} AUTO = null; HIST = null; REAL = null; route(); }
 
 function holdings() {
   const manual = store.get('stocknote.holdings', {});
@@ -311,12 +313,187 @@ function viewHoldings() {
   };
 }
 
+// ================= 기간 선택 (자산 추이·실현손익 공용) =================
+const todayStr = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+const shiftDays = (n) => new Date(Date.now() + 9 * 3600000 - n * 86400000).toISOString().slice(0, 10);
+let PERIOD = store.get('stocknote.period', { preset: '3m' });
+const PRESETS = [['1m', '1개월', 31], ['3m', '3개월', 92], ['6m', '6개월', 183], ['1y', '1년', 366], ['ytd', '올해', null], ['all', '전체', null]];
+function periodRange() {
+  if (PERIOD.preset === 'custom') return [PERIOD.from || '2000-01-01', PERIOD.to || todayStr()];
+  if (PERIOD.preset === 'all') return ['2000-01-01', todayStr()];
+  if (PERIOD.preset === 'ytd') return [todayStr().slice(0, 4) + '-01-01', todayStr()];
+  const p = PRESETS.find((x) => x[0] === PERIOD.preset) || PRESETS[1];
+  return [shiftDays(p[2]), todayStr()];
+}
+function periodBar() {
+  const [f, t] = periodRange();
+  return `<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px" role="group" aria-label="조회 기간">
+    ${PRESETS.map(([k, l]) => `<button type="button" data-preset="${k}" class="${PERIOD.preset === k ? 'primary' : ''}" style="height:40px;padding:0 14px">${l}</button>`).join('')}
+    <span style="display:flex;align-items:flex-end;gap:6px;margin-left:8px">
+      <label style="font-size:12px;color:var(--mute)">시작<br><input type="date" id="pf" value="${f === '2000-01-01' ? '' : f}" style="height:40px"></label>
+      <label style="font-size:12px;color:var(--mute)">끝<br><input type="date" id="pt" value="${t}" style="height:40px"></label>
+      <button type="button" id="papply" style="height:40px">적용</button>
+    </span></div>`;
+}
+function bindPeriod() {
+  document.querySelectorAll('[data-preset]').forEach((b) => b.onclick = () => { PERIOD = { preset: b.dataset.preset }; store.set('stocknote.period', PERIOD); route(); });
+  const a = document.getElementById('papply');
+  if (a) a.onclick = () => { PERIOD = { preset: 'custom', from: document.getElementById('pf').value, to: document.getElementById('pt').value }; store.set('stocknote.period', PERIOD); route(); };
+}
+function needUnlock(title) {
+  if (AUTO) return false;
+  $app.innerHTML = `<h1>${title}</h1>${ENC ? lockCard() : '<div class="banner">증권사 잔고 연동이 아직 없어요. 한국투자증권 키나 키움 PC 동기화를 설정하면 여기에 기록이 쌓여요.</div>'}`;
+  bindLock();
+  return true;
+}
+function csvDownload(name, header, rows) {
+  const q = (v) => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const blob = new Blob(['﻿' + [header, ...rows].map((r) => r.map(q).join(',')).join('\n')], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const short = (v) => Math.abs(v) >= 1e8 ? (v / 1e8).toFixed(2) + '억' : Math.abs(v) >= 1e4 ? Math.round(v / 1e4).toLocaleString('ko-KR') + '만' : Math.round(v).toLocaleString('ko-KR');
+
+function lineChart(dates, series, aria) {
+  const W = 800, H = 300, L = 8, R = 70, T = 16, B = 28, n = dates.length;
+  if (n < 2) return '<p class="mute">기록이 2일 이상 쌓이면 그래프가 보여요.</p>';
+  const all = series.flatMap((s) => s.values).filter((v) => v != null);
+  let mn = Math.min(...all), mx = Math.max(...all); const pad = (mx - mn) * 0.08 || mx * 0.02 || 1; mn -= pad; mx += pad;
+  const X = (i) => L + i / (n - 1) * (W - L - R), Y = (v) => T + (1 - (v - mn) / (mx - mn)) * (H - T - B);
+  const grid = [0, .25, .5, .75, 1].map((t) => { const v = mx - (mx - mn) * t, y = T + t * (H - T - B); return `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#EFEFEA"/><text x="${W - R + 6}" y="${y + 4}" font-size="11" fill="#6B6B75">${short(v)}</text>`; }).join('');
+  const lines = series.map((s) => `<polyline fill="none" stroke="${s.color}" stroke-width="${s.w || 2}" ${s.dash ? 'stroke-dasharray="5 4"' : ''} stroke-linejoin="round" points="${s.values.map((v, i) => v == null ? '' : X(i).toFixed(1) + ',' + Y(v).toFixed(1)).filter(Boolean).join(' ')}"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${aria}" style="display:block">${grid}${lines}<text x="${L}" y="${H - 6}" font-size="11" fill="#6B6B75">${dates[0]}</text><text x="${W - R}" y="${H - 6}" font-size="11" fill="#6B6B75" text-anchor="end">${dates[n - 1]}</text></svg>`;
+}
+function barChart(labels, values, aria) {
+  const W = 800, H = 260, T = 16, B = 30, n = labels.length;
+  if (!n) return '<p class="mute">이 기간에 실현손익이 없어요.</p>';
+  const mx = Math.max(1, ...values.map(Math.abs)), zero = values.some((v) => v < 0) ? (H - T - B) / 2 + T : H - B;
+  const span = values.some((v) => v < 0) ? (H - T - B) / 2 : H - T - B, bw = Math.min(56, (W - 20) / n * 0.6);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${aria}" style="display:block"><line x1="0" y1="${zero}" x2="${W}" y2="${zero}" stroke="#D6D6CF"/>${values.map((v, i) => {
+    const cx = 10 + (i + 0.5) * (W - 20) / n, h = Math.abs(v) / mx * span, y = v >= 0 ? zero - h : zero;
+    return `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1, h).toFixed(1)}" rx="3" fill="${v >= 0 ? '#C8102E' : '#1D4ED8'}"/><text x="${cx}" y="${(v >= 0 ? y - 4 : y + h + 12).toFixed(1)}" font-size="11" text-anchor="middle" fill="#3D3D45">${short(v)}</text><text x="${cx}" y="${H - 8}" font-size="11" text-anchor="middle" fill="#6B6B75">${labels[i]}</text>`;
+  }).join('')}</svg>`;
+}
+
+// ================= 자산 추이 =================
+function viewHistory() {
+  if (needUnlock('자산 추이')) return;
+  const [f, t] = periodRange();
+  const all = HIST?.days || [];
+  const days = all.filter((d) => d.date >= f && d.date <= t);
+  const first = days[0], last = days.at(-1);
+  const chg = first && last ? last.total - first.total : null;
+  const chgPct = first && last && first.total ? chg / first.total * 100 : null;
+  const plNow = last ? last.stockValue - last.cost : null;
+  const realSum = (REAL?.rows || []).filter((r) => r.date >= (first?.date || f) && r.date <= t).reduce((s, r) => s + r.pl - r.fee - r.tax, 0);
+  const rows = days.map((d, i) => { const p = i ? days[i - 1] : all[all.indexOf(d) - 1]; return { ...d, diff: p ? d.total - p.total : null, diffPct: p && p.total ? (d.total - p.total) / p.total * 100 : null }; }).reverse();
+  const stockChg = first && last ? Object.keys({ ...first.byStock, ...last.byStock }).map((k) => ({ code: k, name: (last.byStock?.[k] || first.byStock?.[k]).name, a: first.byStock?.[k]?.v || 0, b: last.byStock?.[k]?.v || 0 })).map((x) => ({ ...x, d: x.b - x.a })).sort((x, y) => Math.abs(y.d) - Math.abs(x.d)) : [];
+
+  $app.innerHTML = `
+  ${HIST?.sample ? '<div class="banner">샘플 기록이에요. 실제 기록은 매일 장 마감 후(16:40) 하루 한 줄씩 쌓여요.</div>' : ''}
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
+    <div><h1>자산 추이</h1><p class="mute" style="margin:4px 0 0">매일 장 마감 후 증권사 잔고로 기록 · 기록 시작 ${esc(all[0]?.date || '-')} · 총 ${all.length}일</p></div>
+    ${periodBar()}
+  </div>
+  ${!days.length ? '<div class="card"><p class="mute" style="margin:0">이 기간에 기록이 없어요. 첫 기록은 평일 16:40 자동 실행 때 생겨요.</p></div>' : `
+  <section class="cards" aria-label="기간 요약">
+    <div class="card kpi"><div class="l">기간 말 총자산</div><div class="v num">${won(last.total)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">${esc(last.date)} · 주식 ${short(last.stockValue)} + 예수금 ${last.cash == null ? '–' : short(last.cash)}</div></div>
+    <div class="card kpi"><div class="l">기간 중 총자산 변동</div><div class="v num ${cls(chg)}">${signWon(chg)}<span style="font-size:16px"> 원</span></div><div class="s num ${cls(chg)}">${sign(chgPct)} · ${esc(first.date)}부터</div></div>
+    <div class="card kpi"><div class="l">현재 평가손익</div><div class="v num ${cls(plNow)}">${signWon(plNow)}<span style="font-size:16px"> 원</span></div><div class="s num ${cls(plNow)}">${last.cost ? sign(plNow / last.cost * 100) : ''} · 매입 ${short(last.cost)}</div></div>
+    <div class="card kpi dark"><div class="l">같은 기간 실현손익(순)</div><div class="v num">${signWon(realSum)}<span style="font-size:16px;color:#C9C9D1"> 원</span></div><div class="s"><a href="#/realized" style="color:#fff;text-decoration:underline">실현손익 자세히 →</a></div></div>
+  </section>
+  <section class="card" aria-labelledby="h1c">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-bottom:12px"><h2 id="h1c">총자산 · 주식평가 · 매입금액</h2>
+    <div class="legend"><span><i style="background:#16161A"></i>총자산</span><span><i style="background:#E8590C"></i>주식평가</span><span><i style="background:#1D4ED8"></i>매입금액</span></div></div>
+    ${lineChart(days.map((d) => d.date), [{ color: '#1D4ED8', values: days.map((d) => d.cost), dash: true }, { color: '#E8590C', values: days.map((d) => d.stockValue) }, { color: '#16161A', values: days.map((d) => d.total), w: 2.4 }], '기간별 총자산, 주식평가금액, 매입금액 추이')}
+  </section>
+  <div class="row">
+    <section class="card main-col" aria-labelledby="h2c">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 id="h2c">일별 잔고</h2><button type="button" id="hcsv" style="height:36px">CSV 내려받기</button></div>
+      <div class="scroll" style="max-height:520px;overflow-y:auto"><table style="min-width:640px">
+        <thead><tr><th scope="col">날짜</th><th scope="col">총자산</th><th scope="col">주식평가</th><th scope="col">예수금</th><th scope="col">평가손익</th><th scope="col">전일 대비</th></tr></thead>
+        <tbody>${rows.map((d) => `<tr><td class="num">${esc(d.date)}</td><td class="num">${won(d.total)}</td><td class="num">${won(d.stockValue)}</td><td class="num">${d.cash == null ? '–' : won(d.cash)}</td><td class="num ${cls(d.stockValue - d.cost)}">${signWon(d.stockValue - d.cost)}</td><td class="num ${cls(d.diff)}">${d.diff == null ? '–' : signWon(d.diff) + ' (' + sign(d.diffPct) + ')'}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </section>
+    <section class="card side-col" aria-labelledby="h3c" style="display:block">
+      <h2 id="h3c" style="margin-bottom:4px">종목별 평가금액 변동</h2>
+      <p class="mute" style="margin:0 0 10px;font-size:13px">${esc(first.date)} → ${esc(last.date)} (매매로 늘거나 줄어든 금액 포함)</p>
+      <ul class="list">${stockChg.length ? stockChg.slice(0, 15).map((x) => `<li style="display:flex;justify-content:space-between;gap:8px"><span>${esc(x.name)}<br><span class="mute num" style="font-size:12px">${short(x.a)} → ${short(x.b)}</span></span><span class="num ${cls(x.d)}" style="white-space:nowrap">${signWon(x.d)}</span></li>`).join('') : '<li class="mute">종목별 기록이 없어요.</li>'}</ul>
+    </section>
+  </div>`}`;
+  bindPeriod();
+  const c = document.getElementById('hcsv');
+  if (c) c.onclick = () => csvDownload(`자산추이_${f}_${t}.csv`, ['날짜', '총자산', '주식평가', '예수금', '매입금액', '평가손익'], days.map((d) => [d.date, d.total, d.stockValue, d.cash ?? '', d.cost, d.stockValue - d.cost]));
+}
+
+// ================= 실현손익 =================
+let REAL_BROKER = 'all';
+const acctLabel = (broker, account) => String(account).startsWith(broker) ? account : (broker === 'KIS' ? '한투 ' : broker + ' ') + account;
+function viewRealized() {
+  if (needUnlock('실현손익')) return;
+  const [f, t] = periodRange();
+  const allRows = REAL?.rows || [];
+  const brokers = [...new Set(allRows.map((r) => r.broker))];
+  const rows = allRows.filter((r) => r.date >= f && r.date <= t && (REAL_BROKER === 'all' || r.broker === REAL_BROKER)).map((r) => ({ ...r, net: r.pl - r.fee - r.tax }));
+  const sum = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
+  const gross = sum('pl'), costs = sum('fee') + sum('tax'), net = gross - costs, sell = sum('sellAmt');
+  const wins = rows.filter((r) => r.pl > 0).length;
+  const months = {};
+  rows.forEach((r) => { const m = r.date.slice(0, 7); months[m] = (months[m] || 0) + r.net; });
+  const mKeys = Object.keys(months).sort();
+  const byStock = {};
+  rows.forEach((r) => { const o = byStock[r.code] ||= { name: r.name, code: r.code, qty: 0, sell: 0, net: 0, gross: 0, n: 0 }; o.qty += r.qty; o.sell += r.sellAmt; o.net += r.net; o.gross += r.pl; o.n++; });
+  const stocks = Object.values(byStock).sort((a, b) => b.net - a.net);
+  const srcInfo = Object.entries(REAL?.sources || {}).map(([k, v]) => { const [b, a] = k.split('|'); return `${acctLabel(b, a)}: ${v.from}부터`; }).join(' · ');
+
+  $app.innerHTML = `
+  ${REAL?.sample ? '<div class="banner">샘플 매매내역이에요. 실제 연동 후에는 증권사의 매도 체결 기준 실현손익으로 바뀌어요.</div>' : ''}
+  <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
+    <div><h1>실현손익</h1><p class="mute" style="margin:4px 0 0">실제 매도 체결 기준 · ${esc(srcInfo || '아직 수집된 내역 없음')}</p></div>
+    ${periodBar()}
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap" role="group" aria-label="증권사">
+    ${[['all', '전체'], ...brokers.map((b) => [b, b === 'KIS' ? '한국투자증권' : b])].map(([k, l]) => `<button type="button" data-broker="${esc(k)}" class="${REAL_BROKER === k ? 'primary' : ''}" style="height:36px">${esc(l)}</button>`).join('')}
+  </div>
+  <section class="cards" aria-label="실현손익 요약">
+    <div class="card kpi dark"><div class="l">순 실현손익</div><div class="v num">${signWon(net)}<span style="font-size:16px;color:#C9C9D1"> 원</span></div><div class="s">실현손익 ${signWon(gross)} − 수수료·세금</div></div>
+    <div class="card kpi"><div class="l">수수료 + 세금</div><div class="v num">${won(costs)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">매도금액 대비 ${sell ? (costs / sell * 100).toFixed(2) : '0.00'}%</div></div>
+    <div class="card kpi"><div class="l">매도 건수 · 승률</div><div class="v num">${rows.length}<span class="mute" style="font-size:16px"> 건</span></div><div class="s mute">이익 ${wins}건 · 승률 ${rows.length ? (wins / rows.length * 100).toFixed(0) : 0}%</div></div>
+    <div class="card kpi"><div class="l">총 매도금액</div><div class="v num">${short(sell)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">${esc(f === '2000-01-01' ? '전체 기간' : f + ' ~ ' + t)}</div></div>
+  </section>
+  <section class="card" aria-labelledby="r1"><h2 id="r1" style="margin-bottom:12px">월별 순 실현손익</h2>${barChart(mKeys.map((m) => m.slice(2).replace('-', '.')), mKeys.map((m) => months[m]), '월별 순 실현손익 막대 그래프')}</section>
+  <div class="row">
+    <section class="card" style="flex:1 1 460px;min-width:0" aria-labelledby="r2">
+      <h2 id="r2" style="margin-bottom:10px">종목별</h2>
+      <div class="scroll" style="max-height:480px;overflow-y:auto"><table>
+        <thead><tr><th scope="col">종목</th><th scope="col">매도금액</th><th scope="col">순손익</th></tr></thead>
+        <tbody>${stocks.length ? stocks.map((s) => `<tr><td><span class="name">${esc(s.name)}</span><div class="sub">${esc(s.code)} · ${s.n}건 · ${s.qty.toLocaleString('ko-KR')}주</div></td><td class="num">${short(s.sell)}</td><td class="num ${cls(s.net)}">${signWon(s.net)}</td></tr>`).join('') : '<tr><td colspan="3" class="mute">내역이 없어요</td></tr>'}</tbody>
+      </table></div>
+    </section>
+    <section class="card" style="flex:999 1 560px;min-width:0" aria-labelledby="r3">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 id="r3">매도 내역</h2><button type="button" id="rcsv" style="height:36px">CSV 내려받기</button></div>
+      <div class="scroll" style="max-height:480px;overflow-y:auto"><table style="min-width:720px">
+        <thead><tr><th scope="col">날짜</th><th scope="col" style="text-align:left">종목</th><th scope="col">수량</th><th scope="col">매입단가</th><th scope="col">매도금액</th><th scope="col">실현손익</th><th scope="col">수익률</th><th scope="col">비용</th></tr></thead>
+        <tbody>${rows.length ? rows.map((r) => `<tr><td class="num">${esc(r.date)}</td><td style="text-align:left">${esc(r.name)}<div class="sub">${esc(acctLabel(r.broker, r.account))}</div></td><td class="num">${r.qty.toLocaleString('ko-KR')}</td><td class="num">${won(r.buyPrice)}</td><td class="num">${won(r.sellAmt)}</td><td class="num ${cls(r.pl)}">${signWon(r.pl)}</td><td class="num ${cls(r.rate)}">${sign(r.rate)}</td><td class="num mute">${won(r.fee + r.tax)}</td></tr>`).join('') : '<tr><td colspan="8" class="mute">이 기간에 매도 내역이 없어요</td></tr>'}</tbody>
+      </table></div>
+      <p class="mute" style="font-size:12px;margin:10px 0 0">실현손익·수익률은 증권사가 계산한 값이에요. 순손익 = 실현손익 − 수수료 − 세금. 증권사마다 계산 방식이 조금 다를 수 있어요.</p>
+    </section>
+  </div>`;
+  bindPeriod();
+  document.querySelectorAll('[data-broker]').forEach((b) => b.onclick = () => { REAL_BROKER = b.dataset.broker; route(); });
+  document.getElementById('rcsv').onclick = () => csvDownload(`실현손익_${f}_${t}.csv`, ['날짜', '증권사', '계좌', '종목코드', '종목명', '수량', '매입단가', '매도금액', '실현손익', '수익률', '수수료', '세금', '순손익'], rows.map((r) => [r.date, r.broker, r.account, r.code, r.name, r.qty, r.buyPrice, r.sellAmt, r.pl, r.rate, r.fee, r.tax, r.net]));
+}
+
 function route() {
   if (!DATA) return;
   const hsh = location.hash || '#/';
   document.getElementById('nav-home').className = hsh === '#/' ? 'on' : '';
   document.getElementById('nav-hold').className = hsh === '#/holdings' ? 'on' : '';
+  document.getElementById('nav-hist').className = hsh === '#/history' ? 'on' : '';
+  document.getElementById('nav-real').className = hsh === '#/realized' ? 'on' : '';
   if (hsh.startsWith('#/stock/')) viewStock(decodeURIComponent(hsh.slice(8)));
+  else if (hsh === '#/history') viewHistory();
+  else if (hsh === '#/realized') viewRealized();
   else if (hsh === '#/holdings') viewHoldings();
   else viewHome();
   window.scrollTo(0, 0);
@@ -326,7 +503,8 @@ fetch('data/summary.json?t=' + Date.now())
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(async (d) => {
     DATA = d;
-    try { const r = await fetch('data/holdings.enc.json?t=' + Date.now()); if (r.ok) ENC = await r.json(); } catch {}
+    const getJ = async (f) => { try { const r = await fetch('data/' + f + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } };
+    [ENC, ENC_H, ENC_R] = await Promise.all([getJ('holdings.enc.json'), getJ('history.enc.json'), getJ('realized.enc.json')]);
     const pw = savedPw();
     if (ENC && pw) { try { await unlock(pw, !!localStorage.getItem('stocknote.pw')); } catch { AUTO = null; } }
     route();

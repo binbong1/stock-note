@@ -1,6 +1,6 @@
-// 증권사 잔고 조회 + 암호화 도우미 (외부 패키지 없음)
-// - 한국투자증권(KIS) Open API: 국내·해외(미국) 잔고
-// - 키움증권 REST API: 국내 잔고 (등록된 IP에서만 동작 → 내 PC에서 실행)
+// 증권사 잔고·실현손익 조회 + 암호화 도우미 (외부 패키지 없음)
+// - 한국투자증권(KIS) Open API: 국내·해외(미국) 잔고, 국내 기간별 매매손익
+// - 키움증권 REST API: 국내 잔고, 일자별 실현손익 (등록된 IP에서만 동작 → 내 PC에서 실행)
 // 모든 함수는 '조회'만 하고 주문 기능은 쓰지 않습니다.
 
 import crypto from 'node:crypto';
@@ -9,6 +9,10 @@ const num = (v) => {
   const n = Number(String(v ?? '').trim().replace(/,/g, '').replace(/^\+/, ''));
   return Number.isFinite(n) ? n : 0;
 };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+const dash = (s) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+const mask = (acct) => { const [a, b = ''] = String(acct).split('-'); return `****${a.slice(-4)}${b ? '-' + b : ''}`; };
 
 async function call(url, opts, label) {
   const res = await fetch(url, opts);
@@ -19,98 +23,193 @@ async function call(url, opts, label) {
   return { json, headers: res.headers };
 }
 
-// ---------------- 한국투자증권 ----------------
-// 필요한 값: appkey, appsecret, account("12345678-01" 형식)
-export async function fetchKIS({ appkey, appsecret, account }) {
-  const BASE = 'https://openapi.koreainvestment.com:9443';
+// ======================= 한국투자증권 =======================
+const KIS_BASE = 'https://openapi.koreainvestment.com:9443';
+const kisClients = new Map();
+
+// 토큰은 1분에 1번만 발급되므로 같은 실행 안에서는 재사용
+async function kisClient({ appkey, appsecret, account }) {
+  if (kisClients.has(appkey)) return kisClients.get(appkey);
   const [cano, prdt = '01'] = String(account).replace(/\s/g, '').split('-');
   if (!/^\d{8}$/.test(cano)) throw new Error('KIS 계좌번호는 "12345678-01" 형식이어야 해요');
-
-  const { json: tok } = await call(`${BASE}/oauth2/tokenP`, {
+  const { json: tok } = await call(`${KIS_BASE}/oauth2/tokenP`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ grant_type: 'client_credentials', appkey, appsecret }),
   }, 'KIS 토큰');
   if (!tok.access_token) throw new Error('KIS 토큰 발급 실패');
-  const H = (trId, trCont = '') => ({
-    'content-type': 'application/json; charset=utf-8',
-    authorization: `Bearer ${tok.access_token}`, appkey, appsecret,
-    tr_id: trId, custtype: 'P', tr_cont: trCont,
-  });
+  const get = async (path, trId, params, trCont = '') => {
+    const { json, headers } = await call(`${KIS_BASE}${path}?${new URLSearchParams(params)}`, {
+      headers: {
+        'content-type': 'application/json; charset=utf-8', authorization: `Bearer ${tok.access_token}`,
+        appkey, appsecret, tr_id: trId, custtype: 'P', tr_cont: trCont,
+      },
+    }, `KIS ${trId}`);
+    if (json.rt_cd && json.rt_cd !== '0') throw new Error(`KIS ${trId}: ${json.msg1}`);
+    return { json, more: ['M', 'F'].includes(headers.get('tr_cont')) };
+  };
+  const c = { cano, prdt, label: mask(`${cano}-${prdt}`), get };
+  kisClients.set(appkey, c);
+  return c;
+}
 
-  const out = [];
+// 잔고: { items: 보유종목[], accounts: [{예수금·총평가}] }
+export async function fetchKIS(cfg) {
+  const c = await kisClient(cfg);
+  const items = [], account = { broker: 'KIS', account: c.label, cash: null, total: null };
 
-  // 국내 잔고 (TTTC8434R) — 50건 넘으면 연속조회
   let fk = '', nk = '', cont = '';
   for (let page = 0; page < 10; page++) {
-    const q = new URLSearchParams({
-      CANO: cano, ACNT_PRDT_CD: prdt, AFHR_FLPR_YN: 'N', OFL_YN: '', INQR_DVSN: '02', UNPR_DVSN: '01',
+    const { json, more } = await c.get('/uapi/domestic-stock/v1/trading/inquire-balance', 'TTTC8434R', {
+      CANO: c.cano, ACNT_PRDT_CD: c.prdt, AFHR_FLPR_YN: 'N', OFL_YN: '', INQR_DVSN: '02', UNPR_DVSN: '01',
       FUND_STTL_ICLD_YN: 'N', FNCG_AMT_AUTO_RDPT_YN: 'N', PRCS_DVSN: '00', CTX_AREA_FK100: fk, CTX_AREA_NK100: nk,
-    });
-    const { json, headers } = await call(`${BASE}/uapi/domestic-stock/v1/trading/inquire-balance?${q}`,
-      { headers: H('TTTC8434R', cont) }, 'KIS 국내잔고');
-    if (json.rt_cd && json.rt_cd !== '0') throw new Error(`KIS 국내잔고: ${json.msg1}`);
+    }, cont);
     for (const r of json.output1 || []) {
       const qty = num(r.hldg_qty);
-      if (qty > 0) out.push({ broker: 'KIS', code: r.pdno, name: r.prdt_name, market: 'KRX', currency: 'KRW', qty, avg: num(r.pchs_avg_pric) });
+      if (qty > 0) items.push({ broker: 'KIS', account: c.label, code: r.pdno, name: r.prdt_name, market: 'KRX', currency: 'KRW', qty, avg: num(r.pchs_avg_pric) });
     }
-    const more = ['M', 'F'].includes(headers.get('tr_cont'));
+    const sum = Array.isArray(json.output2) ? json.output2[0] : json.output2;
+    if (sum && page === 0) { account.cash = num(sum.dnca_tot_amt); account.total = num(sum.tot_evlu_amt); }
     if (!more) break;
     fk = json.ctx_area_fk100 || ''; nk = json.ctx_area_nk100 || ''; cont = 'N';
-    await new Promise((r) => setTimeout(r, 300));
+    await sleep(300);
   }
 
-  // 해외(미국) 잔고 (TTTS3012R) — 실전에서 NASD는 미국 전체
   try {
-    const q = new URLSearchParams({ CANO: cano, ACNT_PRDT_CD: prdt, OVRS_EXCG_CD: 'NASD', TR_CRCY_CD: 'USD', CTX_AREA_FK200: '', CTX_AREA_NK200: '' });
-    const { json } = await call(`${BASE}/uapi/overseas-stock/v1/trading/inquire-balance?${q}`,
-      { headers: H('TTTS3012R') }, 'KIS 해외잔고');
-    if (json.rt_cd && json.rt_cd !== '0') throw new Error(json.msg1);
+    const { json } = await c.get('/uapi/overseas-stock/v1/trading/inquire-balance', 'TTTS3012R', {
+      CANO: c.cano, ACNT_PRDT_CD: c.prdt, OVRS_EXCG_CD: 'NASD', TR_CRCY_CD: 'USD', CTX_AREA_FK200: '', CTX_AREA_NK200: '',
+    });
     const ex = { NASD: 'NASDAQ', NYSE: 'NYSE', AMEX: 'AMEX' };
     for (const r of json.output1 || []) {
       const qty = num(r.ovrs_cblc_qty);
-      if (qty > 0) out.push({ broker: 'KIS', code: r.ovrs_pdno, name: r.ovrs_item_name, market: ex[r.ovrs_excg_cd] || 'NASDAQ', currency: 'USD', qty, avg: num(r.pchs_avg_pric) });
+      if (qty > 0) items.push({ broker: 'KIS', account: c.label, code: r.ovrs_pdno, name: r.ovrs_item_name, market: ex[r.ovrs_excg_cd] || 'NASDAQ', currency: 'USD', qty, avg: num(r.pchs_avg_pric) });
     }
   } catch (e) {
     console.log('[KIS] 해외잔고 건너뜀:', e.message);
   }
-  return out;
+  return { items, accounts: [account] };
 }
 
-// ---------------- 키움증권 ----------------
-// 필요한 값: appkey, secretkey (계좌 App Key 관리에서 계좌별로 발급)
-export async function fetchKiwoom({ appkey, secretkey }) {
-  const BASE = 'https://api.kiwoom.com';
-  const { json: tok } = await call(`${BASE}/oauth2/token`, {
+// 국내 기간별 매매손익(TTTC8715R): 매도한 거래의 실현손익. 한 달 단위로 나눠 조회.
+export async function fetchKISRealized(cfg, fromYmd, toYmd) {
+  const c = await kisClient(cfg);
+  const rows = [];
+  let start = new Date(`${dash(fromYmd)}T00:00:00Z`);
+  const end = new Date(`${dash(toYmd)}T00:00:00Z`);
+  while (start <= end) {
+    const chunkEnd = new Date(Math.min(end.getTime(), new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getTime()));
+    let fk = '', nk = '', cont = '';
+    for (let page = 0; page < 20; page++) {
+      const { json, more } = await c.get('/uapi/domestic-stock/v1/trading/inquire-period-trade-profit', 'TTTC8715R', {
+        CANO: c.cano, ACNT_PRDT_CD: c.prdt, SORT_DVSN: '01', PDNO: '', INQR_STRT_DT: ymd(start), INQR_END_DT: ymd(chunkEnd),
+        CBLC_DVSN: '00', CTX_AREA_FK100: fk, CTX_AREA_NK100: nk,
+      }, cont);
+      for (const r of json.output1 || []) {
+        const qty = num(r.sll_qty);
+        if (!qty || !r.trad_dt) continue;
+        rows.push({
+          date: dash(r.trad_dt), broker: 'KIS', account: c.label, code: r.pdno, name: r.prdt_name,
+          qty, sellAmt: num(r.sll_amt), buyPrice: num(r.pchs_unpr), pl: num(r.rlzt_pfls), rate: num(r.pfls_rt),
+          fee: num(r.fee), tax: num(r.tl_tax),
+        });
+      }
+      if (!more) break;
+      fk = json.ctx_area_fk100 || ''; nk = json.ctx_area_nk100 || ''; cont = 'N';
+      await sleep(350);
+    }
+    start = new Date(Date.UTC(chunkEnd.getUTCFullYear(), chunkEnd.getUTCMonth(), chunkEnd.getUTCDate() + 1));
+    await sleep(350);
+  }
+  return { account: c.label, rows };
+}
+
+// ======================= 키움증권 =======================
+const KW_BASE = 'https://api.kiwoom.com';
+const kwClients = new Map();
+
+async function kiwoomClient({ appkey, secretkey }, index = 0) {
+  if (kwClients.has(appkey)) return kwClients.get(appkey);
+  const { json: tok } = await call(`${KW_BASE}/oauth2/token`, {
     method: 'POST', headers: { 'Content-Type': 'application/json;charset=UTF-8' },
     body: JSON.stringify({ grant_type: 'client_credentials', appkey, secretkey }),
   }, '키움 토큰');
   if (!tok.token) throw new Error(`키움 토큰 발급 실패: ${tok.return_msg || ''} (PC의 IP가 등록돼 있는지 확인)`);
-
-  const out = [];
-  let cont = 'N', next = '';
-  for (let page = 0; page < 10; page++) {
-    const { json, headers } = await call(`${BASE}/api/dostk/acnt`, {
+  const post = async (apiId, body, cont = 'N', next = '') => {
+    const { json, headers } = await call(`${KW_BASE}/api/dostk/acnt`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=UTF-8', authorization: `Bearer ${tok.token}`,
-        'api-id': 'kt00018', 'cont-yn': cont, 'next-key': next,
+        'api-id': apiId, 'cont-yn': cont, 'next-key': next,
       },
-      body: JSON.stringify({ qry_tp: '1', dmst_stex_tp: 'KRX' }),
-    }, '키움 잔고');
-    if (json.return_code !== 0 && json.return_code !== '0') throw new Error(`키움 잔고: ${json.return_msg}`);
-    for (const r of json.acnt_evlt_remn_indv_tot || []) {
-      const qty = num(r.rmnd_qty);
-      const code = String(r.stk_cd || '').trim().replace(/^[A-Z]/, ''); // A005930 → 005930
-      if (qty > 0 && /^\w{6}$/.test(code)) out.push({ broker: '키움', code, name: String(r.stk_nm || '').trim(), market: 'KRX', currency: 'KRW', qty, avg: num(r.pur_pric) });
+      body: JSON.stringify(body),
+    }, `키움 ${apiId}`);
+    if (json.return_code !== 0 && json.return_code !== '0') throw new Error(`키움 ${apiId}: ${json.return_msg}`);
+    return { json, more: headers.get('cont-yn') === 'Y', next: headers.get('next-key') || '' };
+  };
+  const c = { label: `키움 계좌 ${index + 1}`, post };
+  kwClients.set(appkey, c);
+  return c;
+}
+
+export async function fetchKiwoom(cfg, index = 0) {
+  const c = await kiwoomClient(cfg, index);
+  const items = [], account = { broker: '키움', account: c.label, cash: null, total: null };
+  let cont = 'N', next = '';
+  for (let page = 0; page < 10; page++) {
+    const r = await c.post('kt00018', { qry_tp: '1', dmst_stex_tp: 'KRX' }, cont, next);
+    for (const x of r.json.acnt_evlt_remn_indv_tot || []) {
+      const qty = num(x.rmnd_qty);
+      const code = String(x.stk_cd || '').trim().replace(/^[A-Z]/, '');
+      if (qty > 0 && /^\w{6}$/.test(code)) items.push({ broker: '키움', account: c.label, code, name: String(x.stk_nm || '').trim(), market: 'KRX', currency: 'KRW', qty, avg: num(x.pur_pric) });
     }
-    if (headers.get('cont-yn') !== 'Y') break;
-    cont = 'Y'; next = headers.get('next-key') || '';
-    await new Promise((r) => setTimeout(r, 300));
+    if (page === 0) {
+      const asset = num(r.json.prsm_dpst_aset_amt), evlt = num(r.json.tot_evlt_amt);
+      if (asset) { account.total = asset; account.cash = Math.max(0, asset - evlt); }
+    }
+    if (!r.more) break;
+    cont = 'Y'; next = r.next;
+    await sleep(300);
+  }
+  return { items, accounts: [account] };
+}
+
+// 일자별 실현손익(ka10073)을 하루씩 조회 → 날짜가 확실하게 붙음
+export async function fetchKiwoomRealized(cfg, days, index = 0) {
+  const c = await kiwoomClient(cfg, index);
+  const rows = [];
+  for (const day of days) {
+    let cont = 'N', next = '';
+    for (let page = 0; page < 10; page++) {
+      const r = await c.post('ka10073', { strt_dt: day, end_dt: day, stk_cd: '' }, cont, next);
+      for (const x of r.json.dt_stk_rlzt_pl || []) {
+        const qty = num(x.cntr_qty);
+        if (!qty) continue;
+        rows.push({
+          date: dash(day), broker: '키움', account: c.label,
+          code: String(x.stk_cd || '').trim().replace(/^[A-Z]/, ''), name: String(x.stk_nm || '').trim(),
+          qty, sellAmt: qty * num(x.cntr_pric), buyPrice: num(x.buy_uv), pl: num(x.tdy_sel_pl), rate: num(x.pl_rt),
+          fee: num(x.tdy_trde_cmsn) + num(x.tdy_htssel_cmsn), tax: num(x.tdy_trde_tax),
+        });
+      }
+      if (!r.more) break;
+      cont = 'Y'; next = r.next;
+      await sleep(250);
+    }
+    await sleep(250);
+  }
+  return { account: c.label, rows };
+}
+
+// 조회 기간의 평일 목록 (YYYYMMDD)
+export function weekdays(fromDate, toDate) {
+  const out = [];
+  for (let d = new Date(fromDate); d <= toDate; d = new Date(d.getTime() + 86400000)) {
+    const w = d.getUTCDay();
+    if (w !== 0 && w !== 6) out.push(ymd(d));
   }
   return out;
 }
 
-// ---------------- 암호화 (브라우저 WebCrypto와 호환) ----------------
+// ======================= 암호화 (브라우저 WebCrypto와 호환) =======================
 // AES-256-GCM, 키는 비밀번호에서 PBKDF2-SHA256(200,000회)로 만듭니다.
 const ITER = 200000;
 
