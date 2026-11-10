@@ -389,11 +389,27 @@ async function main() {
         const o = byStock[h.code] ||= { name: h.name, v: 0, c: 0 };
         o.v += v; o.c += c;
       }
+      // 계좌별 합계 (키: "증권사|계좌")
+      const byAccount = {};
+      for (const h of holdings) {
+        const s = px[h.code]; if (!s) continue;
+        const k = h.currency === 'USD' ? fx : 1;
+        const o = byAccount[`${h.broker}|${h.account || h.broker}`] ||= { stockValue: 0, cost: 0, cash: null };
+        o.stockValue += s.close * h.qty * k; o.cost += h.avg * h.qty * k;
+      }
+      for (const a of accounts) {
+        const o = byAccount[`${a.broker}|${a.account}`] ||= { stockValue: 0, cost: 0, cash: null };
+        if (a.cash != null) o.cash = (o.cash || 0) + a.cash;
+      }
+      for (const o of Object.values(byAccount)) {
+        o.stockValue = Math.round(o.stockValue); o.cost = Math.round(o.cost);
+        o.cash = o.cash == null ? null : Math.round(o.cash); o.total = o.stockValue + (o.cash || 0);
+      }
       const cashKnown = accounts.some((a) => a.cash != null);
       const cash = accounts.reduce((t, a) => t + (a.cash || 0), 0);
       const day = { date: today, stockValue: Math.round(stockValue), cost: Math.round(cost), cash: cashKnown ? Math.round(cash) : null,
         total: Math.round(stockValue + (cashKnown ? cash : 0)), fx,
-        byStock: Object.fromEntries(Object.entries(byStock).map(([k, o]) => [k, { name: o.name, v: Math.round(o.v), c: Math.round(o.c) }])) };
+        byStock: Object.fromEntries(Object.entries(byStock).map(([k, o]) => [k, { name: o.name, v: Math.round(o.v), c: Math.round(o.c) }])), byAccount };
       history.days = history.days.filter((d) => d.date !== today).concat(day).sort((x, y) => x.date.localeCompare(y.date));
     }
     await fs.writeFile(histFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...history }, pw)));
