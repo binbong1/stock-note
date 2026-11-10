@@ -332,14 +332,18 @@ async function intraday() {
 async function telegramTest() {
   const token = ENV.TELEGRAM_BOT_TOKEN;
   if (!token) throw new Error('TELEGRAM_BOT_TOKEN 시크릿이 없어요');
-  const r = await (await fetch(`https://api.telegram.org/bot${token}/getUpdates`)).json();
+  const me = await (await fetch(`https://api.telegram.org/bot${token.trim()}/getMe`)).json();
+  if (!me.ok) { log(`봇 토큰이 맞지 않아요 (${me.description}). BotFather가 준 토큰 전체(숫자:문자)를 다시 등록하세요.`); process.exitCode = 1; return; }
+  log(`봇 확인: @${me.result.username}`);
+  const r = await (await fetch(`https://api.telegram.org/bot${token.trim()}/getUpdates`)).json();
+  if (!r.ok) log('getUpdates 실패:', r.description);
   const chats = [...new Set((r.result || []).map((u) => (u.message || u.channel_post || {}).chat?.id).filter(Boolean))];
   if (ENV.TELEGRAM_CHAT_ID) {
     const ok = await telegram('✅ 내 주식 노트 알림 연결 완료! 3 Stage 돌파가 생기면 여기로 알려드릴게요.');
     log(ok ? '테스트 메시지 전송 성공' : '전송 실패 — chat id 확인 필요');
     return;
   }
-  if (!chats.length) { log('봇에게 보낸 메시지를 찾지 못했어요. 텔레그램에서 봇에게 아무 말이나 보낸 뒤 다시 실행하세요.'); process.exitCode = 1; return; }
+  if (!chats.length) { log(`@${me.result.username} 봇에게 온 메시지가 없어요. 텔레그램에서 @${me.result.username} 를 검색해 [시작] 누르고 아무 말이나 보낸 뒤 다시 실행하세요.`); process.exitCode = 1; return; }
   for (const id of chats) {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
