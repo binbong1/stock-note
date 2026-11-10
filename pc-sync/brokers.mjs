@@ -102,6 +102,20 @@ export async function fetchKIS(cfg) {
   return { items, accounts: [account] };
 }
 
+// 종목별 투자자(외국인·기관) 순매수 최근 일자별 (FHKST01010900). 최근 n일 합계를 돌려줌
+export async function fetchKISInvestor(cfg, code, days = 20) {
+  const c = await kisClient(cfg);
+  const { json } = await c.get('/uapi/domestic-stock/v1/quotations/inquire-investor', 'FHKST01010900', {
+    FID_COND_MRKT_DIV_CODE: 'J', FID_INPUT_ISCD: code,
+  });
+  const rows = (json.output || []).filter((r) => r.stck_bsop_date).slice(0, days);
+  return {
+    days: rows.length,
+    foreign: rows.reduce((t, r) => t + num(r.frgn_ntby_qty), 0),
+    institution: rows.reduce((t, r) => t + num(r.orgn_ntby_qty), 0),
+  };
+}
+
 // 국내 기간별 매매손익(TTTC8715R): 매도한 거래의 실현손익. 한 달 단위로 나눠 조회.
 export async function fetchKISRealized(cfg, fromYmd, toYmd) {
   const c = await kisClient(cfg);

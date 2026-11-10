@@ -1,0 +1,58 @@
+name: 추세추종 스캔
+
+on:
+  schedule:
+    # 장 마감 후 전종목 스캔: 평일 16:55 (한국시간) = 07:55 UTC
+    - cron: '55 7 * * 1-5'
+    # 장중 돌파 감시: 평일 09:00~15:50 (한국시간) 10분마다 = 00:00~06:50 UTC
+    - cron: '*/10 0-6 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '실행할 작업'
+        required: true
+        default: daily
+        type: choice
+        options: [daily, intraday, telegram-test]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scan-${{ github.event.schedule || inputs.mode }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 스캔 실행
+        env:
+          MODE: ${{ inputs.mode || (github.event.schedule == '55 7 * * 1-5' && 'daily') || 'intraday' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HOLDINGS_PASSWORD: ${{ secrets.HOLDINGS_PASSWORD }}
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+          KIS_ACCOUNT: ${{ secrets.KIS_ACCOUNT }}
+        run: node scripts/scan.mjs "$MODE"
+
+      - name: 결과 저장(커밋)
+        run: |
+          git config user.name "stock-note-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/signals.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "바뀐 신호 없음"
+          else
+            git commit -m "추세추종 신호 $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M')"
+            git pull --rebase
+            git push
+          fi
