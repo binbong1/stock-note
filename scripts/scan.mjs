@@ -11,29 +11,19 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchKISInvestor, decryptJSON } from './brokers.mjs';
+import { UA, kstNow, ymd, r2, fetchText, dailyBars, sma, maxOf, minOf, ret, trendTemplate, baseInfo, riskPlan, weightedReturn } from './strategy-lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MODE = process.argv[2] || 'daily';
 const SAMPLE = process.argv.includes('--sample');
 const ENV = process.env;
-const UA = { 'User-Agent': 'Mozilla/5.0 (stock-note personal scanner)' };
 const SIGNALS = path.join(ROOT, 'data', 'signals.json');
 const log = (...a) => console.log('[scan]', ...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const kstNow = () => new Date((ENV.SCAN_NOW ? Date.parse(ENV.SCAN_NOW) : Date.now()) + 9 * 3600000); // SCAN_NOW: 테스트용 시각(UTC)
 const kstDate = () => kstNow().toISOString().slice(0, 10);
-const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
-const r2 = (v) => (v == null || !isFinite(v) ? null : Math.round(v * 100) / 100);
 const fmt = (v) => Math.round(v).toLocaleString('ko-KR');
 
 // ------------------------------------------------------------------ 데이터
-async function fetchText(url, enc) {
-  const res = await fetch(url, { headers: UA });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
-  if (!enc) return res.text();
-  return new TextDecoder(enc).decode(await res.arrayBuffer());
-}
-
 // 네이버 증권(모바일) 시가총액 순위 API. 시총(억) 내림차순이라 기준 미만이 나오면 멈춤
 async function universe(minCapEok) {
   const out = [];
@@ -59,84 +49,12 @@ async function universe(minCapEok) {
   return out;
 }
 
-async function dailyBars(code, days = 430) {
-  const end = kstNow(), start = new Date(end.getTime() - days * 86400000);
-  const url = `https://api.finance.naver.com/siseJson.naver?symbol=${code}&requestType=1&startTime=${ymd(start)}&endTime=${ymd(end)}&timeframe=day`;
-  const text = (await fetchText(url)).trim().replace(/'/g, '"').replace(/,\s*\]/g, ']');
-  return JSON.parse(text).slice(1).filter((r) => r && r[4] != null).map((r) => ({
-    date: `${String(r[0]).slice(0, 4)}-${String(r[0]).slice(4, 6)}-${String(r[0]).slice(6, 8)}`,
-    open: +r[1], high: +r[2], low: +r[3], close: +r[4], volume: +r[5],
-  }));
-}
-
-// ------------------------------------------------------------------ 지표
-const sma = (arr, n, end = arr.length) => (end < n ? null : arr.slice(end - n, end).reduce((a, b) => a + b, 0) / n);
-const maxOf = (arr) => arr.reduce((a, b) => (b > a ? b : a), -Infinity);
-const minOf = (arr) => arr.reduce((a, b) => (b < a ? b : a), Infinity);
-const ret = (c, back) => (c.length > back ? c.at(-1) / c.at(-1 - back) - 1 : null);
-
-// 1 Stage 조건: 정배열 + 52주 고가 근처 (이미지의 '52주 신고가 갱신(정배열 선호)')
-function trendTemplate(b, cfg) {
-  const c = b.map((x) => x.close), n = c.length;
-  if (n < 220) return null;
-  const ma20 = sma(c, 20), ma50 = sma(c, 50), ma150 = sma(c, 150), ma200 = sma(c, 200), ma200p = sma(c, 200, n - 20);
-  const last = b.slice(-250);
-  const high52 = maxOf(last.map((x) => x.high)), low52 = minOf(last.map((x) => x.low));
-  const close = c.at(-1);
-  const aligned = close > ma50 && ma50 > ma150 && ma150 > ma200 && ma200 > ma200p;
-  const ok = (!cfg.trend.requireAligned || aligned)
-    && close >= high52 * (1 - cfg.trend.maxBelow52wHighPct / 100)
-    && close >= low52 * (1 + cfg.trend.minAbove52wLowPct / 100);
-  const recentHighIdx = last.length - 1 - [...last].reverse().findIndex((x) => x.high === high52);
-  return { ok, aligned, ma20, ma50, ma150, ma200, high52, low52, daysSince52wHigh: last.length - 1 - recentHighIdx };
-}
-
-// 2 Stage: 52주 고가(피벗) 이후 1~6주 조정, 조정폭 ≤ 직전 상승폭의 절반, 변동성·거래량 수축(VCP)
-function baseInfo(b, cfg) {
-  const B = cfg.base, n = b.length;
-  if (n < 160) return null;
-  const from = n - 1 - B.maxDays;
-  let p = from;
-  for (let i = from; i < n; i++) if (b[i].high >= b[p].high) p = i;
-  const days = n - 1 - p;
-  const pivot = b[p].high;
-  const priorLow = minOf(b.slice(Math.max(0, p - 120), p + 1).map((x) => x.low));
-  const advancePct = (pivot / priorLow - 1) * 100;
-  const after = b.slice(p + 1);
-  const baseLow = after.length ? minOf(after.map((x) => x.low)) : pivot;
-  const depthPct = (1 - baseLow / pivot) * 100;
-  const high52before = maxOf(b.slice(Math.max(0, p - 250), p + 1).map((x) => x.high));
-  const v = b.map((x) => x.volume);
-  const avgVol50 = sma(v, 50) || 0;
-  const last5 = b.slice(-5);
-  const tightPct = (maxOf(last5.map((x) => x.high)) / minOf(last5.map((x) => x.low)) - 1) * 100;
-  const volDry = (sma(v, 5) || 0) < B.volumeDryRatio * avgVol50;
-  const ok = days >= B.minDays && days <= B.maxDays
-    && advancePct >= B.minPriorAdvancePct
-    && depthPct <= B.maxDepthPct
-    && (pivot - baseLow) <= B.maxDepthOfAdvance * (pivot - priorLow)
-    && pivot >= high52before * (1 - B.pivotNear52wHighPct / 100);
-  return { ok, pivot, pivotDate: b[p].date, days, priorLow, advancePct: r2(advancePct), baseLow, depthPct: r2(depthPct),
-    tight: tightPct <= B.tightRangePct, tightPct: r2(tightPct), volDry, avgVol50: Math.round(avgVol50) };
-}
-
-function riskPlan(entry, base, cfg, totalAsset) {
-  const R = cfg.risk;
-  const swingLow = base.recentLow ?? base.baseLow;
-  const stop = Math.max(entry * (1 - R.maxStopPct / 100), Math.min(swingLow, entry * 0.98));
-  const risk = entry - stop;
-  const target = entry + R.rewardRisk * risk;
-  const plan = { stop: Math.round(stop), stopPct: r2((stop / entry - 1) * 100), target: Math.round(target), targetPct: r2((target / entry - 1) * 100) };
-  if (totalAsset && risk > 0) {
-    const shares = Math.floor((totalAsset * R.riskPerTradePct / 100) / risk);
-    plan.shares = Math.max(0, Math.min(shares, Math.floor(totalAsset / entry)));
-    plan.amount = Math.round(plan.shares * entry);
-  }
-  return plan;
-}
-
 // ------------------------------------------------------------------ 텔레그램
+const ALERTS = await (async () => { try { return JSON.parse(await fs.readFile(path.join(ROOT, 'config', 'alerts.json'), 'utf8')); } catch { return { paused: false, custom: [] }; } })();
+const alertsPaused = () => ALERTS.paused && (!ALERTS.pausedUntil || ALERTS.pausedUntil >= kstDate());
+
 async function telegram(text) {
+  if (alertsPaused()) { log('알림 일시정지 중 → 전송 생략'); return false; }
   const token = ENV.TELEGRAM_BOT_TOKEN, chat = ENV.TELEGRAM_CHAT_ID;
   if (!token || !chat) { log('텔레그램 설정 없음 → 알림 생략'); return false; }
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -161,11 +79,11 @@ function alertText(s, kind) {
   const p = s.plan || {};
   const flags = [s.base?.tight && '변동성 수축', s.base?.volDry && '거래량 감소', s.flow?.positive && '외인·기관 순매수'].filter(Boolean).join(' · ');
   return [
-    `${kind === 'intraday' ? '🚀 <b>3 Stage 돌파 (장중)</b>' : '📈 <b>3 Stage 돌파 (종가)</b>'}`,
-    `<b>${esc(s.name)}</b> ${s.code} · ${s.market}`,
-    `현재가 ${fmt(s.price)}원 (피벗 ${fmt(s.pivot)} 대비 +${(s.price / s.pivot * 100 - 100).toFixed(1)}%)`,
+    s.isCustom && s.userPrice ? '⭐ <b>내 감시 가격 돌파</b>' : s.isCustom ? '⭐ <b>내 감시 종목 · 피벗 돌파</b>' : kind === 'intraday' ? '🚀 <b>3 Stage 돌파 (장중)</b>' : '📈 <b>3 Stage 돌파 (종가)</b>',
+    `<b>${esc(s.name)}</b> ${s.code}${s.market ? ' · ' + s.market : ''}`,
+    `현재가 ${fmt(s.price)}원 (${s.isCustom && s.userPrice ? '감시 가격' : '피벗'} ${fmt(s.pivot)} 대비 +${(s.price / s.pivot * 100 - 100).toFixed(1)}%)`,
     `거래량 ${s.volPace ?? s.volRatio}배 (50일 평균 대비${kind === 'intraday' ? ', 장 마감 환산' : ''})`,
-    `RS ${s.rs} · 베이스 ${s.base.days}일 · 조정폭 ${s.base.depthPct}%${flags ? ' · ' + flags : ''}`,
+    s.base?.days !== '-' && s.base?.days != null ? `RS ${s.rs ?? '-'} · 베이스 ${s.base.days}일 · 조정폭 ${s.base.depthPct}%${flags ? ' · ' + flags : ''}` : '',
     `손절 ${fmt(p.stop)} (${p.stopPct}%) · 목표 ${fmt(p.target)} (+${p.targetPct}%, 1:${CFG.risk.rewardRisk})`,
     p.shares != null ? `2% 룰 최대 ${p.shares.toLocaleString('ko-KR')}주 (약 ${fmt(p.amount / 10000)}만원)` : '',
     `<a href="${SITE}">신호 화면 열기</a>`,
@@ -216,9 +134,9 @@ async function daily() {
       const bars = SAMPLE ? fakeBars(i * 7 + 3, ['breakout', 'flat', 'up', 'down'][i % 4]) : await dailyBars(s.code);
       if (bars.length < 230) continue;
       const c = bars.map((b) => b.close);
-      const w = [ret(c, 63), ret(c, 126), ret(c, 189), ret(c, 249)];
-      if (w.some((v) => v == null)) continue;
-      rows.push({ ...s, bars, rsRaw: 0.4 * w[0] + 0.2 * w[1] + 0.2 * w[2] + 0.2 * w[3], ret3m: r2(w[0] * 100) });
+      const raw = weightedReturn(c);
+      if (raw == null) continue;
+      rows.push({ ...s, bars, rsRaw: raw, ret3m: r2(ret(c, 63) * 100) });
     } catch (e) { log(`건너뜀 ${s.name}: ${e.message}`); }
     if (!SAMPLE) await sleep(120);
     if (i % 100 === 99) log(`… ${i + 1}/${uni.length}`);
@@ -226,6 +144,20 @@ async function daily() {
   // RS 등급: 대상 종목 안에서 가중 수익률 백분위 (1~99)
   const sorted = [...rows].sort((a, b) => a.rsRaw - b.rsRaw);
   sorted.forEach((r, i) => { r.rs = Math.max(1, Math.min(99, Math.round((i + 1) / sorted.length * 99))); });
+  const rsCut = Array.from({ length: 99 }, (_, k) => sorted.length ? r2(sorted[Math.min(sorted.length - 1, Math.floor((k + 1) / 100 * sorted.length))].rsRaw * 10000) / 10000 : 0);
+
+  // 내가 직접 추가한 감시 종목(config/alerts.json): 조건과 상관없이 매일 피벗 계산
+  const custom = [];
+  for (const cu of ALERTS.custom || []) {
+    try {
+      const r = rows.find((x) => x.code === cu.code);
+      const bars = r?.bars || (SAMPLE ? fakeBars(7, 'flat') : await dailyBars(cu.code));
+      const base = baseInfo(bars, CFG), today = bars.at(-1);
+      const trigger = cu.price || (base ? Math.round(base.pivot) : null);
+      custom.push({ code: cu.code, name: cu.name, price: today.close, date: today.date, userPrice: cu.price || null, pivot: base ? Math.round(base.pivot) : null, trigger,
+        rs: r?.rs ?? null, base: base ? { ...base, recentLow: minOf(bars.slice(-10).map((x) => x.low)) } : null, toTriggerPct: trigger ? r2((trigger / today.close - 1) * 100) : null });
+    } catch (e) { log(`감시 종목 분석 실패 ${cu.name}: ${e.message}`); }
+  }
 
   const stage1 = [], stage2 = [], breakouts = [];
   for (const r of rows) {
@@ -279,7 +211,8 @@ async function daily() {
   const sig = {
     updatedAt: new Date().toISOString(), asOf: rows[0]?.bars.at(-1).date || asOf, sample: SAMPLE, criteria: CFG,
     universe: uni.length, analyzed: rows.length,
-    breakouts: breakouts.map(pub), stage2: stage2.map(pub), stage1: stage1.slice(0, 40),
+    breakouts: breakouts.map(pub), stage2: stage2.map(pub), stage1: stage1.slice(0, 40), custom, rsCut,
+    names: Object.fromEntries(uni.map((u) => [u.code, u.name])),
     intraday: prev.intraday?.date === asOf ? prev.intraday : { date: asOf, alerts: [] },
     history,
   };
@@ -297,8 +230,17 @@ async function intraday() {
   const now = kstNow(), hm = now.toISOString().slice(11, 16), today = kstDate();
   if ([0, 6].includes(now.getUTCDay()) || hm < CFG.intraday.start || hm > CFG.intraday.end) { log(`장중 감시 시간이 아니에요 (${hm})`); return; }
   const sig = await readSignals();
-  const watch = sig.stage2 || [];
+  const customCodes = new Set((ALERTS.custom || []).map((c) => c.code));
+  // 봇으로 방금 추가한 종목은 아직 일일 스캔 결과가 없을 수 있어 alerts.json 값으로 대신 감시
+  const custom = (ALERTS.custom || []).map((cu) => {
+    const sc = (sig.custom || []).find((c) => c.code === cu.code);
+    if (sc && (!cu.price || sc.userPrice === cu.price)) return sc;
+    return { code: cu.code, name: cu.name, userPrice: cu.price || null, trigger: cu.price || cu.pivot || null, rs: null,
+      base: cu.avgVol50 ? { avgVol50: cu.avgVol50, baseLow: cu.baseLow || null, days: '-', depthPct: '-' } : null };
+  }).filter((c) => c.trigger);
+  const watch = [...(sig.stage2 || []).filter((w) => !customCodes.has(w.code)), ...custom.map((c) => ({ ...c, pivot: c.trigger, isCustom: true }))];
   if (!watch.length) { log('관찰 종목이 없어요'); return; }
+  if (alertsPaused()) { log('알림 일시정지 중'); return; }
   if (sig.intraday?.date !== today) sig.intraday = { date: today, alerts: [] };
   const done = new Set(sig.intraday.alerts.map((a) => a.code));
   const elapsed = Math.min(1, Math.max(0.05, ((now.getUTCHours() - 9) * 60 + now.getUTCMinutes()) / 390));
@@ -311,10 +253,12 @@ async function intraday() {
       const t = bars.at(-1);
       if (!t || t.date !== today) { log('오늘 시세가 없어요 (휴장일?)'); return; }
       checked++;
-      const pace = w.base.avgVol50 ? r2(t.volume / elapsed / w.base.avgVol50) : 0;
+      const pace = w.base?.avgVol50 ? r2(t.volume / elapsed / w.base.avgVol50) : 0;
       const ext = (t.close / w.pivot - 1) * 100;
-      if (t.close > w.pivot && pace >= CFG.breakout.volumeRatio && ext <= CFG.breakout.maxExtendedPct) {
-        const s = { ...w, price: t.close, volPace: pace, plan: riskPlan(t.close, w.base, CFG, asset) };
+      // 내가 가격을 정해 둔 감시 종목은 거래량 조건 없이 그 가격 돌파만 확인
+      const volOk = w.isCustom && w.userPrice ? true : pace >= CFG.breakout.volumeRatio;
+      if (t.close > w.pivot && volOk && ext <= CFG.breakout.maxExtendedPct) {
+        const s = { ...w, price: t.close, volPace: pace, plan: riskPlan(t.close, w.base || { baseLow: t.close * 0.93 }, CFG, asset), base: w.base || { days: '-', depthPct: '-' } };
         await telegram(alertText(s, 'intraday'));
         const rec = { date: today, time: hm, kind: 'intraday', code: w.code, name: w.name, price: t.close, pivot: w.pivot, rs: w.rs, volRatio: pace };
         sig.intraday.alerts.push(rec);
