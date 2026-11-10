@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "breakoutVolumeRatio": 2,
+    "atrPeriod": 14,
+    "atrMultiplier": 2,
+    "nearStopPct": 3,
+    "maxGapFromMa20Pct": 10,
+    "disclosureDays": 30
+  },
+  "stocks": [
+    { "name": "비에이치아이", "code": "083650", "market": "KOSDAQ", "sector": "원전" },
+    { "name": "LS", "code": "006260", "market": "KOSPI", "sector": "전력기기" },
+    { "name": "산일전기", "code": "062040", "market": "KOSPI", "sector": "전력기기" },
+    { "name": "SNT다이내믹스", "code": "003570", "market": "KOSPI", "sector": "방산" },
+    { "name": "IREN", "code": "IREN", "market": "NASDAQ", "sector": "AI 데이터센터" }
+  ]
+}
