@@ -123,8 +123,13 @@ function bindLock() {
 function lockOut() { try { sessionStorage.removeItem('stocknote.pw'); localStorage.removeItem('stocknote.pw'); } catch {} AUTO = null; HIST = null; REAL = null; route(); }
 
 // ---------- 계좌 선택 (전체 / 계좌별) ----------
-let ACCT = store.get('stocknote.acct', 'all');
+let ACCTS = (() => { const v = store.get('stocknote.accts', null); if (Array.isArray(v)) return v; const old = store.get('stocknote.acct', 'all'); return old && old !== 'all' ? [old] : []; })();
+let ACCT = 'all';   // 호환용: 'all' 이거나 계좌 하나일 때 그 키 (여러 개 선택이면 'multi')
 const acctKey = (broker, account) => `${broker}|${account || broker}`;
+function isAll() { const list = accountList(); return !ACCTS.length || list.every((k) => ACCTS.includes(k)); }
+function inAcct(key) { return isAll() || ACCTS.includes(key); }
+function syncAcct() { ACCT = isAll() ? 'all' : ACCTS.length === 1 ? ACCTS[0] : 'multi'; }
+function selName() { return isAll() ? '전체' : accountList().filter((k) => ACCTS.includes(k)).map(acctName).join(' + '); }
 function acctName(key) { const al = AUTO?.aliases?.[key] || HIST?.aliases?.[key]; if (al) return al; const [b, a] = key.split('|'); return String(a).startsWith(b) ? a : (b === 'KIS' ? '한투 ' : b + ' ') + a; }
 function accountList() {
   const keys = new Set();
@@ -138,14 +143,27 @@ function acctBar() {
   if (!AUTO) return '';
   const list = accountList();
   if (list.length < 2) return '';
-  if (ACCT !== 'all' && !list.includes(ACCT)) ACCT = 'all';
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" role="group" aria-label="계좌 선택">
+  ACCTS = ACCTS.filter((k) => list.includes(k)); syncAcct();
+  const all = isAll();
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" role="group" aria-label="계좌 선택 (여러 개 선택 가능)">
     <span class="mute" style="font-size:13px;margin-right:4px">계좌</span>
-    ${[['all', '전체'], ...list.map((k) => [k, acctName(k)])].map(([k, l]) => `<button type="button" data-acct="${esc(k)}" class="${ACCT === k ? 'primary' : ''}" style="height:36px">${esc(l)}</button>`).join('')}
+    <button type="button" data-acct-all class="${all ? 'primary' : ''}" style="height:36px">전체</button>
+    ${list.map((k) => { const on = !all && ACCTS.includes(k); return `<label style="display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:1px solid ${on ? 'var(--ink)' : '#D6D6CF'};border-radius:10px;background:${on ? '#16161A' : '#fff'};color:${on ? '#fff' : 'var(--ink2)'};cursor:pointer;font-size:14px;user-select:none"><input type="checkbox" data-acct-chk="${esc(k)}" ${on ? 'checked' : ''} style="height:auto;width:16px;margin:0;accent-color:#fff">${esc(acctName(k))}</label>`; }).join('')}
+    ${!all && ACCTS.length > 1 ? `<span class="mute" style="font-size:13px">${ACCTS.length}개 계좌 합계</span>` : ''}
   </div>`;
 }
+function setAccts(v) { ACCTS = v; store.set('stocknote.accts', ACCTS); syncAcct(); route(); }
 function bindAcct() {
-  document.querySelectorAll('[data-acct]').forEach((b) => b.onclick = () => { ACCT = b.dataset.acct; store.set('stocknote.acct', ACCT); route(); });
+  document.querySelectorAll('[data-acct-all]').forEach((b) => b.onclick = () => setAccts([]));
+  document.querySelectorAll('[data-acct-chk]').forEach((c) => c.onchange = () => {
+    const k = c.dataset.acctChk, list = accountList();
+    let cur = isAll() ? [] : [...ACCTS];
+    cur = c.checked ? [...new Set([...cur, k])] : cur.filter((x) => x !== k);
+    if (cur.length >= list.length) cur = [];   // 모두 고르면 '전체'와 같음
+    setAccts(cur);
+  });
+  // 계좌별 현황 표·토스 묶음의 계좌 버튼: 그 계좌 하나만 선택
+  document.querySelectorAll('[data-acct]').forEach((b) => b.onclick = () => setAccts([b.dataset.acct]));
 }
 
 function holdings() {
@@ -154,13 +172,13 @@ function holdings() {
   const out = {};
   for (const h of AUTO.items) {
     if (h.self) continue;   // 토스 등 증권사 시세 종목은 portfolio()에서 따로 처리
-    if (ACCT !== 'all' && acctKey(h.broker, h.account) !== ACCT) continue;
+    if (!inAcct(acctKey(h.broker, h.account))) continue;
     const o = out[h.code] ||= { qty: 0, cost: 0, brokers: [] };
     o.qty += h.qty; o.cost += h.qty * h.avg;
     if (!o.brokers.includes(h.broker)) o.brokers.push(h.broker);
   }
   for (const k in out) { out[k].avg = out[k].qty ? out[k].cost / out[k].qty : 0; out[k].auto = true; }
-  if (ACCT === 'all') for (const k in manual) if (!out[k]) out[k] = manual[k];
+  if (isAll()) for (const k in manual) if (!out[k]) out[k] = manual[k];
   return out;
 }
 function toKRW(s, v) { return s.currency === 'USD' ? v * (DATA.fx.USDKRW || 0) : v; }
@@ -177,9 +195,10 @@ function portfolio() {
     return { s, qty, avg, value: v, cost: c, brokers: p.brokers, ret: qty && avg ? (s.close / avg - 1) * 100 : null };
   });
   // 토스(주식모으기) 등 self 종목: 전체 보기에서는 한 줄로 묶고, 해당 계좌를 고르면 종목별로
-  const selfItems = (AUTO?.items || []).filter((h) => h.self && (ACCT === 'all' || acctKey(h.broker, h.account) === ACCT));
+  const selfItems = (AUTO?.items || []).filter((h) => h.self && inAcct(acctKey(h.broker, h.account)));
   const dayPl = (h) => (h.dailyRate != null ? h.valueKrw - h.valueKrw / (1 + h.dailyRate / 100) : 0);
-  if (selfItems.length && ACCT === 'all') {
+  // 토스 계좌 하나만 골랐을 때만 종목별로, 여러 계좌를 합쳐 볼 때는 한 줄로 묶음
+  if (selfItems.length && !(ACCTS.length === 1 && !isAll())) {
     const groups = {};
     for (const h of selfItems) (groups[acctKey(h.broker, h.account)] ||= []).push(h);
     for (const [k, list] of Object.entries(groups)) {
@@ -197,17 +216,18 @@ function portfolio() {
   // 예수금 (선택한 계좌 기준)
   let cash = null;
   for (const a of AUTO?.accounts || []) {
-    if (ACCT !== 'all' && acctKey(a.broker, a.account) !== ACCT) continue;
+    if (!inAcct(acctKey(a.broker, a.account))) continue;
     if (a.cash != null) cash = (cash || 0) + a.cash;
   }
   return { rows, value, cost, today, any, cash };
 }
 
 function accountSummary() {
-  if (!AUTO || ACCT !== 'all') return '';
+  if (!AUTO || (!isAll() && ACCTS.length < 2)) return '';
   const px = Object.fromEntries(DATA.stocks.map((s) => [s.code, s]));
   const acc = {};
   for (const h of AUTO.items) {
+    if (!inAcct(acctKey(h.broker, h.account))) continue;
     if (h.self) {
       const o = acc[acctKey(h.broker, h.account)] ||= { v: 0, c: 0, n: 0, cash: null, today: 0 };
       o.v += h.valueKrw || 0; o.c += h.costKrw || 0; o.n++; o.today += h.dailyRate != null ? h.valueKrw - h.valueKrw / (1 + h.dailyRate / 100) : 0;
@@ -219,7 +239,7 @@ function accountSummary() {
     o.v += s.close * h.qty * fx; o.c += h.avg * h.qty * fx; o.n++;
     o.today += (s.close - s.close / (1 + s.changePct / 100)) * h.qty * fx;
   }
-  for (const a of AUTO.accounts || []) { const o = acc[acctKey(a.broker, a.account)] ||= { v: 0, c: 0, n: 0, cash: null, today: 0 }; if (a.cash != null) o.cash = (o.cash || 0) + a.cash; }
+  for (const a of (AUTO.accounts || []).filter((a) => inAcct(acctKey(a.broker, a.account)))) { const o = acc[acctKey(a.broker, a.account)] ||= { v: 0, c: 0, n: 0, cash: null, today: 0 }; if (a.cash != null) o.cash = (o.cash || 0) + a.cash; }
   const keys = Object.keys(acc).sort((a, b) => acctName(a).localeCompare(acctName(b), 'ko'));
   if (keys.length < 2) return '';
   const tot = keys.reduce((t, k) => t + acc[k].v + (acc[k].cash || 0), 0);
@@ -235,7 +255,7 @@ function viewHome() {
   const totRet = P.cost ? (P.value / P.cost - 1) * 100 : null;
   const upd = new Date(DATA.updatedAt).toLocaleString('ko-KR', {timeZone: 'Asia/Seoul'});
   // 열 제목을 누르면 오름차순 → 내림차순 → 정렬 없음 순서로 바뀜
-  const rows = P.rows.filter((r) => ACCT === 'all' || r.qty > 0);
+  const rows = P.rows.filter((r) => isAll() || r.qty > 0);
   const watch = rows.filter((r) => !r.qty);
   const SORTV = {
     name: (r) => r.s.name, price: (r) => (r.group ? null : toKRW(r.s, r.s.close)), avg: (r) => (r.group || !r.avg ? null : toKRW(r.s, r.avg)),
@@ -274,7 +294,7 @@ function viewHome() {
   ${lockCard()}
   ${acctBar()}
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
-    <div><h1>${ACCT === 'all' ? '오늘의 내 포트폴리오' : esc(acctName(ACCT))}</h1><p class="mute" style="margin:4px 0 0">마지막 업데이트 ${esc(upd)} · 기준일 ${esc(DATA.stocks[0]?.date)}</p></div>
+    <div><h1>${isAll() ? '오늘의 내 포트폴리오' : esc(selName())}</h1><p class="mute" style="margin:4px 0 0">마지막 업데이트 ${esc(upd)} · 기준일 ${esc(DATA.stocks[0]?.date)}</p></div>
     ${DATA.fx.USDKRW ? `<span class="mute num" style="font-size:13px">USD/KRW ${DATA.fx.USDKRW}</span>` : ''}
   </div>
   <section class="cards" aria-label="요약">
@@ -291,12 +311,12 @@ function viewHome() {
       <tbody>${held.length ? held.map(tr).join('') : '<tr><td colspan="8" class="mute">보유 종목이 없어요.</td></tr>'}
       ${held.length ? `<tr style="font-weight:600;background:#FAFAF8"><td>합계</td><td></td><td></td><td></td><td class="num">${won(P.cost)}</td><td class="num">${won(P.value)}</td><td class="num ${cls(totRet)}">${signWon(P.value - P.cost)}<div class="sub ${cls(totRet)}">${sign(totRet)}</div></td><td class="num">100%</td></tr>` : ''}</tbody>
     </table></div>
-    <p class="mute" style="font-size:12px;margin:8px 0 0">해외 종목의 매수가는 달러, 금액은 오늘 환율로 원화 환산${ACCT === 'all' ? ' · 같은 종목을 여러 계좌에 보유하면 합쳐서 표시' : ''}</p>
+    <p class="mute" style="font-size:12px;margin:8px 0 0">해외 종목의 매수가는 달러, 금액은 오늘 환율로 원화 환산${ACCTS.length !== 1 || isAll() ? ' · 같은 종목을 여러 계좌에 보유하면 합쳐서 표시' : ''}</p>
   </section>
   ${watch.length ? `<section class="card" aria-labelledby="t1b"><h2 id="t1b" style="margin-bottom:10px">관심 종목</h2><div class="scroll"><table style="min-width:520px"><thead><tr><th scope="col">종목</th><th scope="col">현재가</th><th scope="col">오늘</th><th scope="col">3개월</th><th scope="col">52주 고가 대비</th></tr></thead><tbody>${watch.map(({ s }) => `<tr><td><a class="name" href="#/stock/${encodeURIComponent(s.code)}">${esc(s.name)}</a><div class="sub">${esc(s.code)}</div></td><td class="num">${fmt(s.close, s.currency)}</td><td class="num ${cls(s.changePct)}">${sign(s.changePct)}</td><td class="num ${cls(s.ret3mPct)}">${sign(s.ret3mPct)}</td><td class="num ${cls(s.distToHigh52Pct)}">${sign(s.distToHigh52Pct)}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
   <section class="card" aria-labelledby="t3">
-    <h2 id="t3" style="margin-bottom:8px">최근 공시 <span class="mute" style="font-size:12px;font-weight:500">DART · 최근 ${DATA.settings.disclosureDays}일${ACCT !== 'all' ? ' · 이 계좌 종목' : ''}</span></h2>
-    <ul class="list">${(() => { const codes = new Set(held.map((r) => r.s.code)); const ds = DATA.disclosures.filter((d) => ACCT === 'all' || codes.has(d.code)); return ds.length ? ds.slice(0, 10).map((d) => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener" style="color:var(--ink);font-weight:500">${esc(d.title)}</a><div class="mute" style="font-size:13px">${esc(d.name)} · ${esc(d.date)}</div></li>`).join('') : '<li class="mute">최근 공시가 없어요.</li>'; })()}</ul>
+    <h2 id="t3" style="margin-bottom:8px">최근 공시 <span class="mute" style="font-size:12px;font-weight:500">DART · 최근 ${DATA.settings.disclosureDays}일${!isAll() ? ' · 이 계좌 종목' : ''}</span></h2>
+    <ul class="list">${(() => { const codes = new Set(held.map((r) => r.s.code)); const ds = DATA.disclosures.filter((d) => isAll() || codes.has(d.code)); return ds.length ? ds.slice(0, 10).map((d) => `<li><a href="${esc(d.url)}" target="_blank" rel="noopener" style="color:var(--ink);font-weight:500">${esc(d.title)}</a><div class="mute" style="font-size:13px">${esc(d.name)} · ${esc(d.date)}</div></li>`).join('') : '<li class="mute">최근 공시가 없어요.</li>'; })()}</ul>
   </section>`;
   bindLock(); bindAcct();
   document.querySelectorAll('[data-hsort]').forEach((b) => b.onclick = () => {
@@ -490,7 +510,7 @@ async function viewStock(code) {
 }
 
 function viewHoldings() {
-  const _acct = ACCT; ACCT = 'all';
+  const _accts = ACCTS; ACCTS = [];
   const h = store.get('stocknote.holdings', {});
   $app.innerHTML = `
   ${lockCard()}
@@ -503,7 +523,7 @@ function viewHoldings() {
       <td><label class="sr" for="a-${esc(s.code)}">${esc(s.name)} 평균 매수가</label><input class="small num" id="a-${esc(s.code)}" name="a-${esc(s.code)}" inputmode="decimal" placeholder="${s.currency === 'USD' ? '달러' : '원'}" value="${esc(h[s.code]?.avg ?? '')}"></td>`}</tr>`).join('')}</tbody>
   </table></div>
   <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="primary" type="submit">저장하고 대시보드로</button></div></form></section>`;
-  ACCT = _acct;
+  ACCTS = _accts; syncAcct();
   bindLock();
   const lo = document.getElementById('lockout'); if (lo) lo.onclick = lockOut;
   document.getElementById('hf').onsubmit = (e) => {
@@ -601,9 +621,9 @@ function twrSeries() {
   const out = [];
   for (let i = 0; i < days.length; i++) {
     const d = days[i], p = days[i - 1];
-    const keys = ACCT === 'all' ? Object.keys(d.byAccount || {}) : [ACCT];
+    const keys = Object.keys(d.byAccount || {}).filter(inAcct);
     let V = 0, Vp = 0, F = 0, has = false, flags = { manual: false, inferred: false, unknown: false };
-    if (!d.byAccount) { if (ACCT !== 'all') continue; V = d.total; Vp = p ? p.total : null; F = 0; has = true; flags.unknown = !!p; }
+    if (!d.byAccount) { if (!isAll()) continue; V = d.total; Vp = p ? p.total : null; F = 0; has = true; flags.unknown = !!p; }
     else for (const k of keys) {
       const a = d.byAccount[k]; if (!a) continue; has = true;
       const pa = p?.byAccount?.[k];
@@ -617,7 +637,7 @@ function twrSeries() {
     if (p && !p.byAccount && d.byAccount) Vp = p.total;
     const pnl = V - Vp - F;
     const base = Vp + Math.max(F, 0);
-    out.push({ date: d.date, V, F, pnl, r: base > 0 ? pnl / base : null, d, flags, cash: ACCT === 'all' ? d.cash : d.byAccount?.[ACCT]?.cash, stockValue: ACCT === 'all' ? d.stockValue : d.byAccount?.[ACCT]?.stockValue, cost: ACCT === 'all' ? d.cost : d.byAccount?.[ACCT]?.cost });
+    out.push({ date: d.date, V, F, pnl, r: base > 0 ? pnl / base : null, d, flags, ...(isAll() || !d.byAccount ? { cash: d.cash, stockValue: d.stockValue, cost: d.cost } : (() => { const ks = keys.filter((k) => d.byAccount[k]); const sum = (f) => ks.reduce((t, k) => t + (d.byAccount[k][f] || 0), 0); return { cash: ks.some((k) => d.byAccount[k].cash != null) ? sum('cash') : null, stockValue: sum('stockValue'), cost: sum('cost') }; })()) });
   }
   return out;
 }
@@ -642,14 +662,14 @@ function viewHistory() {
   let principal = base?.V || 0;
   const chartDays = [base, ...steps].filter(Boolean);
   const principalLine = chartDays.map((x, i) => (i === 0 ? principal : (principal += x.F)));
-  const realSum = (REAL?.rows || []).filter((r) => r.date > (base?.date || f) && r.date <= t && (ACCT === 'all' || acctKey(r.broker, r.account) === ACCT)).reduce((s2, r) => s2 + r.pl - r.fee - r.tax, 0);
+  const realSum = (REAL?.rows || []).filter((r) => r.date > (base?.date || f) && r.date <= t && inAcct(acctKey(r.broker, r.account))).reduce((s2, r) => s2 + r.pl - r.fee - r.tax, 0);
   const rows = [...steps].reverse();
   const cumMap = Object.fromEntries(cum.map((x) => [x.date, x.c]));
 
   $app.innerHTML = `
   ${HIST?.sample ? '<div class="banner">샘플 기록이에요. 실제 기록은 매일 장 마감 후(16:40) 하루 한 줄씩 쌓여요.</div>' : ''}
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
-    <div><h1>자산 추이${ACCT === 'all' ? '' : ' · ' + esc(acctName(ACCT))}</h1><p class="mute" style="margin:4px 0 0">입출금을 뺀 순수 투자 수익률(시간가중) · 기록 ${all.length}일</p></div>
+    <div><h1>자산 추이${isAll() ? '' : ' · ' + esc(selName())}</h1><p class="mute" style="margin:4px 0 0">입출금을 뺀 순수 투자 수익률(시간가중) · 기록 ${all.length}일</p></div>
     ${periodBar()}
   </div>
   ${acctBar()}
@@ -689,7 +709,7 @@ function viewHistory() {
   </section>`}`;
   bindPeriod(); bindAcct();
   const c = document.getElementById('hcsv');
-  if (c) c.onclick = () => csvDownload(`자산추이_${ACCT === 'all' ? '전체' : acctName(ACCT)}_${f}_${t}.csv`, ['날짜', '총자산', '주식평가', '예수금', '입출금', '투자손익', '일수익률(%)', '누적수익률(%)'], steps.map((x) => [x.date, x.V, x.stockValue ?? '', x.cash ?? '', x.F, x.pnl, x.r == null ? '' : (x.r * 100).toFixed(3), cumMap[x.date]?.toFixed(3) ?? '']));
+  if (c) c.onclick = () => csvDownload(`자산추이_${selName()}_${f}_${t}.csv`, ['날짜', '총자산', '주식평가', '예수금', '입출금', '투자손익', '일수익률(%)', '누적수익률(%)'], steps.map((x) => [x.date, x.V, x.stockValue ?? '', x.cash ?? '', x.F, x.pnl, x.r == null ? '' : (x.r * 100).toFixed(3), cumMap[x.date]?.toFixed(3) ?? '']));
 }
 
 // ================= 실현손익 =================
@@ -700,7 +720,7 @@ function viewRealized() {
   const [f, t] = periodRange();
   const allRows = REAL?.rows || [];
   const brokers = [...new Set(allRows.map((r) => r.broker))];
-  const rows = allRows.filter((r) => r.date >= f && r.date <= t && (ACCT === 'all' || acctKey(r.broker, r.account) === ACCT)).map((r) => ({ ...r, net: r.pl - r.fee - r.tax }));
+  const rows = allRows.filter((r) => r.date >= f && r.date <= t && inAcct(acctKey(r.broker, r.account))).map((r) => ({ ...r, net: r.pl - r.fee - r.tax }));
   const sum = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
   const gross = sum('pl'), costs = sum('fee') + sum('tax'), net = gross - costs, sell = sum('sellAmt');
   const wins = rows.filter((r) => r.pl > 0).length;
@@ -715,7 +735,7 @@ function viewRealized() {
   $app.innerHTML = `
   ${REAL?.sample ? '<div class="banner">샘플 매매내역이에요. 실제 연동 후에는 증권사의 매도 체결 기준 실현손익으로 바뀌어요.</div>' : ''}
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
-    <div><h1>실현손익${ACCT === 'all' ? '' : ' · ' + esc(acctName(ACCT))}</h1><p class="mute" style="margin:4px 0 0">실제 매도 체결 기준 · ${esc(srcInfo || '아직 수집된 내역 없음')}</p></div>
+    <div><h1>실현손익${isAll() ? '' : ' · ' + esc(selName())}</h1><p class="mute" style="margin:4px 0 0">실제 매도 체결 기준 · ${esc(srcInfo || '아직 수집된 내역 없음')}</p></div>
     ${periodBar()}
   </div>
   ${acctBar()}
