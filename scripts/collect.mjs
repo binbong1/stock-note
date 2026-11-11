@@ -307,6 +307,8 @@ async function main() {
     }
   } else if (pw) {
     // 한국투자증권 계좌가 여러 개면 KIS_APPKEY_2 / KIS_APPSECRET_2 / KIS_ACCOUNT_2 … 로 추가
+    let kisFailed = false;
+    const kisOk = new Set();
     for (const [i, sfx] of ['', '_2', '_3'].entries()) {
       const appkey = ENV['KIS_APPKEY' + sfx], appsecret = ENV['KIS_APPSECRET' + sfx], account = ENV['KIS_ACCOUNT' + sfx];
       if (!appkey || !appsecret || !account) continue;
@@ -314,9 +316,10 @@ async function main() {
       try {
         const k = await fetchKIS(kcfg);
         holdings.push(...k.items); accounts.push(...k.accounts);
+        kisOk.add(k.accounts[0].account);
         if (aliasCfg[`KIS#${i + 1}`]) aliases[`KIS|${k.accounts[0].account}`] = aliasCfg[`KIS#${i + 1}`];
         log(`한국투자증권 계좌 ${i + 1} 잔고 ${k.items.length}종목`);
-      } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 잔고: ${e.message}`); continue; }
+      } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 잔고: ${e.message}`); kisFailed = true; continue; }
       try {
         // 처음엔 최근 1년치를 채우고, 이후엔 최근 14일만 다시 확인
         const label = accounts.at(-1).account;
@@ -326,6 +329,16 @@ async function main() {
         mergeRealized({ broker: 'KIS', account: r.account, from: fromD, to: today, rows: r.rows });
         log(`한국투자증권 계좌 ${i + 1} 실현손익 ${r.rows.length}건 (${fromD}~)`);
       } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 실현손익: ${e.message}`); }
+    }
+    if (kisFailed) {
+      // 실패한 한투 계좌는 지난번 잔고를 그대로 유지 (사이트에서 사라지지 않게)
+      const prevHold = await readEnc(holdFile, null);
+      if (prevHold) {
+        const keep = (x) => x.broker === 'KIS' && !kisOk.has(x.account);
+        holdings.push(...prevHold.items.filter(keep)); accounts.push(...(prevHold.accounts || []).filter(keep));
+        Object.assign(aliases, Object.fromEntries(Object.entries(prevHold.aliases || {}).filter(([k]) => k.startsWith('KIS|') && !aliases[k])));
+        result.errors.push('한투 잔고는 지난번 값을 유지했어요');
+      }
     }
     try {
       const local = decryptJSON(JSON.parse(await fs.readFile(localFile, 'utf8')), pw);

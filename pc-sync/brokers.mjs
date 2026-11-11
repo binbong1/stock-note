@@ -32,10 +32,20 @@ async function kisClient({ appkey, appsecret, account }) {
   if (kisClients.has(appkey)) return kisClients.get(appkey);
   const [cano, prdt = '01'] = String(account).replace(/\s/g, '').split('-');
   if (!/^\d{8}$/.test(cano)) throw new Error('KIS 계좌번호는 "12345678-01" 형식이어야 해요');
-  const { json: tok } = await call(`${KIS_BASE}/oauth2/tokenP`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'client_credentials', appkey, appsecret }),
-  }, 'KIS 토큰');
+  // 토큰은 1분에 1번만 발급됨 → 제한에 걸리면 65초 기다렸다가 최대 2번 더 시도
+  let tok;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      ({ json: tok } = await call(`${KIS_BASE}/oauth2/tokenP`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ grant_type: 'client_credentials', appkey, appsecret }),
+      }, 'KIS 토큰'));
+      break;
+    } catch (e) {
+      if (attempt < 2 && /1분당|EGW00133/.test(e.message)) { console.log('[KIS] 토큰 발급 제한 → 65초 후 재시도'); await sleep(65000); continue; }
+      throw e;
+    }
+  }
   if (!tok.access_token) throw new Error('KIS 토큰 발급 실패');
   // 호출 간격을 0.7초 이상 두고, '초당 거래건수 초과'면 잠시 쉬었다가 최대 6번 재시도
   // (신규 발급 키는 처음 며칠 동안 초당 허용 건수가 낮음)
