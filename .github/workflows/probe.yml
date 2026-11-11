@@ -1,0 +1,18 @@
+name: probe
+on: { workflow_dispatch: {} }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -s -A "Mozilla/5.0" https://t.me/s/darthacking > p.html
+          wc -c p.html
+          python3 - <<'PY'
+          import re,html
+          t=open('p.html',encoding='utf-8').read()
+          posts=re.findall(r'data-post="([^"]+)"',t)
+          print('posts',posts[-8:])
+          for m in re.findall(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>',t,re.S)[-6:]:
+              print('----'); print(html.unescape(re.sub(r'<br\s*/?>','\n',m))[:700])
+          i=t.rfind('tgme_widget_message_wrap'); print('RAW', t[i:i+2500])
+          PY
