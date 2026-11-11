@@ -129,3 +129,12 @@ GitHub(공개 저장소)에는 올라가지 않으니 금액이 노출되지 않
   키가 노출됐다고 느끼면 즉시 증권사 사이트에서 재발급하세요.
 - GitHub Secrets 값은 공개 저장소여도 남에게 보이지 않고, 실행 기록에도 가려집니다.
 - 처음 올린 `data/holdings.enc.json`은 샘플(비밀번호 `sample1234`)이며, 첫 실제 실행 때 바뀌거나 지워집니다.
+
+## 윈도우 PC에서 전부 돌리기
+
+1. PowerShell 에서 `winget install OpenJS.NodeJS.LTS Git.Git` (설치 후 창을 닫았다 다시 열기)
+2. `git clone https://github.com/binbong1/stock-note.git C:\stock-note`
+3. `C:\stock-note\local\install-windows.bat` 더블클릭 → 질문에 답하기
+
+켜 두면 장중 감시·공시 알림·장 마감 수집·텔레그램 봇이 모두 이 PC에서 돌고, 결과는 GitHub 사이트에도 올라가요.
+시작하면 `config/runner.json` 이 `local` 로 바뀌어 GitHub 자동 실행은 쉬어요 (`local\uninstall-windows.bat` 으로 되돌림).

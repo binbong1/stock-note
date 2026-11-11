@@ -20,11 +20,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 실행 위치 확인 (윈도우 PC가 맡고 있으면 건너뜀)
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] && grep -q '"mode": *"local"' config/runner.json 2>/dev/null; then
+            echo "윈도우 PC가 실행 중이라 건너뛰어요"; echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.mode.outputs.skip != '1'
         with:
           node-version: 22
 
       - name: 시세·지표·공시 수집
+        if: steps.mode.outputs.skip != '1'
         env:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           HOLDINGS_PASSWORD: ${{ secrets.HOLDINGS_PASSWORD }}
@@ -40,6 +49,7 @@ jobs:
         run: node scripts/collect.mjs
 
       - name: 결과 저장(커밋)
+        if: steps.mode.outputs.skip != '1'
         run: |
           git config user.name "stock-note-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

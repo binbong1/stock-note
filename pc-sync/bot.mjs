@@ -1,4 +1,4 @@
-// 내 주식 노트 · 텔레그램 대화형 봇 (맥북에서 실행)
+// 내 주식 노트 · 텔레그램 대화형 봇 (맥북 또는 윈도우 PC에서 실행)
 // 실행: node bot.mjs   (같은 폴더의 config.json 의 telegram 설정 사용)
 // 등록된 내 채팅(chatId)에서 온 메시지에만 답합니다.
 
@@ -9,7 +9,10 @@ import { decryptJSON, encryptJSON } from './brokers.mjs';
 import { UA, kstNow, r2, dailyBars, weightedReturn, rsFromCut, classify, riskPlan } from './strategy-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const CFG = JSON.parse(await fs.readFile(path.join(DIR, 'config.json'), 'utf8'));
+// 윈도우 PC 로컬 모드: GitHub 대신 저장소 폴더의 파일을 직접 읽고 씀
+const LOCAL = process.env.STOCKNOTE_LOCAL === '1';
+const ROOT = path.resolve(DIR, '..');
+const CFG = JSON.parse(await fs.readFile(process.env.STOCKNOTE_CONFIG || path.join(DIR, 'config.json'), 'utf8'));
 const TG = CFG.telegram || {};
 if (!TG.token || !TG.chatId) { console.error('config.json 에 telegram 설정이 없어요. 먼저 node setup-bot.mjs 를 실행하세요.'); process.exit(1); }
 const log = (...a) => console.log(new Date().toLocaleString('ko-KR'), '|', ...a);
@@ -36,18 +39,25 @@ const cache = new Map();
 async function file(p, ttl = 60000) {
   const c = cache.get(p);
   if (c && Date.now() - c.at < ttl) return c.v;
-  const t = await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`, null, true);
+  const t = LOCAL ? await fs.readFile(path.join(ROOT, p), 'utf8').catch(() => null) : await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`, null, true);
   const v = t == null ? null : JSON.parse(t);
   cache.set(p, { v, at: Date.now() });
   return v;
 }
 const enc = async (p) => { const box = await file(p); return box ? decryptJSON(box, CFG.password) : null; };
+async function saveLocal(p, text) {
+  await fs.writeFile(path.join(ROOT, p), text);
+  cache.delete(p);
+  // GitHub 사이트 반영은 local/run.mjs 가 몇 분마다 모아서 올림
+}
 async function saveRaw(p, obj, message) {
+  if (LOCAL) return saveLocal(p, JSON.stringify(obj));
   const cur = await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`);
   await gh('PUT', `/contents/${p}`, { message, content: Buffer.from(JSON.stringify(obj)).toString('base64'), sha: cur?.sha, branch: GH.branch || 'main' });
   cache.delete(p);
 }
 async function saveJSON(p, obj, message) {
+  if (LOCAL) return saveLocal(p, JSON.stringify(obj, null, 2) + '\n');
   const cur = await gh('GET', `/contents/${p}?ref=${GH.branch || 'main'}`);
   await gh('PUT', `/contents/${p}`, { message, content: Buffer.from(JSON.stringify(obj, null, 2) + '\n').toString('base64'), sha: cur?.sha, branch: GH.branch || 'main' });
   cache.delete(p);
@@ -331,7 +341,7 @@ async function handle(text) {
 // 채널 미리보기 페이지(t.me/s/채널)를 1분마다 확인해서, 글에 들어 있는 종목코드(A123456)가
 // 내 보유 종목이면 바로 보내요. 처음 켤 때는 지금까지 글은 건너뛰고 새 글부터 봐요.
 const CHANNELS = CFG.channels || ['darthacking'];
-const CH_STATE = path.join(DIR, 'channel-state.json');
+const CH_STATE = LOCAL ? path.join(ROOT, 'local', 'channel-state.json') : path.join(DIR, 'channel-state.json');
 const unesc = (t) => t.replace(/<br\s*\/?>/g, '\n').replace(/<a [^>]*href="([^"]+)"[^>]*>[^<]*<\/a>/g, '$1').replace(/<[^>]+>/g, '')
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 async function channelPosts(ch, after) {

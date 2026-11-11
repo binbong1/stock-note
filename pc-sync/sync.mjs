@@ -13,6 +13,10 @@ import { decryptJSON } from './brokers.mjs';
 import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, fetchToss, weekdays, encryptJSON } from './brokers.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
+// 윈도우 PC 로컬 모드: --local 이면 GitHub에 올리지 않고 저장소 폴더의 data 에 바로 저장
+const LOCAL = process.argv.includes('--local') || process.env.STOCKNOTE_LOCAL === '1';
+const CONFIG_PATH = process.env.STOCKNOTE_CONFIG || path.join(DIR, 'config.json');
+const LOCAL_FILE = path.join(DIR, '..', 'data', 'holdings-local.enc.json');
 const log = (...a) => console.log(new Date().toLocaleString('ko-KR'), '|', ...a);
 
 async function gh(cfg, method, p, body) {
@@ -30,11 +34,11 @@ async function gh(cfg, method, p, body) {
 }
 
 async function main() {
-  const cfg = JSON.parse(await fs.readFile(path.join(DIR, 'config.json'), 'utf8'));
+  const cfg = JSON.parse(await fs.readFile(CONFIG_PATH, 'utf8'));
   if (!cfg.password || cfg.password.length < 8) throw new Error('config.json 의 password 는 8자 이상으로 정해 주세요');
 
   // 실현손익을 처음 한 번은 1년치, 그다음부터는 최근 14일만 조회 (state.json 에 기록)
-  const stateFile = path.join(DIR, 'state.json');
+  const stateFile = LOCAL ? path.join(DIR, '..', 'local', 'sync-state.json') : path.join(DIR, 'state.json');
   let state = {};
   try { state = JSON.parse(await fs.readFile(stateFile, 'utf8')); } catch {}
 
@@ -115,7 +119,7 @@ async function main() {
   }
 
   const filePath = '/contents/data/holdings-local.enc.json';
-  const cur = await gh(cfg, 'GET', filePath);
+  const cur = LOCAL ? await fs.readFile(LOCAL_FILE, 'utf8').then((t) => ({ content: Buffer.from(t).toString('base64') })).catch(() => null) : await gh(cfg, 'GET', filePath);
   // 접속 실패한 계좌는 지난번 올린 값을 그대로 유지 (사이트에서 계좌가 사라지지 않게)
   for (const i of skipped) skippedLabels.push(`키움 계좌 ${i + 1}`);
   if (skippedLabels.length) {
@@ -129,6 +133,12 @@ async function main() {
     } catch (e) { log('지난번 값을 불러오지 못했어요:', e.message); }
   }
   const box = encryptJSON({ updatedAt: new Date().toISOString(), items, accounts, realized }, cfg.password);
+  if (LOCAL) {
+    await fs.writeFile(LOCAL_FILE, JSON.stringify(box));
+    await fs.writeFile(stateFile, JSON.stringify(state, null, 2));
+    log('암호화한 잔고를 PC에 저장했어요');
+    return;
+  }
   await gh(cfg, 'PUT', filePath, {
     message: 'PC 잔고 동기화',
     content: Buffer.from(JSON.stringify(box)).toString('base64'),
