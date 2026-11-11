@@ -2,3 +2,7 @@ pc-sync/config.json
 pc-sync/sync.log
 pc-sync/state.json
 pc-sync/bot.log
+pc-sync/channel-state.json
+local/config.json
+local/logs/
+local/sync-state.json

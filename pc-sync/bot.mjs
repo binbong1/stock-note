@@ -327,12 +327,82 @@ async function handle(text) {
   return `무슨 말인지 잘 모르겠어요.\n\n${HELP}`;
 }
 
+// ---------------------------------------------------------------- 공시 채널 감시 (t.me/darthacking)
+// 채널 미리보기 페이지(t.me/s/채널)를 1분마다 확인해서, 글에 들어 있는 종목코드(A123456)가
+// 내 보유 종목이면 바로 보내요. 처음 켤 때는 지금까지 글은 건너뛰고 새 글부터 봐요.
+const CHANNELS = CFG.channels || ['darthacking'];
+const CH_STATE = path.join(DIR, 'channel-state.json');
+const unesc = (t) => t.replace(/<br\s*\/?>/g, '\n').replace(/<a [^>]*href="([^"]+)"[^>]*>[^<]*<\/a>/g, '$1').replace(/<[^>]+>/g, '')
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+async function channelPosts(ch, after) {
+  const html = await (await fetch(`https://t.me/s/${ch}${after ? `?after=${after}` : ''}`, { headers: UA })).text();
+  const out = [];
+  for (const block of html.split('tgme_widget_message_wrap').slice(1)) {
+    const id = Number(block.match(/data-post="[^"/]+\/(\d+)"/)?.[1]);
+    const body = block.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/)?.[1];
+    if (id && body) out.push({ id, text: unesc(body).trim() });
+  }
+  return out.sort((a, b) => a.id - b.id);
+}
+async function heldCodes() {
+  const hold = await enc('data/holdings.enc.json').catch(() => null);
+  const m = new Map();
+  for (const h of hold?.items || []) if (/^\d{6}$/.test(h.code)) m.set(h.code, h.name);
+  return m;
+}
+async function watchChannels() {
+  let state = {};
+  try { state = JSON.parse(await fs.readFile(CH_STATE, 'utf8')); } catch {}
+  for (;;) {
+    const hr = kstNow().getUTCHours();
+    const busy = hr >= 6 && hr < 22;
+    try {
+      const alerts = await file('config/alerts.json', 300000).catch(() => null);
+      if (alerts?.news !== false && CFG.channelWatch !== false) {
+        const held = await heldCodes();
+        for (const ch of CHANNELS) {
+          let last = state[ch];
+          if (!last) { const p = await channelPosts(ch); state[ch] = p.at(-1)?.id || 0; log(`공시 채널 @${ch} 감시 시작 (글 #${state[ch]} 이후부터)`); continue; }
+          for (let page = 0; page < 10; page++) {
+            const posts = (await channelPosts(ch, last)).filter((p) => p.id > last);
+            if (!posts.length) break;
+            for (const p of posts) {
+              const codes = [...p.text.matchAll(/A(\d{6})\b/g)].map((m) => m[1]).filter((c) => held.has(c));
+              if (codes.length) {
+                const name = held.get(codes[0]);
+                const body = p.text.length > 1500 ? p.text.slice(0, 1500) + '…' : p.text;
+                await reply(`📢 <b>보유 종목 공시 · ${esc(name)}</b>\n\n${esc(body)}\n\n<a href="https://t.me/${ch}/${p.id}">채널에서 보기</a>`);
+                const rcp = p.text.match(/rcpNo=(\d+)/)?.[1];
+                if (rcp) await markForwarded('D' + rcp).catch((e) => log('전달 기록 실패:', e.message));
+                log(`공시 전달: ${name} (#${p.id})`);
+              }
+              last = p.id;
+            }
+          }
+          state[ch] = last;
+        }
+        await fs.writeFile(CH_STATE, JSON.stringify(state));
+      }
+    } catch (e) { log('공시 채널 확인 실패:', e.message); }
+    await new Promise((r) => setTimeout(r, busy ? 60000 : 600000));
+  }
+}
+// GitHub 쪽 공시 알림(news.mjs)이 같은 공시를 또 보내지 않도록 전달한 접수번호를 암호화해 기록
+async function markForwarded(id) {
+  const cur = (await enc('data/forwarded.enc.json').catch(() => null)) || { ids: [] };
+  if (cur.ids.includes(id)) return;
+  cur.ids = [...cur.ids, id].slice(-500);
+  cache.delete('data/forwarded.enc.json');
+  await saveRaw('data/forwarded.enc.json', encryptJSON(cur, CFG.password), '봇: 공시 전달 기록');
+}
+
 // ---------------------------------------------------------------- 실행 루프
-export { handle };
+export { handle, channelPosts };
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let offset = 0;
   log('봇을 시작했어요. 텔레그램에서 "도움"을 보내 보세요. (끄려면 Ctrl+C)');
   await reply('🤖 봇이 켜졌어요. "도움"을 보내면 할 수 있는 일을 알려드려요.').catch(() => {});
+  watchChannels();
   for (;;) {
     try {
       const r = await tg('getUpdates', { offset, timeout: 50, allowed_updates: ['message'] });

@@ -70,6 +70,8 @@ async function main() {
   let state = { seen: [], init: false };
   try { state = decryptJSON(await readJSON(STATE, null), PW); } catch {}
   const seen = new Set(state.seen);
+  // 맥북 봇이 공시 채널에서 이미 보낸 공시는 다시 보내지 않음
+  try { for (const id of decryptJSON(await readJSON(path.join(ROOT, 'data', 'forwarded.enc.json'), null), PW).ids || []) seen.add(id); } catch {}
   const fresh = [];
 
   // 1) DART 공시: 최근 3일
