@@ -1,0 +1,44 @@
+name: 공시·리포트 알림
+
+on:
+  schedule:
+    # 평일 07:00~21:45 (한국시간) 15분마다
+    - cron: '*/15 22-23 * * 0-4'   # 07:00~08:45 KST (월~금)
+    - cron: '*/15 0-12 * * 1-5'    # 09:00~21:45 KST (월~금)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 새 공시·리포트 확인
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+          HOLDINGS_PASSWORD: ${{ secrets.HOLDINGS_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/news.mjs
+      - name: 기록 저장(커밋)
+        run: |
+          git config user.name "stock-note-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/news-state.enc.json data/corp_codes.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "새 항목 없음"
+          else
+            git commit -m "공시·리포트 확인 $(TZ=Asia/Seoul date +'%m-%d %H:%M')"
+            git pull --rebase
+            git push
+          fi

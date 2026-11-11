@@ -126,7 +126,8 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>감시</b> / <b>감시 추가 삼성전자</b> [가격] / <b>감시 삭제 삼성전자</b>
 • <b>기준</b> / <b>기준 RS 80</b> — 스캔 기준 보기·바꾸기
 • <b>입금 한투1 100만</b> [날짜] / <b>출금 키움(미국) 50만</b> / <b>입출금</b> — 수익률 계산용 입출금 기록
-• <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b>`;
+• <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b> — 돌파 알림
+• <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림`;
 
 const KEYS = {
   RS: ['minRS', '최소 RS'], 시총: ['minMarketCapEok', '최소 시가총액(억)'], 거래량: ['breakout.volumeRatio', '돌파 거래량 배수'],
@@ -311,6 +312,13 @@ async function handle(text) {
   if (/^출금$/.test(cmd)) return cmdFlow('out', args);
   if (/^입출금$/.test(cmd)) return args[0] === '삭제' ? cmdFlow('delete', args.slice(1)) : cmdFlow('list', args);
   if (/^기준$/.test(cmd)) return cmdCriteria(args);
+  if (/^(공시알림|공시|리포트알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) {
+    const on = /켜/.test(args[0]);
+    const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
+    alerts.news = on;
+    await saveJSON('config/alerts.json', alerts, `봇: 공시·리포트 알림 ${on ? '켜기' : '끄기'}`);
+    return on ? '📢 보유 종목 공시·리포트 알림을 켰어요.' : '공시·리포트 알림을 껐어요. "공시알림 켜기"로 다시 켤 수 있어요.';
+  }
   if (/^알림$/.test(cmd) && /끄|중지|멈/.test(args[0] || '')) return cmdAlerts(false, args.slice(1).join(' '));
   if (/^알림$/.test(cmd) && /켜|시작|재개/.test(args[0] || '')) return cmdAlerts(true);
   // 종목명만 보내면 분석
