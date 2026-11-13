@@ -13,16 +13,21 @@ console.log('\n==== 내 주식 노트 : 윈도우 PC 설치 ====\n');
 
 // 줄바꿈 문자 정리 (윈도우가 설정 파일을 바꾼 것처럼 보이지 않게)
 sh('git', ['config', 'core.autocrlf', 'false'], { stdio: 'ignore' });
-sh('git', ['pull', '-q', '--autostash', 'origin', 'main'], { stdio: 'ignore' });
+// 이 저장소에서 쓸 git 이름 (없으면 GitHub과 합칠 때 실패함)
+sh('git', ['config', 'user.name', 'stock-note-pc'], { stdio: 'ignore' });
+sh('git', ['config', 'user.email', 'stock-note-pc@users.noreply.github.com'], { stdio: 'ignore' });
+sh(process.execPath, ['local/run.mjs', 'job', 'pull']);
 
 console.log('[1/4] 키와 비밀번호 설정');
 if (sh(process.execPath, ['local/setup.mjs']).status !== 0) process.exit(1);
 
-console.log('\n[2/4] 키움/토스 접속 확인');
+console.log('\n[2/4] 증권사 접속 확인 (키움·토스 → 한투·시세 수집)');
 let ip = '확인 실패';
 try { ip = (await (await fetch('https://api.ipify.org', { signal: AbortSignal.timeout(8000) })).text()).trim(); } catch {}
 console.log(`     이 PC의 공인 IP: ${ip}`);
 const r = sh(process.execPath, ['local/run.mjs', 'job', 'sync']);
+// 한투 잔고와 시세는 collect 에서 가져오므로 같이 실행 (사이트에 바로 반영)
+sh(process.execPath, ['local/run.mjs', 'job', 'collect']);
 if (r.status !== 0) {
   console.log(`\n     ⚠ 키움/토스 접속이 안 됐어요. 각 개발자 사이트의 허용 IP에 ${ip} 를 추가한 뒤`);
   console.log('       local\\run-now.bat 에서 1번을 누르면 다시 가져와요. (나머지 설치는 계속 진행해요)\n');
