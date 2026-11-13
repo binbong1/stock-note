@@ -615,9 +615,8 @@ function accountFlow(prevA, curA, key, date) {
   const manual = (FLOWS?.rows || []).filter((f) => f.date === date && f.account === key);
   if (manual.length) return { flow: manual.reduce((t, f) => t + f.amount, 0), manual: true };
   if (!prevA) return { flow: 0, start: curA.total };               // 새로 생긴 계좌: 입금이 아니라 '계좌 추가'로
-  if (!prevA.pos) return { flow: 0, unknown: true };              // 예전 기록(종목 정보 없음)
-  const raw = rawFlow(prevA, curA);
-  return { flow: Math.abs(raw) < FLOW_NOISE(prevA.total) ? 0 : Math.round(raw), inferred: Math.abs(raw) >= FLOW_NOISE(prevA.total) };
+  // 입출금은 사용자가 알려준 것(직접 기록)만 반영 — 잔고 변화로 추정해서 넣지 않음
+  return { flow: 0 };
 }
 // 기록 보정 (원본은 그대로 두고 화면 계산에만 사용)
 //  1) 하루 자료가 빠진 계좌는 최대 5일까지 전날 값으로 채움 → 빠졌다 다시 생긴 계좌가 출금·입금으로 잡히지 않게
@@ -751,8 +750,8 @@ function viewHistory() {
     <div style="font-size:14px;line-height:1.7">
       <p style="margin:0 0 6px"><b>하루 수익률</b> = (오늘 총자산 − 어제 총자산 − 오늘 입출금) ÷ (어제 총자산 + 오늘 입금)</p>
       <p style="margin:0 0 6px"><b>기간 수익률</b> = 하루 수익률을 이어서 곱한 값 (1+r₁)×(1+r₂)×… − 1 → 언제 얼마를 넣고 뺐는지와 상관없이 <b>운용 실력</b>만 보여줘요 (시간가중수익률, 펀드 수익률과 같은 방식).</p>
-      <p style="margin:0 0 6px"><b>입출금</b>은 증권사가 내역을 주지 않아 잔고로 추정해요: 오늘 총자산 변화에서 어제 보유 종목의 가격 변동분을 뺀 나머지. 매매가가 종가와 달라 생기는 작은 차이(5만원 또는 0.3% 미만)는 손익으로 봐요. 주식을 사고판 돈이 이틀 뒤(D+2) 결제되면서 '입금 → 며칠 뒤 같은 금액 출금'처럼 보이는 건 찾아서 상쇄하고, 새로 연결한 계좌는 입금이 아니라 '계좌 추가'로 따로 봐요. 배당금은 입금으로 잡힐 수 있어요.</p>
-      <p class="mute" style="margin:0">추정이 틀렸으면 텔레그램 봇에 <b>입금 한투1 1000000 2026-11-12</b> / <b>출금 키움(미국) 500000</b>처럼 보내면 그날 값이 직접 기록으로 바뀌어요.</p>
+      <p style="margin:0 0 6px"><b>입출금</b>은 직접 알려준 것만 반영해요 (잔고로 추정하지 않아요). 기록하지 않은 입출금은 그날 손익으로 보이니, 넣고 뺄 때마다 알려 주세요. 주식을 사고판 돈이 이틀 뒤(D+2) 결제되면서 생기는 차이는 자동으로 맞추고, 새로 연결한 계좌는 '계좌 추가'로 따로 봐요.</p>
+      <p class="mute" style="margin:0">기록 방법: 텔레그램 봇에 <b>입금 한투1 100만 2026-11-12</b> / <b>출금 키움(미국) 50만</b>처럼 보내거나, "어제 한투1에 100만원 넣었어"처럼 말해도 돼요. 날짜를 빼면 오늘로 기록해요. 목록은 <b>입출금</b>.</p>
     </div>
   </section>`}`;
   bindPeriod(); bindAcct();
