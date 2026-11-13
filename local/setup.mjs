@@ -75,6 +75,7 @@ for (let i = 0; i < kisN; i++) {
   const appsecret = await ask('     App Secret', p.appsecret || '');
   const account = await ask('     계좌번호 (예: 12345678-01)', p.account || '');
   if (appkey && appsecret && account) kis.push({ appkey, appsecret, account });
+  else console.log(`     ⚠ 한투${i + 1}은 빈 칸이 있어서 빠졌어요. 이 계좌는 사이트에서 지난번 값으로만 보여요.`);
 }
 cfg.kisAccounts = kis;
 

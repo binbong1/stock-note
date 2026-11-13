@@ -56,6 +56,8 @@ const saveState = () => fs.writeFile(STATE_FILE, JSON.stringify(STATE, null, 2))
 
 // ---------------------------------------------------------------- 실행 환경
 function scriptEnv() {
+  // 설정을 바꾸면(local\\setup.mjs) 다시 켜지 않아도 다음 작업부터 반영
+  try { Object.assign(CFG, JSON.parse(fss.readFileSync(CONFIG_FILE, 'utf8'))); } catch {}
   const env = { ...process.env, HOLDINGS_PASSWORD: CFG.password, DART_API_KEY: CFG.dart || '', STOCKNOTE_LOCAL: '1', STOCKNOTE_CONFIG: CONFIG_FILE };
   (CFG.kisAccounts || []).forEach((k, i) => {
     const sfx = i === 0 ? '' : `_${i + 1}`;
@@ -111,7 +113,7 @@ const JOBS = {
     return { code: [a, b, c].some((r) => r.code !== 0) ? 1 : 0 };
   },
   async pull() {
-    const before = (await git(['rev-parse', 'HEAD'])).out.trim();
+    const before = START_HEAD || (await git(['rev-parse', 'HEAD'])).out.trim();
     const r = await safePull('origin', CFG.github?.branch || 'main');
     if (r.code !== 0) { log('   GitHub에서 받아오기 실패:', r.out.trim().split('\n').slice(-2).join(' ')); return r; }
     const after = (await git(['rev-parse', 'HEAD'])).out.trim();
@@ -140,6 +142,8 @@ const JOBS = {
     return { code: 1 };
   },
 };
+
+let START_HEAD = null; // 켜질 때의 코드 버전 (직접 git pull 해도 새벽에 새 코드로 다시 시작)
 
 // 작업은 한 번에 하나씩 (같은 파일을 동시에 고치지 않게)
 const queue = [];
@@ -265,6 +269,24 @@ if (cmd === 'job') {
 } else if (cmd === 'mode') {
   if (!['local', 'github'].includes(arg)) { console.log('사용법: node local/run.mjs mode local|github'); process.exit(1); }
   await setMode(arg);
+} else if (cmd === 'stop' || cmd === 'uninstall') {
+  const port = CFG.server?.port || 8080;
+  try { await fetch(`http://127.0.0.1:${port}/__stop`); console.log('껐어요.'); } catch { console.log('실행 중이 아니었어요.'); }
+  if (cmd === 'uninstall') {
+    await fs.rm(path.join(process.env.APPDATA || '', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup', 'StockNote.vbs'), { force: true });
+    await setMode('github');
+    console.log('자동 실행을 지웠고, 다시 GitHub이 자동 실행하도록 바꿨어요.');
+  } else console.log('다시 켜려면 PC를 재시작하거나 local\\start.cmd 를 더블클릭하세요.');
+} else if (cmd === 'now') {
+  const port = CFG.server?.port || 8080;
+  const readline = await import('node:readline/promises');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  console.log('\n 1) 장 마감 작업 전체 (키움/토스 잔고 + 한투 + 수집 + 스캔)\n 2) 공시/리포트 확인\n 3) 장중 돌파 감시\n 4) GitHub 사이트에 바로 올리기\n');
+  const n = (await rl.question('번호를 고르세요: ')).trim(); rl.close();
+  const job = { 1: 'evening', 2: 'news', 3: 'intraday', 4: 'publish' }[n];
+  if (!job) process.exit(0);
+  try { console.log((await (await fetch(`http://127.0.0.1:${port}/__run?job=${job}`)).text())); console.log(`진행 상황: http://localhost:${port}/__status  (기록: local\\logs 폴더)`); }
+  catch { console.log('상시 실행이 꺼져 있어서 지금 이 창에서 실행해요...'); const r = await JOBS[job](); if (job !== 'publish') await JOBS.publish(); console.log(r.code === 0 ? '✔ 끝' : '✖ 실패 — 위 메시지를 확인하세요'); }
 } else if (cmd === 'status') {
   console.log(JSON.stringify(STATE.last || {}, null, 2));
 } else if (cmd === 'daemon') {
@@ -274,6 +296,7 @@ if (cmd === 'job') {
     if (e.code === 'EADDRINUSE') { log(`이미 실행 중이에요 (포트 ${port} 사용 중)`); process.exit(EXIT_ALREADY); }
     throw e;
   }
+  START_HEAD = (await git(['rev-parse', 'HEAD'])).out.trim() || null;
   log(`● 시작 — 사이트: http://localhost:${port}  (상태: http://localhost:${port}/__status)`);
   try {
     const runner = JSON.parse(await fs.readFile(path.join(ROOT, 'config', 'runner.json'), 'utf8'));

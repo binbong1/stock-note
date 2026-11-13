@@ -309,6 +309,11 @@ async function main() {
     // 한국투자증권 계좌가 여러 개면 KIS_APPKEY_2 / KIS_APPSECRET_2 / KIS_ACCOUNT_2 … 로 추가
     let kisFailed = false;
     const kisOk = new Set();
+    if (!ENV.KIS_APPKEY && !ENV.KIS_APPKEY_2) {
+      // 한투 키가 하나도 없으면 한투 계좌를 지우지 말고 지난번 값을 유지
+      kisFailed = true;
+      result.errors.push('한국투자증권 키가 설정돼 있지 않아요 (PC면 local\\setup.mjs 다시 실행)');
+    }
     for (const [i, sfx] of ['', '_2', '_3'].entries()) {
       const appkey = ENV['KIS_APPKEY' + sfx], appsecret = ENV['KIS_APPSECRET' + sfx], account = ENV['KIS_ACCOUNT' + sfx];
       if (!appkey || !appsecret || !account) continue;
