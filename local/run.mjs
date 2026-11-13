@@ -129,17 +129,23 @@ const JOBS = {
   async publish() {
     if (!CFG.github?.token) return { code: 0 };
     const st = await git(['status', '--porcelain', '--', 'data', 'config']);
-    if (!st.out.trim()) return { code: 0 };
-    await git(['add', '--', 'data', 'config']);
-    const c = await git(['-c', 'user.name=stock-note-pc', '-c', 'user.email=stock-note-pc@users.noreply.github.com', 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
-    if (c.code !== 0 && !/nothing to commit/.test(c.out)) { log('   커밋 실패:', c.out.trim().slice(0, 200)); return c; }
+    // 바뀐 게 없고 지난번에 못 올린 것도 없으면 끝 (못 올린 커밋은 다음번에 꼭 다시 올림)
+    if (!st.out.trim() && !STATE.needPush) return { code: 0 };
+    if (st.out.trim()) {
+      await git(['add', '--', 'data', 'config']);
+      const c = await git(['-c', 'user.name=stock-note-pc', '-c', 'user.email=stock-note-pc@users.noreply.github.com', 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
+      if (c.code !== 0 && !/nothing to commit/.test(c.out)) { log('   커밋 실패:', c.out.trim().slice(0, 300)); return c; }
+    }
+    STATE.needPush = true; await saveState();
     const { owner, repo, token, branch = 'main' } = CFG.github;
     const url = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
+    const hide = (t) => String(t).replaceAll(token, '***').trim().slice(0, 300);
     for (let i = 0; i < 3; i++) {
-      await safePull(url, branch);
+      const pl = await safePull(url, branch);
+      if (pl.code !== 0) log('   GitHub에서 받아오기 실패:', hide(pl.out));
       const p = await git(['push', '-q', url, `HEAD:${branch}`]);
-      if (p.code === 0) { log('   GitHub에 올렸어요 (휴대폰 사이트 반영)'); return p; }
-      log('   GitHub 올리기 실패, 다시 시도:', p.out.replaceAll(token, '***').trim().slice(0, 200));
+      if (p.code === 0) { STATE.needPush = false; await saveState(); log('   GitHub에 올렸어요 (휴대폰 사이트 반영)'); return p; }
+      log('   GitHub 올리기 실패, 다시 시도:', hide(p.out));
       await new Promise((r) => setTimeout(r, 5000));
     }
     return { code: 1 };
@@ -233,6 +239,13 @@ function startServer(port) {
       if (p === '/__status') {
         res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify({ now: stamp(), busy, queue, bot: !!bot, last: STATE.last || {} }, null, 2));
+      }
+      if (p === '/__log') {
+        // 오늘 기록 마지막 150줄 (토큰·키는 기록에 남기지 않음)
+        let t = '';
+        try { t = (await fs.readFile(path.join(LOG_DIR, `${kstDate()}.log`), 'utf8')).split('\n').slice(-150).join('\n'); } catch {}
+        res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
+        return res.end(t || '오늘 기록이 없어요');
       }
       if (p === '/__run' && req.socket.remoteAddress?.includes('127.0.0.1')) {
         const j = url.searchParams.get('job');
