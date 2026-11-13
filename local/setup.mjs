@@ -105,6 +105,11 @@ let chatId = '';
 while (!/^-?\d+$/.test(chatId)) chatId = await ask('   텔레그램 chat id (숫자)', tg.chatId ? String(tg.chatId) : '');
 cfg.telegram = { token, chatId };
 
+// 8) Claude API (텔레그램 봇이 평소 말을 알아듣게, 선택)
+const ck = await ask('8) Claude API 키 (sk-ant- 로 시작, 봇이 평소 말을 알아듣게 — 없으면 엔터)', cfg.claude?.apiKey || '');
+if (ck && !/^sk-ant-/.test(ck)) console.log('   ⚠ sk-ant- 로 시작하지 않아요. 키를 다시 확인해 주세요.');
+cfg.claude = ck ? { model: 'claude-haiku-5-5', ...(cfg.claude || {}), apiKey: ck } : undefined;
+
 cfg.server = { port: 8080, host: '127.0.0.1', ...(cfg.server || {}) };
 delete cfg.kis; // 한투는 kisAccounts 로 수집 (예전 맥북 설정 정리)
 rl.close();
@@ -112,4 +117,4 @@ rl.close();
 await fs.mkdir(path.dirname(FILE), { recursive: true });
 await fs.writeFile(FILE, JSON.stringify(cfg, null, 2));
 console.log(`\n✔ 저장했어요: ${FILE}`);
-console.log(`   한투 ${kis.length}개 · 키움 ${kw.length}개 · 토스 ${cfg.toss.length}개 · DART ${cfg.dart ? '있음' : '없음'} · 텔레그램 있음\n`);
+console.log(`   한투 ${kis.length}개 · 키움 ${kw.length}개 · 토스 ${cfg.toss.length}개 · DART ${cfg.dart ? '있음' : '없음'} · 텔레그램 있음 · 봇 자연어 ${cfg.claude ? '켜짐' : '꺼짐'}\n`);

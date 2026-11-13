@@ -178,7 +178,10 @@ async function pump() {
 
 // ---------------------------------------------------------------- 시간표
 const EVENING_AT = 16 * 60 + 10;
+let cfgMtime = 0;
 function tick() {
+  // 설정 파일이 바뀌면 봇을 다시 켜서 새 설정(예: Claude API 키)을 읽게 함
+  try { const mt = fss.statSync(CONFIG_FILE).mtimeMs; if (cfgMtime && mt !== cfgMtime && bot) { log('설정이 바뀌어서 봇을 다시 켜요'); bot.kill(); } cfgMtime = mt; } catch {}
   const m = kstHM(), d = kstDate(), wd = isWeekday();
   STATE.slots = STATE.slots || {};
   const once = (key) => { if (STATE.slots[key] === d) return false; STATE.slots[key] = d; saveState(); return true; };
@@ -203,8 +206,8 @@ function startBot() {
   bot.on('exit', (code) => {
     bot = null;
     if (stopping) return;
-    log(`🤖 봇이 꺼졌어요 (코드 ${code}) → 20초 뒤 다시 켜요`);
-    setTimeout(startBot, 20000);
+    log(`🤖 봇이 꺼졌어요 (코드 ${code}) → 다시 켜요`);
+    setTimeout(startBot, code == null ? 3000 : 20000);
   });
 }
 

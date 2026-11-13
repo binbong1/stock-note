@@ -1,4 +1,5 @@
 // 내 주식 노트 · 텔레그램 대화형 봇 (맥북 또는 윈도우 PC에서 실행)
+// config.json 에 claude.apiKey 가 있으면 정해진 명령 외의 말은 Claude가 알아듣고 처리 (ai.mjs)
 // 실행: node bot.mjs   (같은 폴더의 config.json 의 telegram 설정 사용)
 // 등록된 내 채팅(chatId)에서 온 메시지에만 답합니다.
 
@@ -7,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decryptJSON, encryptJSON } from './brokers.mjs';
 import { UA, kstNow, r2, dailyBars, weightedReturn, rsFromCut, classify, riskPlan } from './strategy-lib.mjs';
+import { createAI } from './ai.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 // 윈도우 PC 로컬 모드: GitHub 대신 저장소 폴더의 파일을 직접 읽고 씀
@@ -137,7 +139,8 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>기준</b> / <b>기준 RS 80</b> — 스캔 기준 보기·바꾸기
 • <b>입금 한투1 100만</b> [날짜] / <b>출금 키움(미국) 50만</b> / <b>입출금</b> — 수익률 계산용 입출금 기록
 • <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b> — 돌파 알림
-• <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림`;
+• <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림
+${CFG.claude?.apiKey || CFG.anthropicKey ? '\n💬 그 밖에는 평소 말하듯 보내도 돼요. 예) "이번 달 한투1 실현손익 얼마야?", "보유 종목 중 52주 고가 근처인 거 있어?", "SNT다이내믹스 감시 걸어줘"\n바꾸는 일은 "네"라고 확인한 뒤에 실행해요. 주문은 할 수 없어요.' : ''}`;
 
 const KEYS = {
   RS: ['minRS', '최소 RS'], 시총: ['minMarketCapEok', '최소 시가총액(억)'], 거래량: ['breakout.volumeRatio', '돌파 거래량 배수'],
@@ -261,7 +264,7 @@ async function cmdCriteria(args) {
   const old = getPath(S, def[0]);
   setPath(S, def[0], val);
   await saveJSON('config/strategy.json', S, `봇: 기준 변경 ${k} ${old} → ${val}`);
-  return `✅ ${def[1]}: ${old} → <b>${val}</b>\n다음 장 마감 스캔(16:55)부터 반영돼요.`;
+  return `✅ ${def[1]}: ${old} → <b>${val}</b>\n다음 장 마감 스캔부터 반영돼요.`;
 }
 
 async function cmdAlerts(on, arg) {
@@ -308,7 +311,77 @@ async function cmdFlow(kind, args) {
   return kind === 'delete' ? `${date} ${esc(hit[0][1])} 입출금 기록을 지웠어요.` : `💵 ${date} <b>${esc(hit[0][1])}</b> ${kind === 'in' ? '입금' : '출금'} ${won(Math.abs(Number(amtTok.replace(/[,원만]/g, '')) * (/만/.test(amtTok) ? 10000 : 1)))}원을 기록했어요.\n자산 추이 수익률에 바로 반영돼요 (사이트 새로고침).`;
 }
 
+async function cmdNews(on) {
+  const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
+  alerts.news = on;
+  await saveJSON('config/alerts.json', alerts, `봇: 공시·리포트 알림 ${on ? '켜기' : '끄기'}`);
+  return on ? '📢 보유 종목 공시·리포트 알림을 켰어요.' : '공시·리포트 알림을 껐어요. "공시알림 켜기"로 다시 켤 수 있어요.';
+}
+
+// ---------------------------------------------------------------- 자연어(Claude)용 데이터
+async function holdingsJSON() {
+  const [sum, hold] = await Promise.all([file('data/summary.json'), enc('data/holdings.enc.json')]);
+  ALIASES = hold?.aliases || {};
+  const px = Object.fromEntries((sum?.stocks || []).map((s) => [s.code, s]));
+  const fx = sum?.fx?.USDKRW || 0;
+  const rows = [];
+  for (const h of hold?.items || []) {
+    const s = px[h.code]; const k = h.currency === 'USD' ? fx : 1;
+    const value = h.self ? h.valueKrw : s ? s.close * h.qty * k : null;
+    const cost = h.self ? h.costKrw : h.avg * h.qty * k;
+    rows.push({ account: acctName(h.broker, h.account || h.broker), name: h.name, code: h.code, currency: h.currency || 'KRW', qty: h.qty, avg: h.avg, price: s?.close ?? h.price ?? null,
+      valueKrw: value == null ? null : Math.round(value), plKrw: value == null ? null : Math.round(value - cost), ratePct: value && cost ? r2((value / cost - 1) * 100) : null,
+      changePct: s?.changePct, high52: s?.high52, distToHigh52Pct: s?.distToHigh52Pct, ma20: s?.ma20, ma60: s?.ma60, ma120: s?.ma120, ret3mPct: s?.ret3mPct, trend: s?.trend?.label, stop: s?.stop });
+  }
+  const total = rows.reduce((t, r) => t + (r.valueKrw || 0), 0);
+  for (const r of rows) r.weightPct = total && r.valueKrw ? r2(r.valueKrw / total * 100) : null;
+  const cash = (hold?.accounts || []).map((a) => ({ account: acctName(a.broker, a.account), cash: a.cash }));
+  return { asOf: sum?.updatedAt, usdkrw: fx, holdings: rows, cash };
+}
+async function realizedRows({ from, to, account, stock } = {}) {
+  const R = await enc('data/realized.enc.json');
+  if (!R) return { rows: [] };
+  let rows = R.rows.map((r) => ({ date: r.date, account: acctName(r.broker, r.account), name: r.name, code: r.code, qty: r.qty, sellAmt: r.sellAmt, pl: r.pl, net: r.pl - (r.fee || 0) - (r.tax || 0), rate: r.rate }));
+  if (from) rows = rows.filter((r) => r.date >= from);
+  if (to) rows = rows.filter((r) => r.date <= to);
+  if (account) rows = rows.filter((r) => r.account.replace(/\s/g, '').includes(account.replace(/\s/g, '')));
+  if (stock) rows = rows.filter((r) => r.name.includes(stock) || r.code === stock);
+  return { count: rows.length, netSum: rows.reduce((t, r) => t + r.net, 0), rows: rows.slice(0, 150) };
+}
+async function historyRows({ from, to } = {}) {
+  const H = await enc('data/history.enc.json');
+  let d = (H?.days || []).map((x) => ({ date: x.date, total: x.total, stockValue: x.stockValue, cash: x.cash, cost: x.cost }));
+  if (from) d = d.filter((x) => x.date >= from);
+  if (to) d = d.filter((x) => x.date <= to);
+  return { days: d.slice(-120) };
+}
+async function stockInfo(q) {
+  const f = await lookup(q || '');
+  if (!f || f.many) return { error: f?.many ? `여러 종목: ${f.many.join(', ')}` : '종목을 찾지 못했어요' };
+  const d = await file(`data/stocks/${f.code}.json`, 600000).catch(() => null);
+  if (!d) return { code: f.code, name: f.name, error: '상세 자료가 없는 종목이에요 (보유·신호 종목만 자료가 있어요). analyze_stock 은 쓸 수 있어요.' };
+  return { code: d.code, name: d.name, info: d.info, annual: d.annual, quarter: d.quarter, summary: d.summary, deals: (d.deals || []).slice(0, 5), researches: (d.researches || []).slice(0, 5) };
+}
+async function disclosures(q) {
+  const sum = await file('data/summary.json');
+  let list = sum?.disclosures || [];
+  if (q) list = list.filter((x) => JSON.stringify(x).includes(q));
+  return list.slice(0, 30);
+}
+const AI = createAI({
+  config: CFG.claude || (CFG.anthropicKey ? { apiKey: CFG.anthropicKey } : {}),
+  log, today, cmdStatus, cmdRealized, cmdSignals, cmdAnalyze, cmdWatch, cmdCriteria, cmdFlow, cmdAlerts, cmdNews,
+  holdingsJSON, realizedRows, historyRows, stockInfo, disclosures,
+  accountNames: () => [...new Set(Object.values(ALIASES))],
+  criteriaKeys: () => Object.keys(KEYS),
+  criteriaLabel: (k) => KEYS[k]?.[1] || k,
+});
+
 async function handle(text) {
+  if (AI.enabled) {
+    const c = await AI.confirm(text);
+    if (c) return c.html;
+  }
   const t = text.trim().replace(/^\//, '');
   const [cmd, ...args] = t.split(/\s+/);
   if (/^(도움|도움말|help|start|명령어)$/i.test(cmd)) return HELP;
@@ -322,18 +395,18 @@ async function handle(text) {
   if (/^출금$/.test(cmd)) return cmdFlow('out', args);
   if (/^입출금$/.test(cmd)) return args[0] === '삭제' ? cmdFlow('delete', args.slice(1)) : cmdFlow('list', args);
   if (/^기준$/.test(cmd)) return cmdCriteria(args);
-  if (/^(공시알림|공시|리포트알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) {
-    const on = /켜/.test(args[0]);
-    const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
-    alerts.news = on;
-    await saveJSON('config/alerts.json', alerts, `봇: 공시·리포트 알림 ${on ? '켜기' : '끄기'}`);
-    return on ? '📢 보유 종목 공시·리포트 알림을 켰어요.' : '공시·리포트 알림을 껐어요. "공시알림 켜기"로 다시 켤 수 있어요.';
-  }
+  if (/^(공시알림|공시|리포트알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) return cmdNews(/켜/.test(args[0]));
   if (/^알림$/.test(cmd) && /끄|중지|멈/.test(args[0] || '')) return cmdAlerts(false, args.slice(1).join(' '));
   if (/^알림$/.test(cmd) && /켜|시작|재개/.test(args[0] || '')) return cmdAlerts(true);
   // 종목명만 보내면 분석
   const f = await lookup(t).catch(() => null);
   if (f && !f.many) return cmdAnalyze(t);
+  // 그 밖의 말은 Claude가 알아듣고 처리 (API 키가 있을 때)
+  if (AI.enabled) {
+    if (!ALIASES || !Object.keys(ALIASES).length) ALIASES = (await enc('data/holdings.enc.json').catch(() => null))?.aliases || {};
+    const r = await AI.answer(text);
+    if (r) return { plain: r.text };
+  }
   return `무슨 말인지 잘 모르겠어요.\n\n${HELP}`;
 }
 
@@ -421,7 +494,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         const m = u.message;
         if (!m?.text || String(m.chat.id) !== String(TG.chatId)) continue;
         log('받음:', m.text);
-        try { await reply(await handle(m.text)); }
+        try {
+          tg('sendChatAction', { chat_id: TG.chatId, action: 'typing' }).catch(() => {});
+          const out = await handle(m.text);
+          if (out && typeof out === 'object' && out.plain != null) await tg('sendMessage', { chat_id: TG.chatId, text: out.plain.slice(0, 4000), disable_web_page_preview: true });
+          else await reply(out);
+        }
         catch (e) { log('처리 실패:', e.message); await reply(`처리 중 문제가 생겼어요: ${esc(e.message)}`); }
       }
     } catch (e) {
