@@ -181,7 +181,15 @@ const EVENING_AT = 16 * 60 + 10;
 let cfgMtime = 0;
 function tick() {
   // 설정 파일이 바뀌면 봇을 다시 켜서 새 설정(예: Claude API 키)을 읽게 함
-  try { const mt = fss.statSync(CONFIG_FILE).mtimeMs; if (cfgMtime && mt !== cfgMtime && bot) { log('설정이 바뀌어서 봇을 다시 켜요'); bot.kill(); } cfgMtime = mt; } catch {}
+  try {
+    const mt = fss.statSync(CONFIG_FILE).mtimeMs;
+    if (cfgMtime && mt !== cfgMtime) {
+      if (bot) { log('설정이 바뀌어서 봇을 다시 켜요'); bot.kill(); }
+      // 키를 새로 넣었으면 오늘 장 마감 작업(잔고 수집)을 한 번 더 해서 바로 반영
+      if (STATE.slots?.evening) { log('설정이 바뀌어서 잔고를 다시 가져와요'); STATE.slots.evening = null; STATE.eveningRetryAt = 0; }
+    }
+    cfgMtime = mt;
+  } catch {}
   const m = kstHM(), d = kstDate(), wd = isWeekday();
   STATE.slots = STATE.slots || {};
   const once = (key) => { if (STATE.slots[key] === d) return false; STATE.slots[key] = d; saveState(); return true; };
