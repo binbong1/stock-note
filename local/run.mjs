@@ -324,6 +324,7 @@ if (cmd === 'job') {
     throw e;
   }
   START_HEAD = (await git(['rev-parse', 'HEAD'])).out.trim() || null;
+  STATE.needPush = true; // 켜질 때 한 번은 꼭 올려서, 예전에 못 올린 커밋이 남지 않게
   log(`● 시작 — 사이트: http://localhost:${port}  (상태: http://localhost:${port}/__status)`);
   try {
     const runner = JSON.parse(await fs.readFile(path.join(ROOT, 'config', 'runner.json'), 'utf8'));
