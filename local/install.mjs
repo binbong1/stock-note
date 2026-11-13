@@ -13,7 +13,10 @@ console.log('\n==== 내 주식 노트 : 윈도우 PC 설치 ====\n');
 
 // 줄바꿈 문자 정리 (윈도우가 설정 파일을 바꾼 것처럼 보이지 않게)
 sh('git', ['config', 'core.autocrlf', 'false'], { stdio: 'ignore' });
-sh('git', ['pull', '-q', '--autostash', 'origin', 'main'], { stdio: 'ignore' });
+// 이 저장소에서 쓸 git 이름 (없으면 GitHub과 합칠 때 실패함)
+sh('git', ['config', 'user.name', 'stock-note-pc'], { stdio: 'ignore' });
+sh('git', ['config', 'user.email', 'stock-note-pc@users.noreply.github.com'], { stdio: 'ignore' });
+sh(process.execPath, ['local/run.mjs', 'job', 'pull']);
 
 console.log('[1/4] 키와 비밀번호 설정');
 if (sh(process.execPath, ['local/setup.mjs']).status !== 0) process.exit(1);

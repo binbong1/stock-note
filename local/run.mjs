@@ -81,14 +81,43 @@ function run(cmd, args, { timeoutMin = 30, quiet = false, env } = {}) {
 }
 const node = (args, o) => run(process.execPath, args, o);
 const git = (args, o = {}) => run('git', args, { quiet: true, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' }, ...o });
-// 받아오다 충돌이 나면 되돌리고, 이 PC의 데이터를 우선으로 다시 시도 (저장소가 꼬인 채로 남지 않게)
+// GitHub 내용과 합치기: 코드는 GitHub 것을, 데이터(data/·config/)는 이 PC 것을 우선
+const ID = ['-c', 'user.name=stock-note-pc', '-c', 'user.email=stock-note-pc@users.noreply.github.com'];
+async function cleanState() {
+  const g = path.join(ROOT, '.git');
+  if (fss.existsSync(path.join(g, 'rebase-merge')) || fss.existsSync(path.join(g, 'rebase-apply'))) await git(['rebase', '--abort']);
+  if (fss.existsSync(path.join(g, 'MERGE_HEAD'))) await git(['merge', '--abort']);
+}
+async function walk(dir, out = []) {
+  for (const e of await fs.readdir(dir, { withFileTypes: true }).catch(() => [])) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) await walk(p, out); else out.push(p);
+  }
+  return out;
+}
 async function safePull(remote, branch) {
-  let r = await git(['pull', '--rebase', '--autostash', '-q', remote, branch]);
-  if (r.code === 0) return r;
-  await git(['rebase', '--abort']);
-  r = await git(['pull', '--rebase', '--autostash', '-X', 'theirs', '-q', remote, branch]);
-  if (r.code !== 0) await git(['rebase', '--abort']);
-  return r;
+  await cleanState();
+  const f = await git(['fetch', '-q', remote, branch]);
+  if (f.code !== 0) return f;
+  if ((await git(['merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD'])).code === 0) return { code: 0, out: '' };
+  // 아직 커밋 안 한 데이터가 있으면 먼저 커밋 (합칠 때 사라지지 않게)
+  if ((await git(['status', '--porcelain', '--', 'data', 'config'])).out.trim()) {
+    await git(['add', '--', 'data', 'config']);
+    await git([...ID, 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
+  }
+  const m = await git([...ID, 'merge', '-q', '--no-edit', '-X', 'ours', 'FETCH_HEAD']);
+  if (m.code === 0) return m;
+  await git(['merge', '--abort']);
+  // 그래도 안 되면: 이 PC의 data/·config/ 파일을 잠시 보관 → GitHub 버전으로 맞춤 → 보관한 데이터를 다시 씀
+  log('   합치기가 안 돼서 GitHub 코드에 맞추고 이 PC의 데이터를 다시 얹어요');
+  const keep = new Map();
+  for (const d of ['data', 'config']) for (const p of await walk(path.join(ROOT, d))) keep.set(p, await fs.readFile(p));
+  const r = await git(['reset', '-q', '--hard', 'FETCH_HEAD']);
+  if (r.code !== 0) return r;
+  for (const [p, b] of keep) { await fs.mkdir(path.dirname(p), { recursive: true }); await fs.writeFile(p, b); }
+  await git(['add', '--', 'data', 'config']);
+  await git([...ID, 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
+  return { code: 0, out: '' };
 }
 
 // 인터넷이 끊긴 채로 수집하면 빈 데이터로 덮어쓸 수 있어서, 먼저 확인
@@ -133,7 +162,7 @@ const JOBS = {
     if (!st.out.trim() && !STATE.needPush) return { code: 0 };
     if (st.out.trim()) {
       await git(['add', '--', 'data', 'config']);
-      const c = await git(['-c', 'user.name=stock-note-pc', '-c', 'user.email=stock-note-pc@users.noreply.github.com', 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
+      const c = await git([...ID, 'commit', '-q', '-m', `PC 데이터 업데이트 ${stamp().slice(0, 16)}`]);
       if (c.code !== 0 && !/nothing to commit/.test(c.out)) { log('   커밋 실패:', c.out.trim().slice(0, 300)); return c; }
     }
     STATE.needPush = true; await saveState();
@@ -323,6 +352,7 @@ if (cmd === 'job') {
     if (e.code === 'EADDRINUSE') { log(`이미 실행 중이에요 (포트 ${port} 사용 중)`); process.exit(EXIT_ALREADY); }
     throw e;
   }
+  if (!(await git(['config', 'user.name'])).out.trim()) { await git(['config', 'user.name', 'stock-note-pc']); await git(['config', 'user.email', 'stock-note-pc@users.noreply.github.com']); }
   START_HEAD = (await git(['rev-parse', 'HEAD'])).out.trim() || null;
   STATE.needPush = true; // 켜질 때 한 번은 꼭 올려서, 예전에 못 올린 커밋이 남지 않게
   log(`● 시작 — 사이트: http://localhost:${port}  (상태: http://localhost:${port}/__status)`);
