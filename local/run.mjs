@@ -2,7 +2,7 @@
 //
 //   node local/run.mjs daemon        상시 실행 (start.cmd 가 자동으로 켬)
 //   node local/run.mjs job <이름>     작업 하나만 바로 실행
-//        이름: sync | collect | daily | intraday | news | evening | publish | pull
+//        이름: sync | collect | daily | intraday | news | credit | evening | publish | pull
 //   node local/run.mjs mode local     GitHub 자동 실행을 쉬게 하고 이 PC가 맡기
 //   node local/run.mjs mode github    다시 GitHub이 맡기
 //   node local/run.mjs status         최근 실행 기록 보기
@@ -10,7 +10,7 @@
 // 하는 일 (모두 한국시간, 평일 기준)
 //   · 09:00~15:50  10분마다 장중 돌파 감시 (scan intraday)
 //   · 07:00~21:45  15분마다 보유 종목 공시·리포트 확인 (news)
-//   · 16:10        키움·토스 잔고 → 전체 수집(collect) → 장 마감 스캔(daily)
+//   · 16:10        키움·토스 잔고 → 전체 수집(collect) → 장 마감 스캔(daily) → 신용잔고 그래프
 //                  (PC가 꺼져 있었으면 켜진 뒤 그날 밤 12시 전까지 따라잡아 실행)
 //   · 텔레그램 봇 상시 실행 (꺼지면 다시 켬)
 //   · http://localhost:8080 에서 사이트 열기
@@ -96,7 +96,7 @@ async function online() {
   try { const r = await fetch('https://m.stock.naver.com/', { method: 'HEAD', signal: AbortSignal.timeout(8000) }); return r.status < 500; }
   catch { return false; }
 }
-const NEEDS_NET = new Set(['sync', 'collect', 'daily', 'intraday', 'news', 'evening']);
+const NEEDS_NET = new Set(['sync', 'collect', 'daily', 'intraday', 'news', 'credit', 'evening']);
 
 // ---------------------------------------------------------------- 작업
 const JOBS = {
@@ -105,10 +105,13 @@ const JOBS = {
   async daily() { return node(['scripts/scan.mjs', 'daily'], { timeoutMin: 25 }); },
   async intraday() { return node(['scripts/scan.mjs', 'intraday'], { timeoutMin: 9 }); },
   async news() { return node(['scripts/news.mjs'], { timeoutMin: 10 }); },
+  async credit() { return node(['scripts/credit.mjs'], { timeoutMin: 5 }); },
   async evening() {
     const a = await JOBS.sync();
     const b = await JOBS.collect();
+    await JOBS.publish(); // 잔고·시세는 스캔을 기다리지 않고 먼저 사이트에 반영
     const c = await JOBS.daily();
+    await JOBS.credit();  // 신용잔고 그래프 (금융투자협회 자료가 새로 나왔을 때만)
     await JOBS.publish();
     return { code: [a, b, c].some((r) => r.code !== 0) ? 1 : 0 };
   },
@@ -274,7 +277,7 @@ if (cmd === 'job') {
   if (NEEDS_NET.has(arg) && !(await online())) { log('인터넷(네이버 증권)에 연결이 안 돼요. 연결을 확인해 주세요.'); process.exit(1); }
   log(`▶ ${arg} (직접 실행)`);
   const r = await JOBS[arg]();
-  if (['sync', 'collect', 'daily', 'intraday', 'news'].includes(arg)) await JOBS.publish();
+  if (['sync', 'collect', 'daily', 'intraday', 'news', 'credit'].includes(arg)) await JOBS.publish();
   log(r.code === 0 ? '✔ 끝' : '✖ 실패 — 위 메시지를 확인하세요');
   process.exit(r.code === 0 ? 0 : 1);
 } else if (cmd === 'mode') {

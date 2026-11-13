@@ -25,6 +25,7 @@ function toolDefs(criteriaKeys) {
     { name: 'get_stock_info', description: '종목의 시가총액·PER·PBR 등 기본정보, 연간·분기 실적, 회사 개요, 최근 외국인·기관 매매, 증권사 리포트 목록. 보유·신호 종목만 자료가 있음.', input_schema: obj({ query: { type: 'string' } }, ['query']) },
     { name: 'get_disclosures', description: '최근 수집한 보유·관심 종목 DART 공시 목록.', input_schema: obj({ query: { type: 'string', description: '종목명(선택)' } }) },
     { name: 'get_watchlist', description: '내 감시 목록.', input_schema: obj() },
+    { name: 'get_credit', description: '코스피·코스닥 신용거래융자 잔고(최근 6개월 일별, 백만원 단위 JSON).', input_schema: obj() },
     { name: 'get_criteria', description: '스캔 기준 값들.', input_schema: obj() },
     { name: 'get_flows', description: '직접 기록한 입출금 목록.', input_schema: obj() },
     // ---- 변경 (확인 후 실행)
@@ -87,6 +88,7 @@ export function createAI(ctx) {
       case 'get_stock_info': return JSON.stringify(await ctx.stockInfo(a.query));
       case 'get_disclosures': return JSON.stringify(await ctx.disclosures(a.query));
       case 'get_watchlist': return stripTags(await ctx.cmdWatch([]));
+      case 'get_credit': return JSON.stringify(await ctx.creditData());
       case 'get_criteria': return stripTags(await ctx.cmdCriteria([]));
       case 'get_flows': return stripTags(await ctx.cmdFlow('list', []));
     }

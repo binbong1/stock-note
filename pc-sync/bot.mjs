@@ -140,6 +140,7 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>입금 한투1 100만</b> [날짜] / <b>출금 키움(미국) 50만</b> / <b>입출금</b> — 수익률 계산용 입출금 기록
 • <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b> — 돌파 알림
 • <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림
+• <b>신용</b> — 코스피·코스닥 신용잔고 최근 5일 · <b>신용알림 끄기/켜기</b>
 ${CFG.claude?.apiKey || CFG.anthropicKey ? '\n💬 그 밖에는 평소 말하듯 보내도 돼요. 예) "이번 달 한투1 실현손익 얼마야?", "보유 종목 중 52주 고가 근처인 거 있어?", "SNT다이내믹스 감시 걸어줘"\n바꾸는 일은 "네"라고 확인한 뒤에 실행해요. 주문은 할 수 없어요.' : ''}`;
 
 const KEYS = {
@@ -311,6 +312,23 @@ async function cmdFlow(kind, args) {
   return kind === 'delete' ? `${date} ${esc(hit[0][1])} 입출금 기록을 지웠어요.` : `💵 ${date} <b>${esc(hit[0][1])}</b> ${kind === 'in' ? '입금' : '출금'} ${won(Math.abs(Number(amtTok.replace(/[,원만]/g, '')) * (/만/.test(amtTok) ? 10000 : 1)))}원을 기록했어요.\n자산 추이 수익률에 바로 반영돼요 (사이트 새로고침).`;
 }
 
+async function cmdCredit() {
+  const c = await file('data/credit.json', 300000);
+  if (!c?.rows?.length) return '신용잔고 자료가 아직 없어요.';
+  const r = c.rows, last = r.at(-1);
+  const jo = (m) => (m / 1e6).toFixed(2) + '조';
+  const eok = (m) => { const v = Math.round(m / 100); return (v > 0 ? '+' : v < 0 ? '-' : '±') + Math.abs(v).toLocaleString('ko-KR') + '억'; };
+  const L = [`<b>📊 신용거래융자 잔고</b> (${last.date} 기준)`, `코스피 <b>${jo(last.kospi)}</b> · 코스닥 <b>${jo(last.kosdaq)}</b>`, '', '<b>최근 5거래일</b> (전일 대비)'];
+  for (let i = r.length - 1; i >= Math.max(1, r.length - 5); i--) L.push(`${r[i].date.slice(5)}  코스피 ${jo(r[i].kospi)} ${eok(r[i].kospi - r[i - 1].kospi)} · 코스닥 ${jo(r[i].kosdaq)} ${eok(r[i].kosdaq - r[i - 1].kosdaq)}`);
+  return L.join('\n');
+}
+async function cmdCreditAlert(on) {
+  const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
+  alerts.credit = on;
+  await saveJSON('config/alerts.json', alerts, `봇: 신용잔고 알림 ${on ? '켜기' : '끄기'}`);
+  return on ? '📊 장 마감 신용잔고 그래프 알림을 켰어요.' : '신용잔고 알림을 껐어요. "신용알림 켜기"로 다시 켤 수 있어요.';
+}
+
 async function cmdNews(on) {
   const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
   alerts.news = on;
@@ -372,6 +390,7 @@ const AI = createAI({
   config: CFG.claude || (CFG.anthropicKey ? { apiKey: CFG.anthropicKey } : {}),
   log, today, cmdStatus, cmdRealized, cmdSignals, cmdAnalyze, cmdWatch, cmdCriteria, cmdFlow, cmdAlerts, cmdNews,
   holdingsJSON, realizedRows, historyRows, stockInfo, disclosures,
+  creditData: async () => { const c = await file('data/credit.json', 300000); return c ? { asOf: c.asOf, unit: c.unit, rows: c.rows.slice(-130) } : { error: '자료 없음' }; },
   accountNames: () => [...new Set(Object.values(ALIASES))],
   criteriaKeys: () => Object.keys(KEYS),
   criteriaLabel: (k) => KEYS[k]?.[1] || k,
@@ -396,6 +415,8 @@ async function handle(text) {
   if (/^입출금$/.test(cmd)) return args[0] === '삭제' ? cmdFlow('delete', args.slice(1)) : cmdFlow('list', args);
   if (/^기준$/.test(cmd)) return cmdCriteria(args);
   if (/^(공시알림|공시|리포트알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) return cmdNews(/켜/.test(args[0]));
+  if (/^(신용알림|신용잔고알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) return cmdCreditAlert(/켜/.test(args[0]));
+  if (/^(신용|신용잔고|빚투)$/.test(cmd)) return cmdCredit();
   if (/^알림$/.test(cmd) && /끄|중지|멈/.test(args[0] || '')) return cmdAlerts(false, args.slice(1).join(' '));
   if (/^알림$/.test(cmd) && /켜|시작|재개/.test(args[0] || '')) return cmdAlerts(true);
   // 종목명만 보내면 분석
