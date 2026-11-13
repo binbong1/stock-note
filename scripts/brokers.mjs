@@ -91,7 +91,8 @@ export async function fetchKIS(cfg) {
       if (qty > 0) items.push({ broker: 'KIS', account: c.label, code: r.pdno, name: r.prdt_name, market: 'KRX', currency: 'KRW', qty, avg: num(r.pchs_avg_pric) });
     }
     const sum = Array.isArray(json.output2) ? json.output2[0] : json.output2;
-    if (sum && page === 0) { account.cash = num(sum.dnca_tot_amt); account.total = num(sum.tot_evlu_amt); }
+    // 예수금은 결제 후 기준(D+2, 가수도정산금액)으로: 오늘 산 주식의 돈이 이틀 뒤 빠져서 입출금으로 잘못 잡히지 않게
+    if (sum && page === 0) { account.cash = sum.prvs_rcdl_excc_amt != null && sum.prvs_rcdl_excc_amt !== '' ? num(sum.prvs_rcdl_excc_amt) : num(sum.dnca_tot_amt); account.total = num(sum.tot_evlu_amt); }
     if (!more) break;
     fk = json.ctx_area_fk100 || ''; nk = json.ctx_area_nk100 || ''; cont = 'N';
     await sleep(300);

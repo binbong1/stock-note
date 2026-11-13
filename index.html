@@ -606,38 +606,85 @@ function barChart(labels, values, aria) {
 // 하루 입출금 추정: (오늘 총자산 − 어제 총자산) − Σ 어제 보유수량 × (오늘 종가 − 어제 종가)
 // 매매·수수료 때문에 생기는 작은 차이는 입출금이 아닌 손익으로 봄(노이즈 기준 아래면 0)
 const FLOW_NOISE = (prevTotal) => Math.max(50000, prevTotal * 0.003);
+function rawFlow(prevA, curA) {
+  let mkt = 0;
+  for (const [code, [q, p0]] of Object.entries(prevA.pos || {})) { const p1 = curA.pos?.[code]?.[1] ?? p0; mkt += q * (p1 - p0); }
+  return (curA.total - prevA.total) - mkt;
+}
 function accountFlow(prevA, curA, key, date) {
   const manual = (FLOWS?.rows || []).filter((f) => f.date === date && f.account === key);
   if (manual.length) return { flow: manual.reduce((t, f) => t + f.amount, 0), manual: true };
-  if (!prevA) return { flow: curA.total, start: true };          // 새로 생긴 계좌는 첫날 자산 전체를 입금으로
+  if (!prevA) return { flow: 0, start: curA.total };               // 새로 생긴 계좌: 입금이 아니라 '계좌 추가'로
   if (!prevA.pos) return { flow: 0, unknown: true };              // 예전 기록(종목 정보 없음)
-  let mkt = 0;
-  for (const [code, [q, p0]] of Object.entries(prevA.pos)) { const p1 = curA.pos?.[code]?.[1] ?? p0; mkt += q * (p1 - p0); }
-  const raw = (curA.total - prevA.total) - mkt;
+  const raw = rawFlow(prevA, curA);
   return { flow: Math.abs(raw) < FLOW_NOISE(prevA.total) ? 0 : Math.round(raw), inferred: Math.abs(raw) >= FLOW_NOISE(prevA.total) };
 }
+// 기록 보정 (원본은 그대로 두고 화면 계산에만 사용)
+//  1) 하루 자료가 빠진 계좌는 최대 5일까지 전날 값으로 채움 → 빠졌다 다시 생긴 계좌가 출금·입금으로 잡히지 않게
+//  2) 매매 결제 시차(D+2): 산 날 주식은 늘고 예수금은 이틀 뒤 빠져서 '입금 → 며칠 뒤 같은 금액 출금'처럼 보이는 것을 찾아 상쇄
+let ADJ = { src: null, days: [] };
+function adjustedDays() {
+  if (ADJ.src === HIST && ADJ.flows === FLOWS) return ADJ.days;
+  const days = (HIST?.days || []).map((d) => ({ ...d, byAccount: d.byAccount ? Object.fromEntries(Object.entries(d.byAccount).map(([k, a]) => [k, { ...a }])) : null }));
+  const last = {};
+  for (const d of days) {
+    if (!d.byAccount) continue;
+    // 같은 증권사에 처음 보는 계좌가 생긴 날은 이름이 바뀐 것일 수 있어 채우지 않음 (두 번 세지 않게)
+    const newBrokers = new Set(Object.keys(d.byAccount).filter((k) => !last[k]).map((k) => k.split('|')[0]));
+    for (const [k, v] of Object.entries(last)) if (!d.byAccount[k] && v.age < 5 && !newBrokers.has(k.split('|')[0])) d.byAccount[k] = { ...v.a, stale: true };
+    for (const [k, a] of Object.entries(d.byAccount)) last[k] = { a, age: a.stale ? (last[k]?.age || 0) + 1 : 0 };
+  }
+  const keys = new Set(days.flatMap((d) => Object.keys(d.byAccount || {})));
+  for (const k of keys) {
+    const fl = [];
+    for (let i = 1; i < days.length; i++) {
+      const a = days[i].byAccount?.[k], pa = days[i - 1].byAccount?.[k];
+      if (!a || !pa?.pos || (FLOWS?.rows || []).some((f) => f.date === days[i].date && f.account === k)) continue;
+      const raw = rawFlow(pa, a);
+      if (Math.abs(raw) >= FLOW_NOISE(pa.total)) fl.push({ i, raw });
+    }
+    const used = new Set();
+    for (let x = 0; x < fl.length; x++) {
+      if (used.has(x)) continue;
+      for (let y = x + 1; y < fl.length && fl[y].i - fl[x].i <= 4; y++) {
+        if (used.has(y)) continue;
+        const a = fl[x].raw, b = fl[y].raw;
+        if (a * b < 0 && Math.abs(a + b) <= Math.max(50000, 0.05 * Math.max(Math.abs(a), Math.abs(b)))) {
+          for (let i = fl[x].i; i < fl[y].i; i++) { const acc = days[i].byAccount[k]; acc.total -= a; acc.settle = true; }
+          used.add(x); used.add(y); break;
+        }
+      }
+    }
+  }
+  ADJ = { src: HIST, flows: FLOWS, days };
+  return days;
+}
 function twrSeries() {
-  const days = HIST?.days || [];
+  const days = adjustedDays();
   const out = [];
   for (let i = 0; i < days.length; i++) {
     const d = days[i], p = days[i - 1];
     const keys = Object.keys(d.byAccount || {}).filter(inAcct);
-    let V = 0, Vp = 0, F = 0, has = false, flags = { manual: false, inferred: false, unknown: false };
+    let V = 0, Vp = 0, F = 0, S = 0, has = false, flags = { manual: false, inferred: false, unknown: false, settle: false, start: false };
     if (!d.byAccount) { if (!isAll()) continue; V = d.total; Vp = p ? p.total : null; F = 0; has = true; flags.unknown = !!p; }
-    else for (const k of keys) {
-      const a = d.byAccount[k]; if (!a) continue; has = true;
-      const pa = p?.byAccount?.[k];
-      V += a.total; if (pa) Vp += pa.total;
-      if (!p) continue;
-      const f = accountFlow(pa, a, k, d.date);
-      F += f.flow; flags.manual ||= f.manual; flags.inferred ||= f.inferred; flags.unknown ||= f.unknown;
+    else {
+      for (const k of keys) {
+        const a = d.byAccount[k]; if (!a) continue; has = true;
+        const pa = p?.byAccount?.[k];
+        V += a.total; if (pa) Vp += pa.total;
+        flags.settle ||= !!a.settle;
+        if (!p) continue;
+        const f = accountFlow(pa, a, k, d.date);
+        F += f.flow; if (f.start) { S += f.start; flags.start = true; }
+        flags.manual ||= f.manual; flags.inferred ||= f.inferred; flags.unknown ||= f.unknown;
+      }
     }
     if (!has) continue;
-    if (!p) { out.push({ date: d.date, V, F: 0, pnl: 0, r: null, d, flags }); continue; }
+    if (!p) { out.push({ date: d.date, V, F: 0, S: 0, pnl: 0, r: null, d, flags }); continue; }
     if (p && !p.byAccount && d.byAccount) Vp = p.total;
-    const pnl = V - Vp - F;
+    const pnl = V - Vp - F - S;
     const base = Vp + Math.max(F, 0);
-    out.push({ date: d.date, V, F, pnl, r: base > 0 ? pnl / base : null, d, flags, ...(isAll() || !d.byAccount ? { cash: d.cash, stockValue: d.stockValue, cost: d.cost } : (() => { const ks = keys.filter((k) => d.byAccount[k]); const sum = (f) => ks.reduce((t, k) => t + (d.byAccount[k][f] || 0), 0); return { cash: ks.some((k) => d.byAccount[k].cash != null) ? sum('cash') : null, stockValue: sum('stockValue'), cost: sum('cost') }; })()) });
+    out.push({ date: d.date, V, F, S, pnl, r: base > 0 ? pnl / base : null, d, flags, ...(isAll() || !d.byAccount ? { cash: d.cash, stockValue: d.stockValue, cost: d.cost } : (() => { const ks = keys.filter((k) => d.byAccount[k]); const sum = (f) => ks.reduce((t, k) => t + (d.byAccount[k][f] || 0), 0); return { cash: ks.some((k) => d.byAccount[k].cash != null) ? sum('cash') : null, stockValue: sum('stockValue'), cost: sum('cost') }; })()) });
   }
   return out;
 }
@@ -655,19 +702,20 @@ function viewHistory() {
   for (const x of steps) { if (x.r != null) g *= 1 + x.r; cum.push({ date: x.date, c: (g - 1) * 100 }); }
   const last = inRange.at(-1);
   const netFlow = steps.reduce((s2, x) => s2 + x.F, 0);
-  const pnl = last && base ? last.V - base.V - netFlow : null;
+  const started = steps.reduce((s2, x) => s2 + (x.S || 0), 0);
+  const pnl = last && base ? last.V - base.V - netFlow - started : null;
   const twr = steps.length ? (g - 1) * 100 : null;
   const deposits = steps.filter((x) => x.F > 0), withdrawals = steps.filter((x) => x.F < 0);
   // 투입원금 선: 기준일 총자산 + 누적 순입금
   let principal = base?.V || 0;
   const chartDays = [base, ...steps].filter(Boolean);
-  const principalLine = chartDays.map((x, i) => (i === 0 ? principal : (principal += x.F)));
+  const principalLine = chartDays.map((x, i) => (i === 0 ? principal : (principal += x.F + (x.S || 0))));
   const realSum = (REAL?.rows || []).filter((r) => r.date > (base?.date || f) && r.date <= t && inAcct(acctKey(r.broker, r.account))).reduce((s2, r) => s2 + r.pl - r.fee - r.tax, 0);
   const rows = [...steps].reverse();
   const cumMap = Object.fromEntries(cum.map((x) => [x.date, x.c]));
 
   $app.innerHTML = `
-  ${HIST?.sample ? '<div class="banner">샘플 기록이에요. 실제 기록은 매일 장 마감 후(16:40) 하루 한 줄씩 쌓여요.</div>' : ''}
+  ${HIST?.sample ? '<div class="banner">샘플 기록이에요. 실제 기록은 매일 장 마감 후 하루 한 줄씩 쌓여요.</div>' : ''}
   <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
     <div><h1>자산 추이${isAll() ? '' : ' · ' + esc(selName())}</h1><p class="mute" style="margin:4px 0 0">입출금을 뺀 순수 투자 수익률(시간가중) · 기록 ${all.length}일</p></div>
     ${periodBar()}
@@ -676,8 +724,8 @@ function viewHistory() {
   ${!last ? `<div class="card"><p class="mute" style="margin:0">이 기간에 기록이 없어요. 기록은 평일 16:40에 하루 한 줄씩 쌓여요.</p></div>` : `
   <section class="cards" aria-label="기간 요약">
     <div class="card kpi dark"><div class="l">기간 수익률 (입출금 제외)</div><div class="v num">${twr == null ? '–' : sign(twr)}</div><div class="s">${esc(base?.date || '')} → ${esc(last.date)} · 시간가중</div></div>
-    <div class="card kpi"><div class="l">투자 손익</div><div class="v num ${cls(pnl)}">${signWon(pnl)}<span style="font-size:16px"> 원</span></div><div class="s mute">자산 변화 ${signWon(last.V - (base?.V || 0))} − 순입금 ${signWon(netFlow)}</div></div>
-    <div class="card kpi"><div class="l">순입출금</div><div class="v num">${signWon(netFlow)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">입금 ${deposits.length}회 ${won(deposits.reduce((a, x) => a + x.F, 0))} · 출금 ${withdrawals.length}회 ${won(-withdrawals.reduce((a, x) => a + x.F, 0))}</div></div>
+    <div class="card kpi"><div class="l">투자 손익</div><div class="v num ${cls(pnl)}">${signWon(pnl)}<span style="font-size:16px"> 원</span></div><div class="s mute">자산 변화 ${signWon(last.V - (base?.V || 0))} − 순입금 ${signWon(netFlow)}${started ? ` − 계좌 추가 ${won(started)}` : ''}</div></div>
+    <div class="card kpi"><div class="l">순입출금</div><div class="v num">${signWon(netFlow)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">입금 ${deposits.length}회 ${won(deposits.reduce((a, x) => a + x.F, 0))} · 출금 ${withdrawals.length}회 ${won(-withdrawals.reduce((a, x) => a + x.F, 0))}${started ? ` · 계좌 추가 ${won(started)}(입금 아님)` : ''}</div></div>
     <div class="card kpi"><div class="l">기간 말 총자산</div><div class="v num">${won(last.V)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">같은 기간 실현손익(순) ${signWon(realSum)}</div></div>
   </section>
   <div class="row">
@@ -695,7 +743,7 @@ function viewHistory() {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap"><h2 id="h2c">일별 기록</h2><button type="button" id="hcsv" style="height:36px">CSV 내려받기</button></div>
     <div class="scroll" style="max-height:520px;overflow-y:auto"><table style="min-width:820px">
       <thead><tr><th scope="col">날짜</th><th scope="col">총자산</th><th scope="col">주식평가</th><th scope="col">예수금</th><th scope="col">입출금</th><th scope="col">투자 손익</th><th scope="col">일 수익률</th><th scope="col">누적 수익률</th></tr></thead>
-      <tbody>${rows.map((x) => `<tr><td class="num">${esc(x.date)}</td><td class="num">${won(x.V)}</td><td class="num">${won(x.stockValue)}</td><td class="num">${x.cash == null ? '–' : won(x.cash)}</td><td class="num ${x.F ? cls(x.F) : 'mute'}">${x.F ? signWon(x.F) : '–'}${x.flags.manual ? '<div class="sub">직접 기록</div>' : x.flags.inferred ? '<div class="sub">추정</div>' : ''}</td><td class="num ${cls(x.pnl)}">${signWon(x.pnl)}</td><td class="num ${cls(x.r)}">${x.r == null ? '–' : sign(x.r * 100)}</td><td class="num ${cls(cumMap[x.date])}">${cumMap[x.date] == null ? '–' : sign(cumMap[x.date])}</td></tr>`).join('')}</tbody>
+      <tbody>${rows.map((x) => `<tr><td class="num">${esc(x.date)}</td><td class="num">${won(x.V)}</td><td class="num">${won(x.stockValue)}</td><td class="num">${x.cash == null ? '–' : won(x.cash)}</td><td class="num ${x.F ? cls(x.F) : 'mute'}">${x.F ? signWon(x.F) : '–'}${x.flags.manual ? '<div class="sub">직접 기록</div>' : x.flags.inferred ? '<div class="sub">추정</div>' : ''}${x.S ? `<div class="sub">계좌 추가 ${won(x.S)}</div>` : ''}${x.flags.settle && !x.F ? '<div class="sub">매매 결제 보정</div>' : ''}</td><td class="num ${cls(x.pnl)}">${signWon(x.pnl)}</td><td class="num ${cls(x.r)}">${x.r == null ? '–' : sign(x.r * 100)}</td><td class="num ${cls(cumMap[x.date])}">${cumMap[x.date] == null ? '–' : sign(cumMap[x.date])}</td></tr>`).join('')}</tbody>
     </table></div>
   </section>
   <section class="card" aria-labelledby="h3c">
@@ -703,7 +751,7 @@ function viewHistory() {
     <div style="font-size:14px;line-height:1.7">
       <p style="margin:0 0 6px"><b>하루 수익률</b> = (오늘 총자산 − 어제 총자산 − 오늘 입출금) ÷ (어제 총자산 + 오늘 입금)</p>
       <p style="margin:0 0 6px"><b>기간 수익률</b> = 하루 수익률을 이어서 곱한 값 (1+r₁)×(1+r₂)×… − 1 → 언제 얼마를 넣고 뺐는지와 상관없이 <b>운용 실력</b>만 보여줘요 (시간가중수익률, 펀드 수익률과 같은 방식).</p>
-      <p style="margin:0 0 6px"><b>입출금</b>은 증권사가 내역을 주지 않아 잔고로 추정해요: 오늘 총자산 변화에서 어제 보유 종목의 가격 변동분을 뺀 나머지. 매매가가 종가와 달라 생기는 작은 차이(5만원 또는 0.3% 미만)는 손익으로 봐요. 배당금은 입금으로 잡힐 수 있어요.</p>
+      <p style="margin:0 0 6px"><b>입출금</b>은 증권사가 내역을 주지 않아 잔고로 추정해요: 오늘 총자산 변화에서 어제 보유 종목의 가격 변동분을 뺀 나머지. 매매가가 종가와 달라 생기는 작은 차이(5만원 또는 0.3% 미만)는 손익으로 봐요. 주식을 사고판 돈이 이틀 뒤(D+2) 결제되면서 '입금 → 며칠 뒤 같은 금액 출금'처럼 보이는 건 찾아서 상쇄하고, 새로 연결한 계좌는 입금이 아니라 '계좌 추가'로 따로 봐요. 배당금은 입금으로 잡힐 수 있어요.</p>
       <p class="mute" style="margin:0">추정이 틀렸으면 텔레그램 봇에 <b>입금 한투1 1000000 2026-11-12</b> / <b>출금 키움(미국) 500000</b>처럼 보내면 그날 값이 직접 기록으로 바뀌어요.</p>
     </div>
   </section>`}`;
@@ -723,6 +771,8 @@ function viewRealized() {
   const rows = allRows.filter((r) => r.date >= f && r.date <= t && inAcct(acctKey(r.broker, r.account))).map((r) => ({ ...r, net: r.pl - r.fee - r.tax }));
   const sum = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
   const gross = sum('pl'), costs = sum('fee') + sum('tax'), net = gross - costs, sell = sum('sellAmt');
+  const basis = sell - gross; // 판 주식의 매입원금
+  const rateOf = (n, b) => (b > 0 ? n / b * 100 : null);
   const wins = rows.filter((r) => r.pl > 0).length;
   const months = {};
   rows.forEach((r) => { const m = r.date.slice(0, 7); months[m] = (months[m] || 0) + r.net; });
@@ -740,7 +790,7 @@ function viewRealized() {
   </div>
   ${acctBar()}
   <section class="cards" aria-label="실현손익 요약">
-    <div class="card kpi dark"><div class="l">순 실현손익</div><div class="v num">${signWon(net)}<span style="font-size:16px;color:#C9C9D1"> 원</span></div><div class="s">실현손익 ${signWon(gross)} − 수수료·세금</div></div>
+    <div class="card kpi dark"><div class="l">순 실현손익</div><div class="v num">${signWon(net)}<span style="font-size:16px;color:#C9C9D1"> 원</span></div><div class="s">매입원금 대비 <b>${rateOf(net, basis) == null ? '–' : sign(rateOf(net, basis))}</b> · 실현손익 ${signWon(gross)} − 수수료·세금</div></div>
     <div class="card kpi"><div class="l">수수료 + 세금</div><div class="v num">${won(costs)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">매도금액 대비 ${sell ? (costs / sell * 100).toFixed(2) : '0.00'}%</div></div>
     <div class="card kpi"><div class="l">매도 건수 · 승률</div><div class="v num">${rows.length}<span class="mute" style="font-size:16px"> 건</span></div><div class="s mute">이익 ${wins}건 · 승률 ${rows.length ? (wins / rows.length * 100).toFixed(0) : 0}%</div></div>
     <div class="card kpi"><div class="l">총 매도금액</div><div class="v num">${short(sell)}<span class="mute" style="font-size:16px"> 원</span></div><div class="s mute">${esc(f === '2000-01-01' ? '전체 기간' : f + ' ~ ' + t)}</div></div>
@@ -750,8 +800,8 @@ function viewRealized() {
     <section class="card" style="flex:1 1 460px;min-width:0" aria-labelledby="r2">
       <h2 id="r2" style="margin-bottom:10px">종목별</h2>
       <div class="scroll" style="max-height:480px;overflow-y:auto"><table>
-        <thead><tr><th scope="col">종목</th><th scope="col">매도금액</th><th scope="col">순손익</th></tr></thead>
-        <tbody>${stocks.length ? stocks.map((s) => `<tr><td><span class="name">${esc(s.name)}</span><div class="sub">${esc(s.code)} · ${s.n}건 · ${s.qty.toLocaleString('ko-KR')}주</div></td><td class="num">${short(s.sell)}</td><td class="num ${cls(s.net)}">${signWon(s.net)}</td></tr>`).join('') : '<tr><td colspan="3" class="mute">내역이 없어요</td></tr>'}</tbody>
+        <thead><tr><th scope="col">종목</th><th scope="col">매도금액</th><th scope="col">순손익</th><th scope="col">수익률</th></tr></thead>
+        <tbody>${stocks.length ? stocks.map((s) => { const rr = rateOf(s.net, s.sell - s.gross); return `<tr><td><span class="name">${esc(s.name)}</span><div class="sub">${esc(s.code)} · ${s.n}건 · ${s.qty.toLocaleString('ko-KR')}주</div></td><td class="num">${short(s.sell)}</td><td class="num ${cls(s.net)}">${signWon(s.net)}</td><td class="num ${cls(rr)}">${rr == null ? '–' : sign(rr)}</td></tr>`; }).join('') : '<tr><td colspan="4" class="mute">내역이 없어요</td></tr>'}</tbody>
       </table></div>
     </section>
     <section class="card" style="flex:999 1 560px;min-width:0" aria-labelledby="r3">
