@@ -1,4 +1,4 @@
 {
   "_설명": "mode 가 local 이면 GitHub 자동 실행은 쉬고 윈도우 PC가 모든 작업을 해요. github 로 바꾸면 다시 GitHub이 실행해요.",
-  "mode": "github"
+  "mode": "local"
 }
