@@ -124,3 +124,16 @@ export function classify(bars, cfg, rs) {
   const recentLow = minOf(bars.slice(-10).map((x) => x.low));
   return { stage, today, trend: t, base: detail ? { ...detail, recentLow } : null, pivot };
 }
+
+// 리스크(2% 룰) 수량 계산에 쓸 자산: strategy.json 의 risk.capitalAccount(계좌 이름, 예 "한투2") 총액, 없으면 전체 총자산
+export function riskCapital(hist, cfg) {
+  const d = hist?.days?.at(-1);
+  if (!d) return { total: null, name: null };
+  const name = cfg?.risk?.capitalAccount;
+  if (name && d.byAccount) {
+    const key = Object.keys(d.byAccount).find((k) => (hist.aliases || {})[k] === name || k === name);
+    if (key) return { total: d.byAccount[key].total, name };
+    return { total: null, name, missing: true };
+  }
+  return { total: d.total || null, name: null };
+}

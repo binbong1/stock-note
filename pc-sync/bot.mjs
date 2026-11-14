@@ -7,7 +7,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decryptJSON, encryptJSON } from './brokers.mjs';
-import { UA, kstNow, r2, dailyBars, weightedReturn, rsFromCut, classify, riskPlan } from './strategy-lib.mjs';
+import { UA, kstNow, r2, dailyBars, weightedReturn, rsFromCut, classify, riskPlan, riskCapital } from './strategy-lib.mjs';
 import { createAI } from './ai.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -146,7 +146,7 @@ ${CFG.claude?.apiKey || CFG.anthropicKey ? '\n💬 그 밖에는 평소 말하�
 const KEYS = {
   RS: ['minRS', '최소 RS'], 시총: ['minMarketCapEok', '최소 시가총액(억)'], 거래량: ['breakout.volumeRatio', '돌파 거래량 배수'],
   조정기간: ['base.maxDays', '최대 조정 기간(거래일)'], 조정폭: ['base.maxDepthPct', '최대 조정폭(%)'], 관찰범위: ['watchWithinPct', '피벗 아래 관찰 범위(%)'],
-  손절: ['risk.maxStopPct', '최대 손절폭(%)'], 리스크: ['risk.riskPerTradePct', '1회 최대 손실(총자산 %)'], 손익비: ['risk.rewardRisk', '목표 손익비'], 추격: ['breakout.maxExtendedPct', '피벗 위 추격 허용(%)'],
+  손절: ['risk.maxStopPct', '최대 손절폭(%)'], 리스크: ['risk.riskPerTradePct', '1회 최대 손실(추세추종 계좌 총액 %)'], 손익비: ['risk.rewardRisk', '목표 손익비'], 추격: ['breakout.maxExtendedPct', '피벗 위 추격 허용(%)'],
 };
 const getPath = (o, p) => p.split('.').reduce((a, k) => a?.[k], o);
 const setPath = (o, p, v) => { const ks = p.split('.'); const last = ks.pop(); ks.reduce((a, k) => (a[k] ||= {}), o)[last] = v; };
@@ -209,7 +209,8 @@ async function cmdAnalyze(q) {
   const t = a.trend, b = a.base, d = a.today, S = a.strategy;
   if (!t) return `${esc(f.name)}: 상장 기간이 짧아 분석할 데이터가 부족해요.`;
   const entry = a.pivot && a.stage.startsWith('2') ? a.pivot : d.close;
-  const plan = b ? riskPlan(entry, b, S, null) : null;
+  const cap = f.us ? { total: null } : riskCapital(await enc('data/history.enc.json').catch(() => null), S);
+  const plan = b ? riskPlan(entry, b, S, cap.total) : null;
   const unit = f.us ? '$' : '';
   const f2 = (v) => (f.us ? v?.toFixed(2) : won(v));
   return [`<b>🔎 ${esc(f.name)}</b> ${f.code}`, `판정: <b>${a.stage}</b>`,
@@ -219,6 +220,7 @@ async function cmdAnalyze(q) {
     b ? `베이스: 고점 ${unit}${f2(b.pivot)} (${b.pivotDate}) 이후 ${b.days}일 · 조정 ${b.depthPct}% · 직전 상승 ${b.advancePct}%${b.tight ? ' · 변동성 수축' : ''}${b.volDry ? ' · 거래량 감소' : ''}` : '',
     a.pivot ? `피벗 ${unit}${f2(a.pivot)} · 돌파 기준 거래량 ${S.breakout.volumeRatio}배 (50일 평균 ${won(b.avgVol50)}주)` : '',
     plan ? `${a.stage.startsWith('2') ? '피벗 매수 시' : '지금 매수 시'} 손절 ${unit}${f2(plan.stop)} (${plan.stopPct}%) · 목표 ${unit}${f2(plan.target)} (+${plan.targetPct}%)` : '',
+    plan?.shares != null ? `${S.risk.riskPerTradePct}% 룰 최대 ${plan.shares.toLocaleString('ko-KR')}주 (약 ${won(plan.amount)}원 · ${esc(cap.name || '전체')} 총액 ${won(cap.total)}원 기준)` : '',
     `\n감시하려면: 감시 추가 ${esc(f.name)}`].filter(Boolean).join('\n');
 }
 

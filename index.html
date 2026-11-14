@@ -821,13 +821,17 @@ function viewRealized() {
 function viewSignals() {
   if (!SIG) { $app.innerHTML = '<h1>매매 신호</h1><div class="card"><p class="mute" style="margin:0">아직 스캔 결과가 없어요. 평일 장 마감 후(16:55)에 첫 스캔이 실행돼요.</p></div>'; return; }
   const C = SIG.criteria || {}, R = C.risk || {};
-  const total = HIST?.days?.at(-1)?.total || null;
+  // 2% 룰 수량: 추세추종 계좌(strategy.json risk.capitalAccount, 예 한투2) 총액 기준
+  const capName = R.capitalAccount || null;
+  const lastDay = HIST?.days?.at(-1);
+  const capKey = capName && lastDay?.byAccount ? Object.keys(lastDay.byAccount).find((k) => acctName(k) === capName) : null;
+  const total = capName ? (capKey ? lastDay.byAccount[capKey].total : null) : (lastDay?.total || null);
   const qty = (entry, stop) => total && entry > stop ? Math.floor(total * (R.riskPerTradePct || 2) / 100 / (entry - stop)) : null;
   const flags = (s) => [s.base?.tight && '<span class="tag up">변동성 수축</span>', s.base?.volDry && '<span class="tag">거래량 감소</span>', s.flow && (s.flow.positive ? '<span class="tag up">외인·기관 +</span>' : '<span class="tag near-stop">외인·기관 −</span>')].filter(Boolean).join(' ');
   const nm = (s) => `${popName(s.code, s.name)}<div class="sub">${esc(s.code)} · ${esc(s.market)} · 시총 ${(s.capEok || 0) >= 10000 ? ((s.capEok || 0) / 10000).toFixed(1) + '조' : Math.round(s.capEok || 0).toLocaleString('ko-KR') + '억'}</div>`;
   const alerts = SIG.intraday?.alerts || [];
   const planCells = (entry, p) => `<td class="num down">${won(p?.stop)}<div class="sub">${p?.stopPct ?? ''}%</div></td><td class="num up">${won(p?.target)}<div class="sub">+${p?.targetPct ?? ''}%</div></td>${total ? `<td class="num">${qty(entry, p?.stop)?.toLocaleString('ko-KR') ?? '–'}주</td>` : ''}`;
-  const qtyHead = total ? `<th scope="col">2% 룰 수량</th>` : '';
+  const qtyHead = total ? `<th scope="col">${R.riskPerTradePct || 2}% 룰 수량</th>` : '';
 
   $app.innerHTML = `
   ${SIG.sample ? '<div class="banner">샘플 스캔 결과예요. 실제 스캔은 평일 장 마감 후 실행돼요.</div>' : ''}
@@ -839,7 +843,7 @@ function viewSignals() {
     <div class="card kpi dark"><div class="l">3 Stage 돌파 (오늘)</div><div class="v num">${SIG.breakouts.length + alerts.filter((a) => !SIG.breakouts.some((b) => b.code === a.code)).length}<span style="font-size:16px;color:#C9C9D1"> 종목</span></div><div class="s">장중 알림 ${alerts.length} · 종가 확인 ${SIG.breakouts.length}</div></div>
     <div class="card kpi"><div class="l">2 Stage 관찰 (돌파 대기)</div><div class="v num">${SIG.stage2.length}<span class="mute" style="font-size:16px"> 종목</span></div><div class="s mute">피벗 아래 ${C.watchWithinPct}% 이내 베이스</div></div>
     <div class="card kpi"><div class="l">1 Stage (신고가·정배열)</div><div class="v num">${SIG.stage1.length}<span class="mute" style="font-size:16px"> 종목</span></div><div class="s mute">최근 10일 내 52주 신고가</div></div>
-    <div class="card kpi"><div class="l">리스크 규칙</div><div class="v num" style="font-size:22px">최대 ${R.riskPerTradePct}% · 1:${R.rewardRisk}</div><div class="s mute">${total ? '총자산 ' + short(total) + ' 기준 수량 계산' : '잔고 잠금 해제 시 수량 계산'}</div></div>
+    <div class="card kpi"><div class="l">리스크 규칙</div><div class="v num" style="font-size:22px">최대 ${R.riskPerTradePct}% · 1:${R.rewardRisk}</div><div class="s mute">${total ? `${capName ? esc(capName) + ' 총액' : '총자산'} ${short(total)} 기준 수량 계산` : HIST ? `${esc(capName || '')} 계좌 자료가 없어요` : '잔고 잠금 해제 시 수량 계산'}</div></div>
   </section>
 
   <section class="card" aria-labelledby="sg1">
@@ -880,7 +884,7 @@ function viewSignals() {
       <div><b>1 Stage</b> — 종가 &gt; 50일 &gt; 150일 &gt; 200일선(정배열, 200일선 상승), 52주 고가 대비 −${C.trend?.maxBelow52wHighPct}% 이내, RS ${C.minRS}+</div>
       <div><b>2 Stage</b> — 52주 고가(피벗) 이후 ${C.base?.minDays}~${C.base?.maxDays}거래일 조정, 직전 상승 ${C.base?.minPriorAdvancePct}%+, 조정폭 ≤ 상승폭의 ${Math.round((C.base?.maxDepthOfAdvance || 0.5) * 100)}% · ${C.base?.maxDepthPct}% 이내</div>
       <div><b>3 Stage</b> — 피벗 돌파 + 거래량 50일 평균의 ${C.breakout?.volumeRatio}배 이상, 피벗 +${C.breakout?.maxExtendedPct}% 이내만</div>
-      <div><b>리스크</b> — 손절은 최근 저점 또는 −${R.maxStopPct}% 중 가까운 쪽, 목표 1:${R.rewardRisk}, 1회 손실 총자산 ${R.riskPerTradePct}%</div>
+      <div><b>리스크</b> — 손절은 최근 저점 또는 −${R.maxStopPct}% 중 가까운 쪽, 목표 1:${R.rewardRisk}, 1회 손실 ${capName ? esc(capName) + ' 계좌 총액' : '총자산'}의 ${R.riskPerTradePct}%</div>
       <div><b>RS</b> — 3·6·9·12개월 가중 수익률의 대상 종목 내 백분위(1~99)</div>
       <div><b>수급</b> — 외국인+기관 최근 20일 순매수(한국투자증권 API)</div>
     </div>

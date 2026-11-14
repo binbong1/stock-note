@@ -11,7 +11,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchKISInvestor, decryptJSON } from './brokers.mjs';
-import { UA, kstNow, ymd, r2, fetchText, dailyBars, sma, maxOf, minOf, ret, trendTemplate, baseInfo, riskPlan, weightedReturn } from './strategy-lib.mjs';
+import { UA, kstNow, ymd, r2, fetchText, dailyBars, sma, maxOf, minOf, ret, trendTemplate, baseInfo, riskPlan, weightedReturn, riskCapital } from './strategy-lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const MODE = process.argv[2] || 'daily';
@@ -96,7 +96,7 @@ async function totalAsset() {
   if (!ENV.HOLDINGS_PASSWORD) return null;
   try {
     const h = decryptJSON(JSON.parse(await fs.readFile(path.join(ROOT, 'data', 'history.enc.json'), 'utf8')), ENV.HOLDINGS_PASSWORD);
-    return h.days?.at(-1)?.total || null;
+    return riskCapital(h, CFG).total;
   } catch { return null; }
 }
 
@@ -110,7 +110,7 @@ function alertText(s, kind) {
     `거래량 ${s.volPace ?? s.volRatio}배 (50일 평균 대비${kind === 'intraday' ? ', 장 마감 환산' : ''})`,
     s.base?.days !== '-' && s.base?.days != null ? `RS ${s.rs ?? '-'} · 베이스 ${s.base.days}일 · 조정폭 ${s.base.depthPct}%${flags ? ' · ' + flags : ''}` : '',
     `손절 ${fmt(p.stop)} (${p.stopPct}%) · 목표 ${fmt(p.target)} (+${p.targetPct}%, 1:${CFG.risk.rewardRisk})`,
-    p.shares != null ? `2% 룰 최대 ${p.shares.toLocaleString('ko-KR')}주 (약 ${fmt(p.amount / 10000)}만원)` : '',
+    p.shares != null ? `${CFG.risk.riskPerTradePct}% 룰 최대 ${p.shares.toLocaleString('ko-KR')}주 (약 ${fmt(p.amount / 10000)}만원${CFG.risk.capitalAccount ? `, ${esc(CFG.risk.capitalAccount)} 기준` : ''})` : '',
     `<a href="${SITE}">신호 화면 열기</a>`,
   ].filter(Boolean).join('\n');
 }

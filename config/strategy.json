@@ -25,7 +25,9 @@
   "risk": {
     "riskPerTradePct": 2,
     "maxStopPct": 8,
-    "rewardRisk": 3
+    "rewardRisk": 3,
+    "capitalAccount": "한투2",
+    "_capitalAccount": "2% 룰 수량을 이 계좌 총액(주식+예수금) 기준으로 계산. 비우면 전체 총자산"
   },
   "intraday": {
     "start": "09:10",
