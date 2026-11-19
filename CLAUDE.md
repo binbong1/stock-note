@@ -24,7 +24,7 @@
 ## 종목 분석 요청 ("OO 기업분석 해줘")
 - 사용자 블로그(파이어족 빈봉) 틀을 따라요: 기업 개요(시총·주주·CB/EB·PER/PBR/배당·연혁) → 투자 아이디어(✔ 소제목, 뉴스·산업 근거) → 산업·사업 분석 → 기업 분석(부문별 매출, 수주잔고와 매출 시차, 손익계산서 GPM/OPM/ROE, 재무상태표, 필요하면 현금흐름·CapEx·순유동자산/시총) → 투자 리스크 → 밸류에이션.
 - 재무는 **최근 5개년 + 최근 분기**, 숫자는 DART 공시·네이버 증권 등 공개 자료에서만. 추정치는 "추정"이라고 표시. 문체는 "~함/~임" 개조식. 투자 판단은 단정하지 않음.
-- 결과는 `data/notes/{코드}-{YYYYMMDD}.json` 으로 저장하고 `data/notes/index.json` 의 items 에 `{id, title, name, code, date, summary, file}` 추가 → 사이트 "종목 분석" 메뉴(#/note/{id})에 그래프와 함께 보여요. 블로그 글은 `file` 없이 `blog` 링크만.
+- 결과는 `data/notes/{코드}-{YYYYMMDD}.json` 으로 저장하고 `data/notes/index.json` 의 items 에 `{id, title, name, code, date, summary, file}` 추가 → 사이트 "종목 분석" 메뉴(#/note/{id})에 그래프와 함께 보여요. **한 종목 = 한 항목**: 블로그 글도 링크만 걸지 않고 내용(글·표·그림)을 옮겨 한 편의 노트로 저장해요(`source:"blog"`, 여러 편이면 한 글로 합치고 원문은 `blogs:[{label,url,date}]`). 추가 블록: `{type:"sub",text}` 작은 제목 / `{type:"img",src}` / `{type:"caption",text}` / `{type:"link",title,url,site}`. 같은 종목을 새로 분석하면 새 항목을 만들지 말고 기존 항목에 `file` 을 넣고 date·summary 를 갱신해요.
 - 노트 JSON: `{title, name, code, date, priceNote, summary, kpis:[{label,value,sub}], sections:[{title, blocks:[...]}], sources:[...]}`
   블록: 문자열(문단, **굵게**·[링크](url) 가능) / `{type:"h",text}` ✔소제목 / `{type:"list",items}` / `{type:"table",title,unit,head,rows}` / `{type:"callout",text}` /
   `{type:"chart",title,unit,labels,bars:[{name,data}],line:{name,unit,data},note}` (막대 + 오른쪽 축 선, 예: 매출·영업이익 + OPM%)

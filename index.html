@@ -938,19 +938,27 @@ function noteBlock(b) {
   if (b.type === 'table') return `<div class="scroll" style="margin:8px 0">${b.title ? `<div style="font-weight:600;margin-bottom:4px">${esc(b.title)}${b.unit ? ` <span class="mute" style="font-weight:400;font-size:12px">(${esc(b.unit)})</span>` : ''}</div>` : ''}<table><thead><tr>${b.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((v) => `<td class="${typeof v === 'number' ? 'num' : ''}">${typeof v === 'number' ? nnum(v) : inlineMd(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   if (b.type === 'chart') return noteChart(b);
   if (b.type === 'callout') return `<div class="banner" style="margin:8px 0">${inlineMd(b.text)}</div>`;
+  if (b.type === 'sub') return `<h4 style="margin:14px 0 4px;font-size:15px">${esc(b.text)}</h4>`;
+  if (b.type === 'img' && /^https:\/\//.test(b.src)) return `<img src="${esc(b.src)}" alt="${esc(b.alt || '분석 자료 그림')}" loading="lazy" referrerpolicy="no-referrer" style="display:block;max-width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid var(--line2)">`;
+  if (b.type === 'caption') return `<p class="mute" style="font-size:12px;margin:-4px 0 8px">${inlineMd(b.text)}</p>`;
+  if (b.type === 'link' && /^https?:\/\//.test(b.url)) return `<a href="${esc(b.url)}" target="_blank" rel="noopener" style="display:block;margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFAF8;color:var(--ink)"><span style="font-weight:600;font-size:14px">${esc(b.title)}</span>${b.site ? `<br><span class="sub">${esc(b.site)}</span>` : ''}</a>`;
   return '';
 }
 async function viewNotes() {
   $app.innerHTML = '<p class="mute">불러오는 중…</p>';
   const idx = await getNoteJSON('index.json');
   const items = (idx?.items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  // 한 종목 = 한 줄. 여러 편으로 나눈 블로그 글은 한 항목 안에 (1)(2) 링크로 묶어요.
   const row = (it) => {
-    const href = it.blog && !it.file ? it.blog : '#/note/' + encodeURIComponent(it.id);
-    const ext = it.blog && !it.file;
+    const blogs = it.blogs || (it.blog ? [{ label: '블로그 글', url: it.blog }] : []);
+    const ext = !it.file && blogs.length === 1;
+    const href = it.file ? '#/note/' + encodeURIComponent(it.id) : ext ? blogs[0].url : null;
+    const title = href ? `<a class="name" href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}>${esc(it.title)}</a>` : `<span class="name">${esc(it.title)}</span>`;
+    const parts = blogs.length > 1 || (it.file && blogs.length) ? `<div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:14px">${blogs.map((b) => `<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.label)}</a>`).join('')}</div>` : '';
     return `<li style="display:flex;gap:12px;align-items:flex-start;justify-content:space-between">
-      <div style="min-width:0"><a class="name" href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}>${esc(it.title)}</a>
-      <div class="sub">${esc(it.name || '')}${it.code ? ' · ' + esc(it.code) : ''} · ${esc(it.date || '')}${it.summary ? ' — ' + esc(it.summary) : ''}</div></div>
-      <span class="tag" style="flex:none">${it.file ? 'Claude 분석' : '블로그'}</span></li>`;
+      <div style="min-width:0">${title}
+      <div class="sub">${esc(it.name || '')}${it.code ? ' · ' + esc(it.code) : ''} · ${esc(it.date || '')}${it.summary ? ' — ' + esc(it.summary) : ''}</div>${parts}</div>
+      <span class="tag" style="flex:none">${it.source === 'blog' || !it.file ? (blogs.length > 1 ? `블로그 ${blogs.length}편 합본` : '블로그') : 'Claude 분석'}</span></li>`;
   };
   $app.innerHTML = `<h1>종목 분석</h1>
     <section class="card"><p class="mute" style="margin:0 0 6px;font-size:14px">내가 정리한 기업 분석 기록이에요. 텔레그램에서 "OO 기업분석 해줘"라고 하면 Claude가 같은 틀(개요 → 투자 아이디어 → 사업 → 5개년 재무·수주잔고 → 리스크 → 밸류에이션)로 만들어 여기에 저장해요.</p>
