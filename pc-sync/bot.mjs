@@ -504,7 +504,11 @@ async function markForwarded(id) {
 
 // ---------------------------------------------------------------- 실행 루프
 export { handle, channelPosts };
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (process.argv[1] === fileURLToPath(import.meta.url) && process.env.STOCKNOTE_BOT_MODE === 'notify') {
+  // 알림 전용: 텔레그램 대화는 Claude Code(텔레그램 채널)가 맡고, 여기서는 공시 채널 감시·전달만
+  log('알림 전용 모드: 공시 채널 감시만 해요 (대화는 Claude가 처리)');
+  watchChannels();
+} else if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let offset = 0;
   log('봇을 시작했어요. 텔레그램에서 "도움"을 보내 보세요. (끄려면 Ctrl+C)');
   await reply('🤖 봇이 켜졌어요. "도움"을 보내면 할 수 있는 일을 알려드려요.').catch(() => {});

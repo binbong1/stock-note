@@ -1,10 +1,24 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(node pc-sync/ask.mjs:*)",
+      "Bash(node local/run.mjs status)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
     "deny": [
       "Read(./local/config.json)",
       "Read(./pc-sync/config.json)",
       "Edit(./local/config.json)",
       "Edit(./pc-sync/config.json)",
+      "Bash(type local\\config.json*)",
+      "Bash(cat local/config.json*)",
       "Bash(git reset --hard*)",
       "Bash(git push --force*)"
     ]

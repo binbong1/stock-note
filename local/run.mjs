@@ -257,7 +257,8 @@ function startBot() {
   try { if (fss.statSync(bl).size > 5e6) fss.renameSync(bl, bl + '.old'); } catch {}
   log('🤖 텔레그램 봇 켜기');
   const out = fss.openSync(path.join(LOG_DIR, 'bot.log'), 'a');
-  bot = spawn(process.execPath, ['pc-sync/bot.mjs'], { cwd: ROOT, env: scriptEnv(), windowsHide: true, stdio: ['ignore', out, out] });
+  const env = { ...scriptEnv(), ...(CFG.telegram?.mode === 'notify' ? { STOCKNOTE_BOT_MODE: 'notify' } : {}) };
+  bot = spawn(process.execPath, ['pc-sync/bot.mjs'], { cwd: ROOT, env, windowsHide: true, stdio: ['ignore', out, out] });
   bot.on('exit', (code) => {
     bot = null;
     if (stopping) return;
@@ -334,6 +335,26 @@ if (cmd === 'job') {
 } else if (cmd === 'mode') {
   if (!['local', 'github'].includes(arg)) { console.log('사용법: node local/run.mjs mode local|github'); process.exit(1); }
   await setMode(arg);
+} else if (cmd === 'telegram') {
+  // claude: 알림을 Claude Code 텔레그램 봇으로 보내고, 예전 주식봇은 대화를 멈춤(알림 전용) / classic: 되돌리기
+  const raw = JSON.parse(await fs.readFile(CONFIG_FILE, 'utf8'));
+  raw.telegram ||= {};
+  if (arg === 'claude') {
+    const envFile = path.join(process.env.USERPROFILE || process.env.HOME || '', '.claude', 'channels', 'telegram', '.env');
+    const tok = (await fs.readFile(envFile, 'utf8').catch(() => '')).match(/TELEGRAM_BOT_TOKEN=(\S+)/)?.[1];
+    if (!tok) { console.log('Claude 텔레그램 봇 토큰을 못 찾았어요. Claude Code에서 /telegram:configure 를 먼저 하세요.'); process.exit(1); }
+    if (raw.telegram.token && raw.telegram.token !== tok) raw.telegram.classicToken = raw.telegram.token;
+    raw.telegram.token = tok; raw.telegram.mode = 'notify';
+    await fs.writeFile(CONFIG_FILE, JSON.stringify(raw, null, 2));
+    // 새 봇으로 시험 메시지
+    const r = await fetch(`https://api.telegram.org/bot${tok}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: raw.telegram.chatId, text: '✅ 이제 주식 알림(공시·신용잔고·돌파·장 마감 요약)이 이 봇으로 와요. 계좌 현황 등은 여기서 Claude에게 물어보세요.' }) }).then((x) => x.json()).catch((e) => ({ ok: false, description: e.message }));
+    console.log(r.ok ? '✔ 바꿨어요. 텔레그램 새 봇에 확인 메시지를 보냈어요.' : `바꿨지만 시험 메시지가 실패했어요: ${r.description} (새 봇에게 먼저 아무 말이나 보내 주세요)`);
+  } else if (arg === 'classic') {
+    if (raw.telegram.classicToken) raw.telegram.token = raw.telegram.classicToken;
+    delete raw.telegram.mode;
+    await fs.writeFile(CONFIG_FILE, JSON.stringify(raw, null, 2));
+    console.log('✔ 예전 주식봇으로 되돌렸어요.');
+  } else console.log('사용법: node local/run.mjs telegram claude | classic');
 } else if (cmd === 'stop' || cmd === 'uninstall') {
   const port = CFG.server?.port || 8080;
   try { await fetch(`http://127.0.0.1:${port}/__stop`); console.log('껐어요.'); } catch { console.log('실행 중이 아니었어요.'); }
