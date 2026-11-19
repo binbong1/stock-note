@@ -21,6 +21,15 @@
 - 자동 알림(보유 종목 공시, 장중 돌파, 장 마감 요약, 신용잔고 그래프, 급등주 정리 10:30·15:00)은 `local/run.mjs` 가 이 봇으로 직접 보내요. Claude가 따로 보낼 필요 없어요.
 - 답은 숫자를 지어내지 말고 명령 출력에 있는 값만 써요.
 
+## 종목 분석 요청 ("OO 기업분석 해줘")
+- 사용자 블로그(파이어족 빈봉) 틀을 따라요: 기업 개요(시총·주주·CB/EB·PER/PBR/배당·연혁) → 투자 아이디어(✔ 소제목, 뉴스·산업 근거) → 산업·사업 분석 → 기업 분석(부문별 매출, 수주잔고와 매출 시차, 손익계산서 GPM/OPM/ROE, 재무상태표, 필요하면 현금흐름·CapEx·순유동자산/시총) → 투자 리스크 → 밸류에이션.
+- 재무는 **최근 5개년 + 최근 분기**, 숫자는 DART 공시·네이버 증권 등 공개 자료에서만. 추정치는 "추정"이라고 표시. 문체는 "~함/~임" 개조식. 투자 판단은 단정하지 않음.
+- 결과는 `data/notes/{코드}-{YYYYMMDD}.json` 으로 저장하고 `data/notes/index.json` 의 items 에 `{id, title, name, code, date, summary, file}` 추가 → 사이트 "종목 분석" 메뉴(#/note/{id})에 그래프와 함께 보여요. 블로그 글은 `file` 없이 `blog` 링크만.
+- 노트 JSON: `{title, name, code, date, priceNote, summary, kpis:[{label,value,sub}], sections:[{title, blocks:[...]}], sources:[...]}`
+  블록: 문자열(문단, **굵게**·[링크](url) 가능) / `{type:"h",text}` ✔소제목 / `{type:"list",items}` / `{type:"table",title,unit,head,rows}` / `{type:"callout",text}` /
+  `{type:"chart",title,unit,labels,bars:[{name,data}],line:{name,unit,data},note}` (막대 + 오른쪽 축 선, 예: 매출·영업이익 + OPM%)
+- 사이트는 공개 주소라 분석에 잔고·보유 수량 같은 개인 정보는 넣지 않아요. 텔레그램에는 핵심 요약 + `https://binbong1.github.io/stock-note/#/note/{id}` 링크로 답해요.
+
 ## 구성
 - `index.html` — 사이트 전체 (대시보드, 자산 추이, 실현손익, 매매 신호, 종목 상세)
 - `scripts/collect.mjs` 잔고·시세 수집 / `scan.mjs` 추세추종 스캔 / `news.mjs` 공시·리포트 / `credit.mjs` 신용잔고 / `surge.mjs` 급등주

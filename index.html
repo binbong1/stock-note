@@ -69,7 +69,7 @@
 <body>
 <header><div class="wrap bar">
   <a class="logo" href="#/"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg></span>내 주식 노트</a>
-  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/history" id="nav-hist">자산 추이</a><a href="#/realized" id="nav-real">실현손익</a><a href="#/signals" id="nav-sig">매매 신호</a><a href="#/holdings" id="nav-hold">보유 정보</a></nav>
+  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/history" id="nav-hist">자산 추이</a><a href="#/realized" id="nav-real">실현손익</a><a href="#/signals" id="nav-sig">매매 신호</a><a href="#/holdings" id="nav-hold">보유 정보</a><a href="#/notes" id="nav-notes">종목 분석</a></nav>
 </div></header>
 <div id="pop" role="dialog" aria-live="polite"></div>
 <div class="wrap"><main id="app"><p class="mute">불러오는 중…</p></main></div>
@@ -892,6 +892,89 @@ function viewSignals() {
   </section>`;
 }
 
+// ================= 종목 분석 노트 (data/notes/index.json, data/notes/{id}.json) =================
+// 블로그 글은 링크로, Claude가 만든 분석은 섹션·표·그래프 JSON으로 저장해요.
+const NOTE_COLORS = ['#16161A', '#C8102E', '#1D4ED8', '#E8590C', '#2F9E44', '#7048E8'];
+const getNoteJSON = async (f) => { try { const r = await fetch('data/notes/' + f + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } };
+const nnum = (v) => v == null ? '' : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString('ko-KR') : (Math.round(v * 10) / 10).toLocaleString('ko-KR');
+const inlineMd = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+// 막대(여러 계열) + 선(오른쪽 축, 예: 영업이익률 %) 그래프
+function noteChart(c) {
+  const W = 800, H = 320, L = 64, R = c.line ? 56 : 16, T = 20, B = 34, n = c.labels.length;
+  const bars = c.bars || [], pw = W - L - R, ph = H - T - B;
+  const bv = bars.flatMap((s) => s.data).filter((v) => v != null);
+  let mx = Math.max(0, ...bv), mn = Math.min(0, ...bv); if (mx === mn) mx = mn + 1;
+  const Y = (v) => T + (1 - (v - mn) / (mx - mn)) * ph, X0 = (i) => L + i * pw / n;
+  const gw = pw / n * 0.7, bw = gw / Math.max(1, bars.length);
+  let s = [0, .25, .5, .75, 1].map((t) => { const v = mx - (mx - mn) * t, y = T + t * ph; return `<line x1="${L}" y1="${y}" x2="${W - R}" y2="${y}" stroke="#EFEFEA"/><text x="${L - 6}" y="${y + 4}" font-size="11" fill="#6B6B75" text-anchor="end">${nnum(v)}</text>`; }).join('');
+  s += `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="#D6D6CF"/>`;
+  bars.forEach((ser, k) => ser.data.forEach((v, i) => {
+    if (v == null) return;
+    const x = X0(i) + (pw / n - gw) / 2 + k * bw, y = Math.min(Y(v), Y(0)), h = Math.max(1, Math.abs(Y(v) - Y(0)));
+    s += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${ser.color || NOTE_COLORS[k % NOTE_COLORS.length]}"/>`;
+    if (bars.length <= 2 && n <= 8) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${(v >= 0 ? y - 4 : y + h + 12).toFixed(1)}" font-size="10" text-anchor="middle" fill="#3D3D45">${nnum(v)}</text>`;
+  }));
+  if (c.line) {
+    const lv = c.line.data.filter((v) => v != null);
+    let lmx = Math.max(...lv), lmn = Math.min(0, ...lv); if (lmx === lmn) lmx = lmn + 1; lmx += (lmx - lmn) * 0.1;
+    const LY = (v) => T + (1 - (v - lmn) / (lmx - lmn)) * ph, cx = (i) => X0(i) + pw / n / 2;
+    const col = c.line.color || '#E8590C';
+    s += `<polyline fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" points="${c.line.data.map((v, i) => v == null ? '' : cx(i).toFixed(1) + ',' + LY(v).toFixed(1)).filter(Boolean).join(' ')}"/>`;
+    s += c.line.data.map((v, i) => v == null ? '' : `<circle cx="${cx(i).toFixed(1)}" cy="${LY(v).toFixed(1)}" r="3.5" fill="#fff" stroke="${col}" stroke-width="2"/><text x="${cx(i).toFixed(1)}" y="${(LY(v) - 8).toFixed(1)}" font-size="10" text-anchor="middle" fill="${col}">${nnum(v)}${esc(c.line.unit || '')}</text>`).join('');
+    s += [0, .5, 1].map((t) => { const v = lmx - (lmx - lmn) * t, y = T + t * ph; return `<text x="${W - R + 6}" y="${y + 4}" font-size="11" fill="${col}">${nnum(v)}${esc(c.line.unit || '')}</text>`; }).join('');
+  }
+  s += c.labels.map((l, i) => `<text x="${(X0(i) + pw / n / 2).toFixed(1)}" y="${H - 12}" font-size="11" text-anchor="middle" fill="#6B6B75">${esc(l)}</text>`).join('');
+  const legend = [...bars.map((b, k) => `<span><i style="background:${b.color || NOTE_COLORS[k % NOTE_COLORS.length]};height:10px;width:10px;border-radius:2px"></i>${esc(b.name)}</span>`),
+    c.line ? `<span><i style="background:${c.line.color || '#E8590C'}"></i>${esc(c.line.name)}</span>` : ''].join('');
+  return `<figure style="margin:8px 0 4px">${c.title ? `<figcaption style="font-weight:600;margin-bottom:6px">${esc(c.title)}${c.unit ? ` <span class="mute" style="font-weight:400;font-size:12px">(${esc(c.unit)})</span>` : ''}</figcaption>` : ''}
+    <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.title || '그래프')}" style="display:block">${s}</svg><div class="legend" style="margin-top:6px">${legend}</div>
+    ${c.note ? `<p class="mute" style="font-size:12px;margin:6px 0 0">${inlineMd(c.note)}</p>` : ''}</figure>`;
+}
+function noteBlock(b) {
+  if (typeof b === 'string') return `<p style="margin:6px 0">${inlineMd(b)}</p>`;
+  if (b.type === 'h') return `<h3 style="margin:18px 0 6px;font-size:16px">✔ ${esc(b.text)}</h3>`;
+  if (b.type === 'list') return `<ul style="margin:6px 0;padding-left:20px">${b.items.map((x) => `<li style="margin:3px 0">${inlineMd(x)}</li>`).join('')}</ul>`;
+  if (b.type === 'table') return `<div class="scroll" style="margin:8px 0">${b.title ? `<div style="font-weight:600;margin-bottom:4px">${esc(b.title)}${b.unit ? ` <span class="mute" style="font-weight:400;font-size:12px">(${esc(b.unit)})</span>` : ''}</div>` : ''}<table><thead><tr>${b.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((v) => `<td class="${typeof v === 'number' ? 'num' : ''}">${typeof v === 'number' ? nnum(v) : inlineMd(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if (b.type === 'chart') return noteChart(b);
+  if (b.type === 'callout') return `<div class="banner" style="margin:8px 0">${inlineMd(b.text)}</div>`;
+  return '';
+}
+async function viewNotes() {
+  $app.innerHTML = '<p class="mute">불러오는 중…</p>';
+  const idx = await getNoteJSON('index.json');
+  const items = (idx?.items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const row = (it) => {
+    const href = it.blog && !it.file ? it.blog : '#/note/' + encodeURIComponent(it.id);
+    const ext = it.blog && !it.file;
+    return `<li style="display:flex;gap:12px;align-items:flex-start;justify-content:space-between">
+      <div style="min-width:0"><a class="name" href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}>${esc(it.title)}</a>
+      <div class="sub">${esc(it.name || '')}${it.code ? ' · ' + esc(it.code) : ''} · ${esc(it.date || '')}${it.summary ? ' — ' + esc(it.summary) : ''}</div></div>
+      <span class="tag" style="flex:none">${it.file ? 'Claude 분석' : '블로그'}</span></li>`;
+  };
+  $app.innerHTML = `<h1>종목 분석</h1>
+    <section class="card"><p class="mute" style="margin:0 0 6px;font-size:14px">내가 정리한 기업 분석 기록이에요. 텔레그램에서 "OO 기업분석 해줘"라고 하면 Claude가 같은 틀(개요 → 투자 아이디어 → 사업 → 5개년 재무·수주잔고 → 리스크 → 밸류에이션)로 만들어 여기에 저장해요.</p>
+    ${items.length ? `<ul class="list">${items.map(row).join('')}</ul>` : '<p class="mute">아직 저장된 분석이 없어요.</p>'}</section>
+    <p class="mute" style="font-size:12px">이 사이트는 공개 주소예요. 분석 기록은 누구나 볼 수 있어요. 주식 추천이 아니에요.</p>`;
+}
+async function viewNote(id) {
+  $app.innerHTML = '<p class="mute">불러오는 중…</p>';
+  const idx = await getNoteJSON('index.json');
+  const it = (idx?.items || []).find((x) => x.id === id);
+  const n = it?.file ? await getNoteJSON(it.file) : null;
+  if (!n) { $app.innerHTML = `<div class="banner err">분석을 찾지 못했어요.</div><p><a href="#/notes">← 목록으로</a></p>`; return; }
+  const secs = n.sections || [];
+  $app.innerHTML = `<p style="margin:0"><a href="#/notes">← 종목 분석 목록</a></p>
+    <div><h1>${esc(n.title)}</h1><p class="mute" style="margin:6px 0 0">${esc(n.name)}${n.code ? ` · <a href="#/stock/${encodeURIComponent(n.code)}">${esc(n.code)}</a>` : ''} · ${esc(n.date)} 작성${n.priceNote ? ' · ' + esc(n.priceNote) : ''}</p></div>
+    ${n.summary ? `<section class="card kpi dark"><div class="l">한 줄 요약</div><div style="font-size:17px;margin-top:6px">${inlineMd(n.summary)}</div></section>` : ''}
+    ${n.kpis?.length ? `<div class="cards">${n.kpis.map((k) => `<section class="card kpi"><div class="l">${esc(k.label)}</div><div class="v num" style="font-size:22px">${esc(k.value)}</div>${k.sub ? `<div class="s mute">${esc(k.sub)}</div>` : ''}</section>`).join('')}</div>` : ''}
+    ${secs.length > 2 ? `<section class="card"><h2 style="margin-bottom:6px">목차</h2><ol style="margin:0;padding-left:20px">${secs.map((s, i) => `<li><a href="#/note/${encodeURIComponent(id)}" data-sec="${i}">${esc(s.title)}</a></li>`).join('')}</ol></section>` : ''}
+    ${secs.map((s, i) => `<section class="card" id="sec-${i}"><h2 style="margin-bottom:8px">${i + 1}. ${esc(s.title)}</h2>${(s.blocks || []).map(noteBlock).join('')}</section>`).join('')}
+    ${n.sources?.length ? `<section class="card"><h2 style="margin-bottom:6px">자료 출처</h2><ul style="margin:0;padding-left:20px;font-size:14px">${n.sources.map((x) => `<li>${inlineMd(x)}</li>`).join('')}</ul></section>` : ''}
+    <p class="mute" style="font-size:12px">${esc(n.disclaimer || '공개 자료로 정리한 개인 기록이며 주식 추천이 아니에요. 추정치는 따로 표시했어요.')}</p>`;
+  $app.querySelectorAll('[data-sec]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sec-' + a.dataset.sec)?.scrollIntoView({ behavior: 'smooth' }); }));
+}
+
 function route() {
   if (!DATA) return;
   const hsh = location.hash || '#/';
@@ -900,7 +983,10 @@ function route() {
   document.getElementById('nav-hist').className = hsh === '#/history' ? 'on' : '';
   document.getElementById('nav-real').className = hsh === '#/realized' ? 'on' : '';
   document.getElementById('nav-sig').className = hsh === '#/signals' ? 'on' : '';
+  document.getElementById('nav-notes').className = hsh.startsWith('#/note') ? 'on' : '';
   if (hsh.startsWith('#/stock/')) viewStock(decodeURIComponent(hsh.slice(8)));
+  else if (hsh === '#/notes') viewNotes();
+  else if (hsh.startsWith('#/note/')) viewNote(decodeURIComponent(hsh.slice(7)));
   else if (hsh === '#/history') viewHistory();
   else if (hsh === '#/realized') viewRealized();
   else if (hsh === '#/signals') viewSignals();
