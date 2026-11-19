@@ -1,6 +1,16 @@
 {
  "items": [
   {
+   "id": "dkt",
+   "title": "디케이티 기업분석 — 스마트폰 모듈에서 BMS·휴머노이드로",
+   "name": "디케이티",
+   "code": "290550",
+   "date": "2026-11-20",
+   "summary": "OLED 모듈 + ESS BMS·전장·휴머노이드, 3Q26 OPM 8.6%, PER 15배",
+   "file": "dkt.json",
+   "source": "claude"
+  },
+  {
    "id": "ls",
    "title": "LS 기업분석",
    "name": "LS",
