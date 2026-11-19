@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(node pc-sync/ask.mjs:*)",
+      "Bash(node scripts/surge.mjs --print)",
       "Bash(node local/run.mjs status)",
       "Bash(git status:*)",
       "Bash(git log:*)",
