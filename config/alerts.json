@@ -1,5 +1,15 @@
 {
   "paused": false,
   "pausedUntil": null,
-  "custom": []
+  "custom": [
+    {
+      "code": "290550",
+      "name": "디케이티",
+      "price": 33000,
+      "pivot": 31750,
+      "avgVol50": 423529,
+      "baseLow": 17920,
+      "addedAt": "2026-11-19"
+    }
+  ]
 }
