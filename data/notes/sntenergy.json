@@ -1,0 +1,397 @@
+{
+ "title": "LNG관련주 SNT에너지 기업 분석 주가전망",
+ "name": "SNT에너지",
+ "code": "100840",
+ "date": "2025-08-17",
+ "source": "blog",
+ "priceNote": "블로그 글을 옮겨옴",
+ "summary": "공랭식 열교환기·HRSG, 수주잔고와 매출 환산비율",
+ "sections": [
+  {
+   "title": "들어가며",
+   "blocks": [
+    "주식 종목 분석을 하면서 투자를 해봐야겠다고 다짐하고 처음으로 분석할 종목은 에너지, LNG 관련주로 분류되고 있는 **SNT에너지**다.",
+    "주주의 입장에서 작성한 내용이니 분석, 내용에 대한 **비판은 언제든 댓글로** 달아주면 좋겠다!",
+    "주식 추천은 아님",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfODAg/MDAxNzU1NDEyNDYzMzY4.XwTO4Bidy5JPxzzwPucU3F2amsWW-nYws__hNmNpMDUg.qmE26_dpoPWJYih9KRf9Dhsa9G59Ww9ZLMtBJgsvDS0g.PNG/SNT%EC%97%90%EB%84%88%EC%A7%80.PNG?type=w800"
+    },
+    {
+     "type": "callout",
+     "text": "목차 / 1. 기업 개요 / 2. 산업 분석 / 3. 재무 분석 / 4. 투자포인트/리스크 / 5. 밸류에이션"
+    }
+   ]
+  },
+  {
+   "title": "기업 개요",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "기업 히스토리"
+    },
+    "과거부터 Fin 관련 기술을 바탕으로 공랭식 열교환기 기반 매출을 꾸준히 만들어오던 기업이다.",
+    "**2022년부터 하몬 델탁으로부터 HRSG 기술 인수하여 사업 시작**",
+    "**사우디 현지법인(SNT Gulf)가 있어 중동 시장 영향력**",
+    "**2022년 사우디 아람코와 장기 조달 협약(CPA) 체결**",
+    {
+     "type": "h",
+     "text": "사업내용"
+    },
+    "매출의 대부분은 공랭식 열교환기(Air cooler)에서 나오며, HRSG는 10% 정도 매출 비중을 차지함.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfODYg/MDAxNzU1NDEzMTUyMDQ5.W5upYRAft0PjUsRbCVo_SKDXWB7vjHvgIClMp9W64Agg.--W9hVL9728wG3lpCnG5JvOaoN1d6l4TzdHAR8hiIPYg.PNG/%EC%82%AC%EC%97%85%EB%82%B4%EC%9A%A9.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "주주, 자본금 변동"
+    },
+    "대부분 모회사인 SNT홀딩스에서 지분을 가지고 있으며 SNT홀딩스 **최평규 회장은 1952년생**으로 추후 상속, 증여에 대한 이슈가 나올수도 있겠다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTQ5/MDAxNzU1NDEzMTk3NzE2.m7iClE4y0ZuE0IwDiQURlkFyDvzEpcitRz9z6xYBKaQg.uBvt75O-Er3PHR7QKenQJT9AqZeSyDvZmirxpLU3GNwg.PNG/%EC%A3%BC%EC%A3%BC%ED%98%84%ED%99%A9.png?type=w800"
+    },
+    "SNT에너지는 2024년 3월 무상증자를 제외하고 유상증자 등 자본 변동 없이 자력으로 성장해온 기업이다."
+   ]
+  },
+  {
+   "title": "산업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "플랜트 산업"
+    },
+    "SNT에너지는 플랜트 산업 밸류체인 중 **'기자재'를 납품 및 시공하는 업체**다.",
+    "플랜트산업은 오일&가스, 정유, 석유화학, 발전 플랜트 등 종류가 상당히 다양한데, 당사가 취급하는 **에어 쿨러(이하 AFC)와 배열회수보일러(이하 HRSG)가 모두 필요**하다고 볼 수 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMzkg/MDAxNzU1NDEzMzYyMzgz.DqUoXalOf0Jis0gXofjX0UJn3Nq__HNWZIRL6N88el0g.BjCYzJ4HJp3UgkaAFoifScw632SMH3y5QSsYvdUON78g.PNG/%ED%94%8C%EB%9E%9C%ED%8A%B8_%EC%82%B0%EC%97%85.png?type=w800"
+    },
+    {
+     "type": "caption",
+     "text": "출처 - SMIC"
+    },
+    {
+     "type": "h",
+     "text": "공랭식 열교환기(AFC)"
+    },
+    "SNT에너지의 주력제품인 공랭식 열교환기의 특징은 다음과 같다.",
+    {
+     "type": "sub",
+     "text": "물 대신 공기를 이용하여 열교환하는 방식"
+    },
+    {
+     "type": "sub",
+     "text": "LNG, 석유화학 플랜트에 사용되는 편"
+    },
+    {
+     "type": "sub",
+     "text": "물이 부족한 중동/미국 사막 지역에 수요"
+    },
+    {
+     "type": "sub",
+     "text": "현재 글로벌 점유율 1위"
+    },
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjQ0/MDAxNzU1NDEzNTA5MDg3.jrw68G9EXGGXTa7O2zQ8tDdvox6O9KKrcp4LKU9Uupsg.Pv2pIK6faG1eEOY4yD66O4LSyIJWI-sWOZ7iaaE42Uwg.PNG/%EA%B3%B5%EB%9E%AD%EC%8B%9D_%EC%97%B4%EA%B5%90%ED%99%98%EA%B8%B0.png?type=w800"
+    },
+    "Global Growth Insight에 따르면 공랭식 열교환기 시장이 2033년까지 연간 6% 이상 성장하며 꾸준한 수요가 있을 것으로 본다고 한다.",
+    {
+     "type": "h",
+     "text": "배열회수보일러(HRSG)"
+    },
+    "SNT에너지의 두번째 주력 제품이라고 할 수 있는 HRSG는 최근 LNG 시장이 부각되면서 규모가 빠르게 성장하고 있는 시장이다.",
+    {
+     "type": "sub",
+     "text": "LNG복합화력발전소 효율 증대(30~40% → 80%)"
+    },
+    {
+     "type": "sub",
+     "text": "1차 전략 생산 후 스팀을 이용하여 추가 전력 생산"
+    },
+    "**국내 기업 BHI(비에이치아이)가 세계 점유율 1위 (동사 매출 대비 9배)**",
+    {
+     "type": "sub",
+     "text": "친환경 발전설비에 대한 수요 확대 중"
+    },
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjg3/MDAxNzU1NDEzODYzMzQx.ghKKbDzSuu1Oey0yKKvJLLhkSllFokeD4U5AcND9gi8g.Pr3m_39QgCMyBSF17ll_7uXpHIOpHymyL5xs9UqlKgkg.PNG/SE-2d86cb8c-13ad-4c5a-aa45-728ae62cace4.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "복수기(Surface Condenser)"
+    },
+    "폐증기를 다시 응축시키는 장치로 HRSG와 함께 세트로 판매되는 경향이 있고, 매출액 비중은 적다.",
+    {
+     "type": "h",
+     "text": "SCR System"
+    },
+    "속스, 녹스, 먼지 등 유해물질을 제거하는 기술로 중요하지만 매출액 비중이 크지 않다."
+   ]
+  },
+  {
+   "title": "기업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "매출 분석"
+    },
+    {
+     "type": "sub",
+     "text": "제품군별 매출"
+    },
+    "매출의 대부분이 AFC 수출에서 나오고 있으며, 내수용 HRSG 매출도 적지 않게 증가하고 있는 편이다.",
+    "**25년 2분기 매출 1,400억 / 영업이익 273억 / 순이익 109억**",
+    "**누적 매출 2,559억 / 영업이익 402억 / 순이익 193억 **",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjg3/MDAxNzU1NDE0MDgwNjAw.OBvVwtWrelfESlLYO5wKgf2T88VMuAWU9GL7-zTKTasg.0mXKscHh9jSkC2xdyGzZD3yYRP7OoBJSIhuwTriDW8gg.PNG/%EB%B6%80%EB%AC%B8%EB%B3%84_%EB%A7%A4%EC%B6%9C.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "공랭식 열교환기 매출"
+    },
+    "2024년 초 실적이 주춤했다가 2024년 말부터 매출액이 급등하며, **역대 최대 실적을 달성**함.",
+    "25년 2분기는 AFC만 1,260억 매출을 달성하면서 어닝 서프라이즈",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTY2/MDAxNzU1NDE0MTc2NDI3.m4BZCvcEXPtfUMOApH5H4tXksXeCMmC5fv9olvVwi8og.SpPsZIGik4of3cLUkXUypzbSWSQ1qWhVsai-inEz5Y0g.PNG/%EA%B3%B5%EB%9E%AD%EC%8B%9D_%EC%97%B4%EA%B5%90%ED%99%98%EA%B8%B0_%EB%A7%A4%EC%B6%9C.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "HRSG 매출"
+    },
+    "2022년부터 내수 시장에서 매출이 많이 나오고 있는데, 최근 수주 2~3건 이외에는 3년 가까이 수주가 없어서 **신규 수주를 가져올 수 있을지**를 지켜봐야 할 듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjMy/MDAxNzU1NDE0MjY2NDYz.-bMcw3NXgbdwMCSPP91feERf9gwLBbLR-7n-pi6lmSEg.SLb6YruLiEZKmf7bq2KunJ9vzuuI6Dc_5LMm9pC0zssg.PNG/HRSG_%EB%A7%A4%EC%B6%9C.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "수주잔고"
+    },
+    "수주잔고는 25년 1분기까지 최대치를 달성하고, **2분기엔 신규수주를 따내지 못해서 감소**하는 모습을 보여줬다.",
+    "성장을 확인할 수 있는게 수주잔고인데, 3분기에도 신규수주를 따내지 못하면 추후 주가도 안 좋을 수 밖에 없을듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfOTQg/MDAxNzU1NDE0NTQwMDU5.1WSfJWjDzpfoRBHp3I4jcQ9cDB5CrqtG4sUBQGPzFqIg._T1PE4GPUMcjUbeK_FSo_9BFstNKXN_we03E1H1trgEg.PNG/%EC%88%98%EC%A3%BC%EC%9E%94%EA%B3%A0.png?type=w800"
+    },
+    "분기별 수주잔고와 매출액이 어느정도 레깅되는지 살펴보았다.",
+    "3개 분기정도 텀을 두고 실제 매출에 찍힌다고 보면 되는데, 수주잔고를 기준으로 보면 **25년까지 실적은 괜찮아보인다.**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjY5/MDAxNzU1NDE0NjIxNjYx.l2RIKfSCnQbYY8NoojpF8MpCcTEMCKTCSpbJx3RMMVAg.l5ldLeAT4d6iXL94f16RgW6FnCEH3H7STBKnPBH80YMg.PNG/%EC%88%98%EC%A3%BC%EC%9E%94%EA%B3%A0_%EB%A0%88%EA%B9%85_%EB%A7%A4%EC%B6%9C%EC%95%A1.png?type=w800"
+    },
+    "이 때 **수주잔고 대비 매출액 환산비율**을 역사적으로 살펴보니,",
+    "**평균 19.2% 최저 12.7%** 정도로 이 점을 감안해서 2025년 실적 예상치를 계산해볼 수 있겠다.",
+    {
+     "type": "h",
+     "text": "재무 분석"
+    },
+    {
+     "type": "sub",
+     "text": "손익계산서"
+    },
+    "매출액, 매출총이익, 영업이익을 그래프로 그려보니 **25년 2분기 실적에서 GPM, OPM이 최대치**로 나왔다.",
+    "AFC 마진이 HRSG에 비해 높다고 알려져있는데, 매출 비중이 확대되면서 영업이익률이 19.5%까지 오를 수 있었던건가 싶다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTI2/MDAxNzU1NDE0NzY0MDU3.VaQzw8cEDpVvHuVY1wrvhaTvHl4Zhh8lfTiAFM9t3TYg.0qR1NX_7UqtcarRgMLgu08SOMX0jXWlowm8zpV_b7Hwg.PNG/%EB%A7%A4%EC%B6%9C_%EC%98%81%EC%97%85%EC%9D%B4%EC%9D%B5_GPM_OPM.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "Cost 분석"
+    },
+    "GPM 관련해서 원재료 값이 얼마나 영향(Cost)을 주는지 알아보려고, 그래프로 그려봤는데 정확히 알 순 없을 것 같다.",
+    "다만 **알루미늄 코일 값이 상승하면 GPM가 낮아졌다**는걸로 추측해볼 순 있을듯?",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTM5/MDAxNzU1NDE0ODY2ODY0.GW4nDvXZ5cdLJ-T-e9xdMs6GQUHJvuAu2tVTgzcNYQAg.poNrv7G2UMM297cmSXeEalL7T-j02Htljc4xqpOlwyUg.PNG/%EC%9B%90%EC%9E%AC%EB%A3%8C_GPM.png?type=w800"
+    },
+    "다음으로 비용이 어디에 많이 나갔는지 살펴보았는데, 제조업이라 그런지 원부재료 비중이 상당히 큰 것을 알 수 있다.",
+    "**관세로 인한 물가 상승**이 SNT에너지에는 리스크 요인이 될 수 있을듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTgx/MDAxNzU1NDE0OTUyMTY5.TyZTyXi9whswA3P_KrEa9X0nldPD5KvF8XfeyerTNywg.MWaTWQR4o_soAthmqtXhTlMnffxrow3hQ61vaCi7Hwcg.PNG/%EB%B9%84%EC%9A%A9_%EC%84%B1%EA%B2%A9%EB%B3%84_%EB%B6%84%EB%A5%98.png?type=w800"
+    },
+    "심심해서 원재료, 부재료, 원재료 매입액, 재고자산까지 살펴봤는데 2분기 **원재료 매입액이 최대치를 경신**했다.",
+    "많이 샀는데 **재고자산이 거의 남아있지 않고, 매출액이 잘 찍힌걸 보면 사는 족족 만들어서 파나보다!**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjI0/MDAxNzU1NDE1MDQ4MjE5.lrtV52GzHe7UjdN1pjk1zb8CS9ZLU5JGBgfRvnaOM9Ag.h8aB_tyDxtSuoVMvV2kKOBwiytmzPreq46YxJzZy91Qg.PNG/%EC%9B%90%EB%B6%80%EC%9E%AC%EB%A3%8C_%EB%A7%A4%EC%9E%85%EC%95%A1.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "현금흐름표"
+    },
+    "벌어들인 돈으로 설비 투자는 얼마나 하고 있는지 살펴봤는데, CapEx 투자는 그렇게 많지 않은 **것으로** 나타났다.",
+    "영업현금흐름 대비 1~2%에 해당하는 10~20억 수준에 그치고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTQz/MDAxNzU1NDE1MTg0NzQx.2u0uCySAfGIGiRG8ca2z2PpHwkmpzz6kMysH3G32MTkg.0ffExmPc9y2Qqes_sgMONHaAc1J2vsceefnHKSDEpkAg.PNG/%ED%98%84%EA%B8%88%ED%9D%90%EB%A6%84%ED%91%9C.png?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "재무상태표"
+    },
+    "'가치투자가 쉬워지는 V차트'에서 **안전마진을 위한 순유동자산/시가총액 차트**를 확인하라고 했으니 추가해보았다.",
+    "2024년 1분기까지만 해도 순유동자산과 시가총액이 크게 차이나지 않았는데, 그 이후부터 주가가 우상향하면서 지금은 **성장성에 초점을 둬야하는 투자처**가 된 것으로 보인다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjUz/MDAxNzU1NDE1Mjc2Mjg3.y5xIv18jZdFsxrltwJYz4rd-epUw_2AhXz_a_Q5BIFog.OzYMF2lbabdWAKBnuwI5RDtbGB8hvj5l8P45LsQMdBQg.PNG/%EC%9C%A0%EB%8F%99%EC%9E%90%EC%82%B0_%EC%9C%A0%EB%8F%99%EB%B6%80%EC%B1%84_%EC%8B%9C%EA%B0%80%EC%B4%9D%EC%95%A1.png?type=w800"
+    },
+    "**수주 기업이 조심해야할 것 중 하나인 매출채권 회수**관련된 이슈를 확인하기 위해, 대손충당 설정율을 봤다.",
+    "22년 이후 **최근에는 3~4%정도로 나쁘지 않은 수준**을 유지하고 있으니 괜찮지 않을까 싶다. 거기에 절반정도는 개별적으로 빼둔 채권 손상이라 낫배드..?",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjQx/MDAxNzU1NDE1MzU3MjU5.b16SOzyFt42ktpuXas6Y2DoCEqC2wwgObti3E95VzTIg.sfiZLki7H4qG4sDSgHwzHPKY9v54beyCO3IR-wgE6ksg.PNG/%EB%A7%A4%EC%B6%9C%EC%B1%84%EA%B6%8C_%EB%8C%80%EC%86%90%EC%B6%A9%EB%8B%B9.png?type=w800"
+    }
+   ]
+  },
+  {
+   "title": "투자포인트/리스크",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "중동 플랜트 투자 확대"
+    },
+    {
+     "type": "sub",
+     "text": "사우디"
+    },
+    "**아람코를 통해 1000억 달러 이상 가치를 가진 자푸라가스전 개발**",
+    {
+     "type": "sub",
+     "text": "LNG 생산량을 60% 이상 증가 예정"
+    },
+    {
+     "type": "sub",
+     "text": "LNG 발전 규모가 60% 이상인 사우디"
+    },
+    {
+     "type": "sub",
+     "text": "AI데이터센터 등 전력 산업 현지화 수요"
+    },
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfOTYg/MDAxNzU1NDE1NjM2Nzk2.4iIYgtmynqMVT-7_wbcErqUOIzDAvf_-cPAm_D_dHr8g.RkirC6tfQUiI4Q7vT-h3cHL2N9PpTsAhg7cUgCZLOE8g.PNG/%EC%82%AC%EC%9A%B0%EB%94%94%EC%95%84%EB%9D%BC%EB%B9%84%EC%95%84_%EA%B7%B8%EB%A6%AC%EB%93%9C.png?type=w800"
+    },
+    "게다가 산업기반인 전력 산업의 현지화를 원하고 있어, 지난 5월 사우디 조달청과 HRSG 현지 국산화 계약을 체결한 SNT에너지에게 좋은 소식일 수 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMjQ3/MDAxNzU1NDE1NzI2MDI0.ZunO3b79CnJjur_9yWhNI7JodGzp7uLdWVj_P218_SUg.iqepa4GaL8DQGzU8cCrd-k1KOYQMoZ8xtmf2tmwzEqAg.PNG/SNT%EC%97%90%EB%84%88%EC%A7%80_%EC%82%AC%EC%9A%B0%EB%94%94_HRSG_%ED%98%84%EC%A7%80%EA%B5%AD%EC%82%B0%ED%99%94.png?type=w800"
+    },
+    {
+     "type": "link",
+     "title": "SNT에너지, 사우디아라비아와 ‘HRSG 현지국산화 협정'",
+     "url": "https://www.wowtv.co.kr/NewsCenter/News/Read?articleId&#x3D;202505293249h",
+     "site": "www.wowtv.co.kr"
+    },
+    {
+     "type": "sub",
+     "text": "UAE"
+    },
+    "아부다비국영석유회사를 중심으로 '28년까지 LNG 생산량 2배 증대",
+    "100억 달러 이상 타즈지즈 석유화학 프로젝트 건설 중",
+    {
+     "type": "h",
+     "text": "미국 LNG 프로젝트 확대"
+    },
+    "미국 리오 그란데(Rio Grande) LNG 프로젝트에 에어쿨러를 공급하면서 미국 LNG 터미널 시장에 진입할 수 있을 것이라는 기대가 있음.",
+    "미국 셰일가스의 상당 부분은 천연가스 형태로 나오기 때문에**LNG 액화/발전 플랜트에 대한 수요가 증가**할 수 밖에 없다.",
+    "미국 EIA에서 가져온 2026년까지 개발될 발전소 계획을 살펴보면, Natural Gas 발전소가 꽤나 큰 규모로 많이 있다. (이것만 보면 태양광에 투자해야할지도..)",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfMTAg/MDAxNzU1NDE2MDMxODkz.BNd3qrPjx30Y7c8GZKRWOEVudNLXaH24450_Q0SpKckg.46GsJ-ccbgDkej5iBSDZ9vi0HDC4Ng7fkzXolA0LBfAg.PNG/%EB%AF%B8%EA%B5%AD_%EC%B2%9C%EC%97%B0%EA%B0%80%EC%8A%A4_%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8.png?type=w800"
+    },
+    "이 밖에도 현재 허가를 받기 위해 대기 중인 LNG 복합화력발전소들이 있는 것으로 알려져있어 SNT에너지가 에어쿨러, HRSG 등을 납품할 수 있을지 관심을 받고 있다.",
+    {
+     "type": "h",
+     "text": "아시아 전력 인프라 확대"
+    },
+    {
+     "type": "sub",
+     "text": "인도네시아"
+    },
+    "인도네시아는 현재 수도인 자카르타가 물 속으로 잠기면서, 누산타라로 수도 이전 계획을 진행 중이다.",
+    "인도네시아 또한 석유, 천연가스가 풍부한 국가기 때문에 새로운 도시가 개발되면 발전소 등을 건설하기 위한 투자가 진행되지 않을까 예상된다.",
+    {
+     "type": "h",
+     "text": "투자 리스크"
+    },
+    "관세로 인한 물가 상승 및 프로젝트 딜레이",
+    "중동 지정학적 리스크(러우 전쟁 등)",
+    "최근 미국 리오그란데 LNG 프로젝트에 참여할 예정인 토탈에너지스도 관세 부담으로 인해 투자를 보류하고 있는 상황이라고 하니, 중장기적으로 어떤 영향이 있을지 살펴봐야 할 듯"
+   ]
+  },
+  {
+   "title": "밸류에이션",
+   "blocks": [
+    "네이버 컨센서스 기준으로 2025년 매출액 5,165억 / 영업이익 710억 / 당기순이익 535억을 예상한다고 한다.",
+    "2026년 Forward PER은 13.1정도로 본다고 하는데, 실제로 가능할지 살펴보자.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTA4MTdfNzEg/MDAxNzU1NDE2NDExNDgw.AdI3wCvNJtE-6L9xSjMFaaQv8lIsg8BtYOPD2OZX8sMg.L8VCcTLYZVRWx7wPT1DeFR5uRul56ROl4xFEahsRwxAg.PNG/%EB%84%A4%EC%9D%B4%EB%B2%84_%EC%BB%A8%EC%84%BC%EC%84%9C%EC%8A%A4.png?type=w800"
+    },
+    "아래 조건들을 고려해서 상당히 보수적으로 2025년 예상실적을 계산해보았다.",
+    {
+     "type": "sub",
+     "text": "수주잔고/매출액 3분기 레깅"
+    },
+    {
+     "type": "sub",
+     "text": "수주잔고/매출액 비율 평균 19.2%, 최저 12.7%"
+    },
+    {
+     "type": "sub",
+     "text": "영업이익률 10%, 순이익률 9%"
+    },
+    {
+     "type": "table",
+     "head": [
+      "구분",
+      "2025년 최저 예상치",
+      "2025년 평균 예상치"
+     ],
+     "rows": [
+      [
+       "매출액",
+       "4,797억원",
+       "5,942억원"
+      ],
+      [
+       "영업이익",
+       "625억원",
+       "740억원"
+      ],
+      [
+       "순이익",
+       "432억원",
+       "535억원"
+      ]
+     ]
+    },
+    "계산해보니 보수적으로 봤을 때, 평균 예상치가 네이버 컨센서스랑 비슷하게 나왔다.",
+    "2분기 영업이익률과 순이익률이 너무 높게 나와서 3~4분기에 좋지 않을걸 감안하면 딱 이정도가 되지 않을까 싶다.",
+    "**지금 수주잔고 수준으로는 2026년 컨센서스를 맞추기는 어려워**보이니 보수적으로 접근해야할 듯하다.",
+    {
+     "type": "sub",
+     "text": "함께 읽으면 도움되는 글"
+    },
+    {
+     "type": "link",
+     "title": "제2의 삼양식품? 바이오포트 2분기 실적 분석",
+     "url": "https://blog.naver.com/whtjdqls45/223972617151",
+     "site": "blog.naver.com"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  "[SNT에너지 블로그 원문](https://m.blog.naver.com/whtjdqls45/223973337297) · 2025-08-17"
+ ],
+ "disclaimer": "파이어족 빈봉 블로그에 쓴 글을 옮겨온 개인 기록이며 주식 추천이 아니에요. 글 작성 당시 기준이에요."
+}

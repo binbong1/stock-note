@@ -1,0 +1,434 @@
+{
+ "title": "지엔씨에너지 기업 분석 주가전망",
+ "name": "지엔씨에너지",
+ "code": "119850",
+ "date": "2025-12-21",
+ "source": "blog",
+ "priceNote": "블로그 글을 옮겨옴",
+ "summary": "데이터센터 비상발전기, 수주잔고 3,877억",
+ "sections": [
+  {
+   "title": "들어가며",
+   "blocks": [
+    "지난 8월부터 AI 데이터센터 관련 주식을 찾아보다가 알게 된 지엔씨에너지를 꾸준히 매수하고 있지만, 제대로된 분석을 해봐야겠다 싶어 정리한 내용임.",
+    "정량적 분석을 위해 고생해서 정리한 자료를 공유해준 밍구쓰에게 감사의 뜻을 전한다",
+    "나도 성장성에 대해 철저하게 분석해보지 못한 종목이니 주식 추천은 아님",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTg2/MDAxNzY2MjgzNTI0MDg4.PeWsFHQT1toROcQoeJYKw14WD2SWHjt-PMiEcgTCtIYg.sOEBfBdl_sOsXShudnN2x9Gab-C7Di3prSBsIHY2M3Ug.JPEG/%EC%A7%80%EC%97%94%EC%94%A8%EC%97%90%EB%84%88%EC%A7%80.jpg?type=w800"
+    },
+    {
+     "type": "callout",
+     "text": "목차 / 1. 기업 개요 / 2. 투자포인트 / 3. 산업, 사업분석 / 4. 기업분석 / 5. 밸류에이션"
+    }
+   ]
+  },
+  {
+   "title": "기업 개요",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "시가총액, 주식 구성"
+    },
+    "자료를 작성했던 12월 초 기준 시가총액은 4,918억원(주가 34,500원)이며 교환사채 128.8억원이 발행되어 있음",
+    "주주는 지엔씨에너지 대표이사 안병철 가족이 33%를 가지고 있으며, 에셋플러스 자산운용 5%, 자사주 2.6%를 보유 중임",
+    "올해 자사주를 100만주 이상 처분하면서 교환사채 전환을 많이 한 상황",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTA0/MDAxNzY2MjgzNjgzNDU1.m0OWZEZqtxBvuhzDO_TYvgNzzma9-7HBiuc9dhitPmcg.IIUMgxi4Lh0K_TypWbG990xITdv-1HzOG3vdwK2aPD4g.PNG/%EC%9E%90%EC%82%AC%EC%A3%BC.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "밸류에이션, 배당"
+    },
+    "포즈랑의 투자이야기에서 이야기해주신 밸류에이션과 배당에 대한 내용도 포함해보았음",
+    "PER : 네이버 기준 26년 Forward PER 9배",
+    "PBR : 2.32배",
+    "배당 : 24년 기준 1.2%",
+    {
+     "type": "h",
+     "text": "기업 히스토리"
+    },
+    "2013년 코스닥 상장",
+    {
+     "type": "sub",
+     "text": "국내 1위 비상 및 상용 발전기 기업"
+    },
+    "가스터빈, 바이오가스 발전 사업도 영위 중",
+    "23년 10월, 석문 연료전지발전소 상업운전",
+    {
+     "type": "sub",
+     "text": "24년 6월, 파푸아뉴기니 중유발전소 인수 (캐시카우)"
+    },
+    "25년 6월, 관이에너지 수소연료전지 발전소 인수",
+    "당진 석문 공장, 국내 최대 비상발전시 생산시설"
+   ]
+  },
+  {
+   "title": "투자포인트",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "급증하는 데이터센터 수요 - 미국"
+    },
+    "지엔씨에너지는 국내 비상발전기 매출이 대부분이지만, 데이터센터 시장 흐름을 보기 위해 미국 시장을 살펴보았음",
+    "2025년 3분기 데이터센터 공실률 역대 최저 1.6%",
+    "데이터 폭증으로 인해 전세계 데이터는 급증할 것",
+    "2025년 204ZB → 2028년 394ZB(인공지능, 로봇, 자율주행, 클라우드)",
+    "결론적으로 **데이터센터가 계속하여 증설되는 것은 필연적**이라는 판단",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTk2/MDAxNzY2MjgzODc3NjU1.1yv8qcKAxy9NfD13ww3BUdb01VLvdlOHxhqZ8RJhHQ4g.Q0bElYPqGt6nmApF6wJZBiUB8mkPzEW6p9sFUstD-Hog.PNG/image.png?type=w800"
+    },
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjU0/MDAxNzY2MjgzOTA5NjA1.ei3WwiN-xbPdH0dGW8F-YZo4b0toFf8FWZo8NZmtqnAg.dty4xrGadavmuXaAMvkw7J45qEM3laFotnXyriB96wUg.PNG/image.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "일본, 싱가포르 데이터센터"
+    },
+    "조금 더 가까이 있는 아시아의 선진국인 일본과 싱가포르 데이터센터 규모를 살펴보면 아래와 같음",
+    "일본 : 연평균 성장률 12% 이상",
+    "싱가포르 : 연평균 성장률 60%(2023년)",
+    "이는 시간이 꽤나 지난 자료지만 현재는 이것보다 **더욱 큰 성장률을 보여주고 있을 것**이라고 생각됨",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjYg/MDAxNzY2Mjg0MDU0MzYz.3nfrPXFrLdohYNi1K0dXGwSwd8ssQGh356vDlaJcvHog.0wIvwp3PHadNvDc9b09f0bdU3hErL4qIovm1ZfkJbbog.PNG/image.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "국내 데이터센터 착공 현황"
+    },
+    "국내 상업용 부동산 관련 기업인 알스퀘어의 데이터센터 보고서 자료와 공시 자료를 합쳐서 만들어봄",
+    "부천 피치데이터센터, 안산 글로벌 클라우드센터 등 중대형 **프로젝트 수주는 보통 프로젝트 착공 이후 6개월 이내에 진행**되었음.",
+    "아래쪽에 있는 LG유플러스, 용인 프로젝트 등도 아직 수주 가능성이 있다고 판단됨.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjMw/MDAxNzY2Mjg0MTcxNjUz.n7bABwQ0CFTWSBkWrx30KDBoE_dIjdqLRHd17q9vR-Ug.T1H_-tbnqtJRh4gRHGVFcWWNHpgxobzYwRM-v7xge2gg.JPEG/%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%84%BC%ED%84%B0_%EC%B0%A9%EA%B3%B5_%ED%98%84%ED%99%A9.jpg?type=w800"
+    },
+    "이 밖에도 인허가가 났지만 착공이 진행되지 못하고 있는 프로젝트들도 있는데, 인천을 제외하면 큰 프로젝트는 아닐 수 있지만 **추가 수주가 가능한 프로젝트들이 존재함. **",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfNTkg/MDAxNzY2Mjg0MjU4NTE5.ezMrPhcLkNDU6bb6FqgMa50JizhTbQs1xWfjkF4fx7Mg.2sgwPb1G6koTzbIT26uUHsn1ONYwJS_BXW-lpUJz0rcg.JPEG/%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%84%BC%ED%84%B0_%EC%B0%A9%EA%B3%B5_%EC%98%88%EC%A0%95%ED%98%84%ED%99%A9.jpg?type=w800"
+    },
+    "SMIC에서 4월에 만든 자료에 따르면 위의 표에 있는 데이터센터들 외에도 전남 솔라시도 프로젝트, 영천 데이터센터, 부산 영도 등 대형 하이퍼스케일러급 프로젝트들이 계획 단계에 있음.",
+    "**AWS 데이터센터 등 더 큰 프로젝트도 있으니... 좋을지도?**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjA4/MDAxNzY2Mjg0MzQwMTU0.fvNI-pAW4wP6RWcFMyIzee7x2WsZftUJmt0uoULQhlsg.ayMUwhTxVM-6CZ1CCMRspprQsFGP8aia_osG9qQR0NEg.PNG/image.png?type=w800"
+    }
+   ]
+  },
+  {
+   "title": "산업, 사업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "비상발전기 사업"
+    },
+    "데이터센터에 서버가 중단되는 것은 죽음과 같고, 전력이 차단되었을 때 심폐소생술을 하는 장치를 공급한다고 보면 된다.",
+    "지엔씨에너지는 디젤, 가스터빈 비상발전기를 모두 납품하는데 가스터빈이 마진율이 더 높다고 함!",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTQ5/MDAxNzY2Mjg0NTQzNTI0.rX8FLsoIFxPKTE5Yf79SbNcAsPKuHEML2k7osOyY-b8g.-UU6E66ZBUfmBPW9J9Ph_eCVZXtlxRKocxErHHhfx7Eg.PNG/image.png?type=w800"
+    },
+    "지엔씨에너지는 디젤엔진 및 가스터빈 등 부품을 구매해서 조립하고 운전 및 설계, 시공, 유지보수까지 하는 업체라고 보면 된다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjky/MDAxNzY2Mjg0NzE2MTYx.mQrAm0n4yNX44owiFlCkEs4AxAlIAFYbDjQap8ZRhPkg.I-bxSDAxCDszqf1y5bmZv879mkm0bPu1qcQow_hL20wg.PNG/image.png?type=w800"
+    },
+    "36년째 비상발전기 EPC 사업을 영위중이며, 매출의 80% 가까운 금액이 비상발전기에서 나오므로 이 수치를 살펴보는게 중요하다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjY0/MDAxNzY2Mjg0NzczNDAy.UjQ6hctIuu8POeE7CJVfGqvJ2-j5Rjqw81iGwdFpoRcg.413yAKZZRn0tz2cBKhDbwqVNZV9b8uY4-_k3SwA-UC0g.PNG/image.png?type=w800"
+    },
+    "2025년 3분기 발전기 TTM 매출은 1,594억원 수준인데, 현재 공장 증설 중이며 완료 후에는 **Capa가 3,000억까지 늘어날 예정이라고 하니 매출 성장이 가능할 것으로** 보인다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTMx/MDAxNzY2Mjg0ODE3MTU2.YeOUfaE0PcQ5o13uc-_3Eg24W9PN0dh6fqFjScd7Hvgg.KjDCjO0bCwZXmHrGfJWk_vgEa4oGSrvlmFYssj1UhU0g.JPEG/%EA%B3%B5%EC%9E%A5_%EC%A6%9D%EC%84%A4.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "바이오가스 발전사업"
+    },
+    "하수슬러지, 음식물 쓰레기 및 매립 가스를 처리하여 나오는 메탄을 태워서 발전, 전기 판매",
+    "25년 3분기 기준 **전체 매출의 2% 밖에 되지 않음**",
+    "바이오가스 시장 확대를 예상한다는데 아직은 잘 모르겠지만, 장기적으로는 긍정적 방향일 것",
+    "아래에 나올 파푸아 뉴기니 발전사업과 함께 전력판매부문에 속함",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjU2/MDAxNzY2Mjg0OTAyNzUx.sjEgyAKzIDyHfkIWn1-8v2zzWpAOPdw_NA26C79Dk2sg.aIbfBqe8oM_ijUl9MIwinbmdHgff_FLCP60zaS2hyYIg.PNG/image.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "파푸아뉴기니 발전사업"
+    },
+    "LAE의 중유발전소 사업",
+    "**2024년 매출액 400억, 영업이익 169억, 당기순이익 134억** 100% 반영",
+    "알짜산업으로 안정적인 전력판매 사업 수익 창출 중 **OPM 40% 이상**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTgy/MDAxNzY2Mjg0OTcyNTA0.AAEx47qo7XSDzWthVuX6B6s3fLSQlJ2C8HncdoeHbcgg.rAhWRUYm018E5_xaP3yvkbr12jPrssCFZz0sp25ROKEg.PNG/image.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "기계설비 공사업"
+    },
+    "한빛에너지 건물 냉난방 공급하는 공조 냉난방시스템, 연료전지 설계 및 시공 업체",
+    "지분율 75.38% 종속기업으로 매출액, 영업이익 모두 같이 반영됨",
+    "2024년 기준 매출액 255억, 영업이익 18억, 당기순이익 16억",
+    "수익성에 큰 기여는 하지 못하지만, 꾸준하게 작은 매출",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjI3/MDAxNzY2Mjg1MDQ5MTE5.I_q4492QwPgfB5tM-_G7FEd14fY96WaFhd9A186zX0Eg.xP8FdshfpkO6ZPjak2hcDUMampBZb3dXb-GkpBQo0qwg.PNG/image.png?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "연료전지 발전사업"
+    },
+    "석문그린에너지 당진 내 연료전지 발전소 사업",
+    "지분법 이익으로 편입되어 있음",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMzcg/MDAxNzY2Mjg1MDk0MjA5.RLZDvCmMdZcCsbVz8H2iYtSshpblJx4yxf_KrS7jo8Mg.l1_oQmnb5MxhHF7r4_KvFL_iDJ1KYd2Gm0VijSczPd0g.PNG/image.png?type=w800"
+    }
+   ]
+  },
+  {
+   "title": "기업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "매출 분석"
+    },
+    {
+     "type": "sub",
+     "text": "제품군별 매출"
+    },
+    "지엔씨에너지 주력은 역시나 국내 시장 IDC 및 R&D센터 비상발전기인데, 25년 3분기는 470억으로 전체 매출 695억의 68%를 차지함",
+    "**3분기 매출액 695억원 / 영업이익 127억원 / 순이익 118억원**",
+    "**누적 매출액 1,966억원 / 영업이익 400억원 / 순이익 346억원**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMzAw/MDAxNzY2Mjg1MTQwMDg3.tiFwkqAQ79W6FlUzoevfkC9C7KUjQKrS_64CKj0TPCUg.3mBGFUbWmUacJBBrSwENOE3t4xLGLV6ax5c4PLEDY8cg.JPEG/%EB%B6%80%EB%AC%B8%EB%B3%84_%EB%A7%A4%EC%B6%9C.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "발전기 매출 영업이익"
+    },
+    "24년부터 본격적으로 발전기 매출이 큰 폭으로 상승하였는데, 25년 3분기에는 24년 하반기 수준까지 회복한 상황",
+    "상반기 대비 **3분기에는 OPM이 다소 하락한 상황이지만, 그래도 여전히 과거 대비 영업이익률이 높은 편**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTAx/MDAxNzY2Mjg1MTkxODcy.YP8fL5ZDH3OAmIME6Y3sDTBriWdCCSAATgxVzsSPiT0g.D0bx8nugVTf6_Xj57fSjOlq3ChSGvJ7RWRMkuGcD3nMg.JPEG/%EB%B0%9C%EC%A0%84%EA%B8%B0_%EB%A7%A4%EC%B6%9C_%EC%98%81%EC%97%85%EC%9D%B4%EC%9D%B5_OPM.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "전력판매 매출"
+    },
+    "비상발전기가 성장하고 있는 중이라면 **24년부터 매출, 영업이익에 큰 상승을 준 전력판매 부문**이 있는데 이는 파푸아뉴기니 중유발전기로부터 나오고 있는 것",
+    "발전기에 비해 매출액은 크지 않고, 커다란 성장을 기대하기는 어렵지만 **OPM이 30~40%에 육박하면서 캐시카우 역할을 하는 중**이다. 알짜배기 사업을 잘 사온듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjc5/MDAxNzY2Mjg1MjMwMjk4.w9fqEr1xlhbH2N74mFdEk7gWEyNBqTymeMWYjge2rJQg.14_lD1DZW8gt87wXCct_HkG8UrQeh-i-595ZgIWRwvUg.JPEG/%EC%A0%84%EB%A0%A5%ED%8C%90%EB%A7%A4_%EB%A7%A4%EC%B6%9C_%EC%98%81%EC%97%85%EC%9D%B4%EC%9D%B5_OPM.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "수주잔고"
+    },
+    "지엔씨에너지 수주잔고는 **25년 3분기 기준 3,877억원으로 역대 최대치를 갱신**하면서 확실히 데이터센터 수요가 늘면서 동시에 수혜를 받고있다는 것을 알 수 있다.",
+    "SNT에너지처럼 남아있는 프로젝트별로 수주잔고나 기간 등을 정리해주진 않아서, 사업별 진행상황을 파악하기는 어렵다.",
+    "매출액과 수주잔고 레깅타임을 계산해보면 3개 분기정도가 가장 비슷해서, 아래와 같이 그래프를 그려봄",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjMx/MDAxNzY2Mjg1MjgxMjE3.tGovB2pvWdJH_TX4N6V4IdLGGnSYo1Ch9LTPWxNRqwsg.IaXXoQKCAvfXdfP3NVrkwCFmJpd67OccsTuizqMbY1Mg.JPEG/%EB%A7%A4%EC%B6%9C_%EC%88%98%EC%A3%BC%EC%9E%94%EA%B3%A0.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "재무 분석"
+    },
+    {
+     "type": "sub",
+     "text": "손익계산서"
+    },
+    "2024년 하반기부터 파푸아뉴기니 사업이 들어오면서 GPM, OPM이 모두 한 단계 업그레이드된 상황",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjkz/MDAxNzY2Mjg1MzQwOTI4.gVGhMncXchiBlK02GObWczTxSEcI4FNxRAAmiZrpYBwg.b7zVQs8y5_hEyhYqt13P9elV63GdVfxIAMkHURXksbEg.JPEG/%EC%86%90%EC%9D%B5%EA%B3%84%EC%82%B0%EC%84%9C_%EC%9D%BC%EB%B0%98.jpg?type=w800"
+    },
+    "25년 상반기에 비해 다소 하락한 모습이긴 하지만, 여전히 상당히 괜찮다. 매출액이 올라가면서 영업이익을 밀어올려주면 되니까 뭐!",
+    "투자할 때 중요한 **ROE는 22%나 되니까, 워렌버핏이 이야기한 15%를 넘기는 좋은 기업**이라는 것을 알 수 있다. 갓 파푸아뉴기니…?",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjE4/MDAxNzY2Mjg1Mzk1MjY4.4dT8d_sx6ysxo4ujmKJG3RYPoI6VVR40MKX8OBS5jVQg.1rKPEECudYVwFPkRJ94RsaM4ctQdTQ9dfrdA5TGqt-0g.JPEG/%EC%86%90%EC%9D%B5%EA%B3%84%EC%82%B0%EC%84%9C_%EC%98%81%EC%97%85%EC%9D%B4%EC%9D%B5_ROE.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "Cost 분석"
+    },
+    "원재료 매입금액을 살펴보면 2분기에 많이 매입해둬서 그런지, 3분기에는 매입금액이 크지는 않다",
+    "3분기에 수주한 사업들이 많으니 25년 4분기나 26년 1분기에는 다시 설비를 많이 매입하는 시기도 생기지 않을까?",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTMw/MDAxNzY2Mjg1NDEwNDM0.7dRAgDcpysjpdCpskpJyZjkgACtSS2drHnpGAInsp68g.iWhrkt3qOUxH1auj-2jKh8ibZ-xUIo7XXztZSg_sWyAg.JPEG/%EC%9B%90%EC%9E%AC%EB%A3%8C_%EB%A7%A4%EC%9E%85%EC%95%A1.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "현금흐름표"
+    },
+    "현재 공장을 증설하고 있기 때문에 CAPEX 투자를 적은 금액이지만 꾸준히 하고 있는 것으로 보인다.",
+    "3분기에는 **건설중인자산 취득금액이 867천원 추가**된 것을 확인할 수 있음",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfODkg/MDAxNzY2Mjg1NDMzNzA3.rsokvntQ_HxrAyo6HJTceOH1yxEQtMtR-nwgf-J8kEsg.qOCSEVr-spE81E-THCFjOeXtyepYZVW9uwOjKkaqYw8g.JPEG/OCF_FCF_CAPEX.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "재무상태표"
+    },
+    "꾸준한 캐시카우가 생겨서 그런지 **부채비율이 상당히 준수한 편**이다. 공장도 증설하고 있는데, 부채비율이 낮다는 점이 긍정적인 듯!!",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTYw/MDAxNzY2Mjg1NDYyOTkx.YyWCCj-LID0UoaQW-HTwYjPL7nQ8QEM4v2aDzEzmJowg.3_C0KsSqlWtpUK48qhy2FZG0cGCG9Zr28_nnKmNe7Gkg.JPEG/%EC%9E%AC%EB%AC%B4%EC%83%81%ED%83%9C%ED%91%9C_%EC%8B%9C%EA%B0%80%EC%B4%9D%EC%95%A1.jpg?type=w800"
+    },
+    "수주산업에서 꼭 확인하면 좋을 것이 바로 매출채권 회수에 대한 내용이라고 생각해서 꼭 확인한다.",
+    "24년에 **파푸아뉴기니 사업을 인수하면서 큰 금액의 대손충당금**을 함께 받아서 대손충당금 설정율이 상당히 높다. 어차피 못 받는 돈 충당금은 이미 쌓아뒀으니, 앞으로라도 잘 받으면 되지 뭐",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTU2/MDAxNzY2Mjg1NTAzNTUy.XnQcpYOTnvuzJL6ObWa7CAW6-2MxrPhishT9SybyBwQg.Wa69PgJ7Lj0v2O7sw5veqtpxUm3cYZ259Joc6ticGBkg.JPEG/%EB%A7%A4%EC%B6%9C%EC%B1%84%EA%B6%8C_%EB%8C%80%EC%86%90%EC%B6%A9%EB%8B%B9%EA%B8%88.jpg?type=w800"
+    },
+    "추가적으로 2분기에 원재료 매입이 상당히 많았었는데, 3분기에는 남아있는 재고자산이 어떤가 확인을 해보았다.",
+    "2분기에 엄청나게 많이 샀던 원재료들이 절반이나 제작되어서 팔렸다는 것을 확인할 수 있었고, **재고자산 회전율도 200%가 넘어서 사업이 잘 되고 있다**는 느낌!",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMjAz/MDAxNzY2Mjg1NTIwNDM4.5_zpPoIHa4aSAOua-R_eXui-DaHweiIFIbZunxVlCwcg.ykiLK7fhzK1_MUyfC9qZ8byeXgjqQF-PqJBQgcTYMdMg.JPEG/%EC%9E%AC%EA%B3%A0%EC%9E%90%EC%82%B0.jpg?type=w800"
+    }
+   ]
+  },
+  {
+   "title": "밸류에이션",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "최근 주가흐름"
+    },
+    "11월 3분기 실적발표 이전부터 시장이 안 좋아지면서 27,500원까지 하락하였다가, **시장이 살아나면서 저점 대비 20% 가까이 상승**한 상태",
+    "같이 투자하고 있는 친구와 잠깐 이야기하기도 했는데, 저렇게 시장이 와다다 하락할 때는 역시 매수하기 어려운게 사람 심리인 듯하다...",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfMTk2/MDAxNzY2Mjg1NTYzNTYx.phFIFwuYU_OjhPygXWNiXpZ8udpYroSnk3DrfZuXSLgg.Hgxd8rKdrClD__Z9JosKE4GcTWYyxHB2b13pb0vUmP8g.JPEG/%EC%A7%80%EC%97%94%EC%94%A8%EC%97%90%EB%84%88%EC%A7%80_%EC%B0%A8%ED%8A%B8.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "밸류에이션, 시장전망"
+    },
+    "TTM 기준으로 POR, PER 등을 그래프로 그려보았는데, 3분기말 종가 31,450원 기준으로 PER 12.8배로 계산되었다.",
+    "몇몇 투자자들이 이야기하는 **피어그룹들의 PER이 20~30배라는 것을 감안**한다면 아직 상승할 수 있는 여력이 남아있다고 보아야할지도?",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfNzMg/MDAxNzY2Mjg1NjU4NTE1.VLBvIdL8-lAuf3D6_7Q6HJDEimoQuKU4r7zixE23PqQg.kEzra9nCvvzEFBZ9kWfyiJsBUNtlHtPAl6YgjvKgzc0g.JPEG/POR_PER_ROE.jpg?type=w800"
+    },
+    "지엔씨에너지가 현재 실적을 유지할 수 있는 기업이라고 판단된다면 **국내 시장에 국한되어있다는 점을 감안하여 PER 15배, 시가총액 7500억원정도까지는 봐줘도 되지 않을까 판단**함",
+    "그러나 주식은 과거 TTM 기준이 아닌 미래 수익을 계산해보아야 하니, 네이버증권을 먼저 살펴보면 26년 매출액 3,542억 / 영업이익 777억 / 당기순이익 628억정도가 될 것이라고 보고있다",
+    "그러면 현재 시가총액 5412억원 기준으로 **Forward PER이 8.61배**… 확실히 높은 성장률이 기대되는 기업이다",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEyMjFfOTIg/MDAxNzY2Mjg1NzUyMTQ2.6ME3xOfyHwy8SZ7U4tWJKpzPcjVFX3E4oTgV7xeDGWYg.eEFsL0fTWd2HJLQUGvjGL2SBx25eccQ8Z1MYFsKavZ8g.JPEG/%EB%84%A4%EC%9D%B4%EB%B2%84_%EC%A6%9D%EA%B6%8C_%EC%A7%80%EC%97%94%EC%94%A8%EC%97%90%EB%84%88%EC%A7%80.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "예상 실적, 밸류에이션"
+    },
+    "수주잔고 → 발전기 매출액 실현율 Worst 19.4%, Base 20.9%, Best 22.9%",
+    "발전기 OPM Worst 14.5% Base 16.5% Best 21.0%",
+    "전력판매 TTM 평균 매출액 10,628백만원",
+    "전력판매 OPM Worst 33.8% Base 40.2% Best 47.1%",
+    "나머지 공사, 용역, 상품판매, 기타는 TTM 평균 매출액, 영업이익으로 가정",
+    "위의 가정을 바탕으로 25년 4분기 실적 예상치를 계산해보면 아래와 같았다.",
+    {
+     "type": "table",
+     "head": [
+      "Case",
+      "Worst Case",
+      "Base Case",
+      "Best Case"
+     ],
+     "rows": [
+      [
+       "매출",
+       "70,903",
+       "75,124",
+       "80,752"
+      ],
+      [
+       "영업이익",
+       "11,713",
+       "14,181",
+       "18,743"
+      ],
+      [
+       "누적 영업이익",
+       "51,671",
+       "54,139",
+       "58,701"
+      ],
+      [
+       "순이익",
+       "9,370",
+       "11,345",
+       "14,994"
+      ],
+      [
+       "누적 순이익",
+       "43,967",
+       "45,942",
+       "49,591"
+      ],
+      [
+       "발전기 매출",
+       "56,338",
+       "60,694",
+       "66,502"
+      ],
+      [
+       "발전기 영업이익",
+       "8,169",
+       "10,014",
+       "13,965"
+      ],
+      [
+       "PER",
+       "11.64",
+       "11.14",
+       "10.32"
+      ]
+     ]
+    },
+    "26년 1~2분기 예상치까지 수주잔고를 바탕으로 계산해보긴 했지만, 확실한건 아니니 나중에 올려봐야겠다.",
+    "**현재 수주잔고 기준으로 여전히 성장할 수 있는 여력이 남아있으며, 진행 예정인 프로젝트가 많으니 긍정적인 전망을 할 수 있겠다는 결론**",
+    "**여전히 PER 15배정도까지는 가능하다면 현재 주가 수준에서 30% 이상은 상승할 수 있지 않을까?**",
+    {
+     "type": "sub",
+     "text": "함께 읽으면 도움되는 글"
+    },
+    {
+     "type": "link",
+     "title": "SNT에너지 3분기 실적 분석, 계속 가져가야하나",
+     "url": "https://blog.naver.com/whtjdqls45/224066189818",
+     "site": "blog.naver.com"
+    },
+    {
+     "type": "link",
+     "title": "엘앤씨바이오 주가 전망, 어디까지 올라가는거에요?",
+     "url": "https://blog.naver.com/whtjdqls45/224114459365",
+     "site": "blog.naver.com"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  "[지엔씨에너지 블로그 원문](https://m.blog.naver.com/whtjdqls45/224117317389) · 2025-12-21"
+ ],
+ "disclaimer": "파이어족 빈봉 블로그에 쓴 글을 옮겨온 개인 기록이며 주식 추천이 아니에요. 글 작성 당시 기준이에요."
+}

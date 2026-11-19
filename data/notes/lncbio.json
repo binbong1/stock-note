@@ -1,0 +1,488 @@
+{
+ "title": "엘라비에 리투오, 엘앤씨바이오 기업분석 주가전망",
+ "name": "엘앤씨바이오",
+ "code": "290650",
+ "date": "2025-10-26",
+ "source": "blog",
+ "priceNote": "블로그 글을 옮겨옴",
+ "summary": "스킨부스터 리투오, CB·EB, 경쟁제품 비교",
+ "sections": [
+  {
+   "title": "들어가며",
+   "blocks": [
+    "25년 8월 엘라비에 리투오라는 스킨부스터를 보고 소액 투자를 했다가 **100% 수익**까지 봤지만, 결국 15% 수익에 그쳤던 엘앤씨바이오.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjk1/MDAxNzYxMDk5NzI3NDQ2.dBFfPhfebcT8hBINuPegSuXx7BmptiEdMKja-1i1_h0g.YPjyTJLEV4EbH6y8mywxr-AVLLEq2wENfPUV0KflzpUg.JPEG/%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4.jpg?type=w800"
+    },
+    "한달간 크게 상승했다가 30% 가까이 조정받고 있는 상황이라 다시 매수해볼까 하며 분석해본 자료를 공유해본다. 주식 추천 아님.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjc3/MDAxNzYxMDk5ODMzNzAx.j6kDm3ouYUejWJGl1V9B_MEmHtzB45wuJ1-HJ5Fw5J0g.iFNe2LKwS3RLqmDpYCwvT1VPty1cbY8-D3axZ0KwQbwg.PNG/%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4.png?type=w800"
+    },
+    {
+     "type": "callout",
+     "text": "목차 / 1. 기업 개요 / 2. 투자포인트 / 3. 사업 분석 / 4. 기업 분석 / 5. 밸류에이션"
+    }
+   ]
+  },
+  {
+   "title": "기업 개요",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "기업 히스토리"
+    },
+    "엘앤씨바이오는 5년전만에도 작은 기업이었지만 기술력을 바탕으로 엄청난 매출성장세를 보이고 있는 바이오기업임.",
+    {
+     "type": "sub",
+     "text": "핵심 제품 : 메가덤(인체조직이식재)"
+    },
+    {
+     "type": "sub",
+     "text": "2022년 무릎 연골 관절염 메가카티 품목허가"
+    },
+    "**2024년 엘앤씨 차이나 중국 인체조직 원재료 수입 허가**",
+    "**2024년 미국 조직은행 연합회(AATB) 인체조직 가공업 품질관리 인증**",
+    {
+     "type": "sub",
+     "text": "국내에는 2개 업체만 인증받은 상태"
+    },
+    {
+     "type": "h",
+     "text": "사업내용"
+    },
+    "주된 사업은 인체조직이식재, 의료기기, 코스메슈티컬, 제약으로 나뉘어서 매출자료를 발표하고 있으나, **대부분 매출은 인체조직이식재**에서 나오고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjc2/MDAxNzYxMTAwMDIwMDAz.RiFD9_dt5J1g-nlLwLeBEdDds3VBIfrQa-y5xscZVrkg.VtttOaggI1Cp1BUIOsTF5zeOEhv3WLtCPiCG4CX-4kwg.JPEG/1_%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4_%EC%82%AC%EC%97%85%EB%82%B4%EC%9A%A9.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "주주 현황"
+    },
+    "**대주주인 이환철 대표 중심으로 28% 지분**을 보유하고 있고, 예전부터 관심있게 지켜보았던 최준철/김민국 대표가 이끌고 있는 **VIP 자산운용이 6%**를 가지고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfODgg/MDAxNzYxMTA2NjIzOTk0.OD-uCkUiy47YsKmby_4I1Yq7eQHi5s_S8sQHMWAWhv0g.fIkGOnH9kn93eX6XAdqN4AgrB56gRHFG9NwQcXy2pyMg.JPEG/2_%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4_%EC%A3%BC%EC%A3%BC%ED%98%84%ED%99%A9.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "교환사채, 전환사채"
+    },
+    "엘앤씨바이오는 투자에 필요한 자금을 전환사채를 통해 가져온 상태인데, 이것 때문에 25년 2분기 순이익이 크게 마이너스가 찍히긴 했다.",
+    "앞으로 계속 평가손실을 반영해야해서 **이익뿐만 아니라 주가에 좋지 않은 영향**을 줄듯",
+    "교환사채 4.7억 250826 만기",
+    "교환사채 35억 280616 만기(2606 ~ 2803 행사가 31900원)",
+    "**전환사채(CB) 60억 311227 만기(2312 ~ 3109 행사가 24009원)**",
+    "**전환사채(CB) 600억 290423 만기(2704 ~ 2901 행사가 21200원)**",
+    "전환사채(CB), 교환사채(EB) 차이 : 전환사채는 권리를 행사하면 신주 발행되면서 지분율이 희석되고, 교환사채는 자본금 변동 없어 지분율이 희석되지 않는다.."
+   ]
+  },
+  {
+   "title": "투자포인트 - 엘라비에 리투오",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "뷰티산업"
+    },
+    "엘앤씨바이오가 제조하는 최신 스킨부스터 엘라비에 리투오에 대해 알아보기 전에 **뷰티 산업**에 대해 간단하게 알아보자.",
+    "의료미용 시장은 연간 11.5% 성장할 것으로 예상되고 있으며, K-컬처와 화장품뿐만 아니라 미용 시술에 대한 관심은 매년 꾸준히 성장하고 있음.",
+    "특히나 **주사제(Injectable) 의료미용 분야는 가장 큰 비중**을 차지하고 있으며, **반복 시술이 필요한 구조**로 시장에서 자리를 잡으면 꾸준한 매출 창출이 가능함.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfNzMg/MDAxNzYxMTA3MzQ0MTkx.OZyvrfxdYv-4ua1aKnJH1-_7hwV18cdRQu-ctG1_21wg.d7-qTqV0m1bhtO1fhYZCARSTbRd6yeZRmVnehj5Ufpgg.JPEG/3_%EA%B8%80%EB%A1%9C%EB%B2%8C_%EC%9D%98%EB%A3%8C%EB%AF%B8%EC%9A%A9_%EC%82%B0%EC%97%85.jpg?type=w800"
+    },
+    "게다가 과거 시술 위주의 시술보다 비수술적 시술에 대한 관심이 커지고 있고, 회복기간이 짧아 여행기간 중 시술을 받는 환자들이 증가하고 있는 추세임.",
+    "**2024년 외국인 환자는 2023년 전년대비 93% 급등**했으며, 이 중 **피부과 진료 목적 환자가 50%를 넘는 것**으로 집계됨.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMiAg/MDAxNzYxMTA3NDU2MjU2.nIi1xJ99ZmegkWHJ_V-UiXGdAi1jK06egFMzqrxGfHAg.-XWVTHMEdfBP3w0iwNi62fm5EwlBWNFM23zo0o76Cd8g.JPEG/%EC%88%98%EC%88%A0_%ED%8A%B8%EB%A0%8C%EB%93%9C.jpg?type=w800"
+    },
+    "이와 같이 큰 인기를 끌고 있는 **스킨부스터의 글로벌 시장 규모는 2025년 17.8억 달러에서 2030년 26.9억달러로 연평균 8.6% 성장이 예상**되고 있다.",
+    "대표적인 스킨부스터 리쥬란을 판매하는 **파마리서치는 2017년부터 2024년까지 매출성장률 연평균 46%**를 보여주고 있으며, **2025년 매출을 4000억원**으로 예상될만큼 엄청난 성장을 보여주고 있음.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfOTUg/MDAxNzYxMTA3NzIwMzU5.0IUuZ_l5JQmeTqVITNDTZIE1Xmq8Q-jvLqoUS0hOSzAg.Xa9apdgTwe2gaydIYH_AZ0A-ObrHi0veuP7c7gpaOmEg.JPEG/4_%ED%8C%8C%EB%A7%88%EB%A6%AC%EC%84%9C%EC%B9%98_%EC%A3%BC%EC%82%AC%EC%A0%9C.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "엘라비에 리투오 설명"
+    },
+    {
+     "type": "sub",
+     "text": "작용기전"
+    },
+    "나이가 들수록 **ECM이라는 성분이 분해되어 피부 탄력과 재생능력이 떨어지는데**, 무세포 동종 진피(hADM) 제품을 주입하여 ECM 성분을 직접 보충해주는 방식이라고 한다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTk1/MDAxNzYxMTA3ODAxMTUw.qwJ2rFxNNeMPZCTlJPYPIA5OTVRQs5Ojfy-ymdwlqDEg.ckalXvHKXR1dUtsDsSf4E22Ysqx6w01bRXJ4bErtAp8g.JPEG/5_%EC%97%98%EB%9D%BC%EB%B9%84%EC%97%90_%EB%A6%AC%ED%88%AC%EC%98%A4_%EC%9B%90%EB%A6%AC.jpg?type=w800"
+    },
+    "실제로 많은 성형외과 의사 선생님들도 효과가 꽤 좋다고들 이야기하니까 정말 괜찮을지도 모르겠다. (물론 광고일지도..?)",
+    {
+     "type": "sub",
+     "text": "ECM(세포외기질)"
+    },
+    "리투오의 주된 성분인 ECM은 생체고분자 집합체로, 피부의 흙이라고 부를 수 있다고 한다.",
+    "콜라겐, 엘라스틴 등 피부 구성성분을 포함한 구조체로, 리쥬란과 다르게 **ECM 틀을 넣어주고 그 안에 내 피부세포들이 실제로 자리잡는 느낌**이라고 보면 될듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTEg/MDAxNzYxMTA3OTMzMDg3.eMgAvxZrBQSDT0BrezBRNDx8zr4i55joIMZKsZCfPlgg.SUWKaW5n4NuPuxrFX2j8GZpza89QDeZByf9HtovSR28g.JPEG/6_ECM_%EC%84%A4%EB%AA%85.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "hADM"
+    },
+    "hADM은 Human Acellular Dermal Matrix의 줄임말로 기증받은 **세포에서 표피와 지방세포를 제거하여 부작용이 생길 수 있는 요소를 제거하고, 건조 및 멸균과정을 거쳐 만든 제품**이다.",
+    "이 기술이 엘앤씨바이오의 대표적인 기술로 다른 제품(메가카티, 메가덤 분말) 등에도 활용된다.",
+    {
+     "type": "h",
+     "text": "경쟁제품 비교"
+    },
+    "스킨부스터로 성공하기 위해서는 3세대 리쥬란, 4세대 쥬베룩보다 큰 장점을 가지고 있어야하는데, 일단 비교해보자.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjA3/MDAxNzYxMTA4MDkyNjI3.E-lYQX3XB4GyCrXuhjEZccRz5JNHSrMpSc6oj1Qa0w0g.uuBxURu-p9ohEx0Mw2QZk2Cc1OXMzks3zklU4DtQ7cwg.JPEG/7_%EA%B2%BD%EC%9F%81%EC%A0%9C%ED%92%88_%EB%B6%84%EC%84%9D.jpg?type=w800"
+    },
+    "비교를 해보면 리쥬란은 통증이 상당히 심해서 수면마취까지 하는데, **리투오는 그것보다는 고통이 덜하다**는 평가가 있다.",
+    "다만 현재 **리쥬란보다 가격이 비싸다**는 점에서 저가 시장을 공략해야하는 중국에서는 과연 인기를 끌 수 있을까하는 의문이 있다.",
+    {
+     "type": "table",
+     "head": [
+      "구분",
+      "리쥬란(3세대)",
+      "쥬베룩(4세대)",
+      "리투오(5세대)"
+     ],
+     "rows": [
+      [
+       "출시연도",
+       "2014",
+       "2019",
+       "2024"
+      ],
+      [
+       "기업",
+       "파마리서치(국내)",
+       "",
+       "엘앤씨바이오, 휴메딕스"
+      ],
+      [
+       "핵심 기술(성분)",
+       "폴리뉴클레오타이드(PN, 연어 DNA)",
+       "고분자 PLA + 히알루론산",
+       "사람 진피층"
+      ],
+      [
+       "시술 주기",
+       "2~3주 간격 3회",
+       "1개월 간격 3회",
+       "3~4주 간격 3회"
+      ],
+      [
+       "고통",
+       "매우 아픔 1위..",
+       "",
+       "리쥬란보다 덜함"
+      ],
+      [
+       "비용",
+       "2cc 20만원",
+       "1회 30만원",
+       "1회 5cc 60만원"
+      ],
+      [
+       "시장위치",
+       "1등 / 해외까지 인기",
+       "",
+       "최근 인기"
+      ]
+     ]
+    },
+    {
+     "type": "h",
+     "text": "시장반응, 검색량"
+    },
+    "구글트렌드에서 리쥬란, 쥬베룩, 리투오 검색량을 찾아보았는데 **2017년 출시된 리쥬란, 2019년 출시된 쥬베룩보다 빠른 속도로 검색량**이 생기고 있었다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjM4/MDAxNzYxMTA4MjM0NTY5.EsotmisFc9WEKVOvr0n1rydCw9wSv1en8qXRJt1A9XEg.sW1ChhqtgvouXnEONlHKHitECyyOQJf8-Ycy3YVkDCQg.JPEG/8_%EA%B5%AC%EA%B8%80%ED%8A%B8%EB%A0%8C%EB%93%9C_%EB%A6%AC%EC%A5%AC%EB%9E%80_%EC%A5%AC%EB%B2%A0%EB%A3%A9_%EB%A6%AC%ED%88%AC%EC%98%A4.jpg?type=w800"
+    },
+    "아무래도 시장이 어느정도 **성숙된 상태라 소비자들이 접근하기 쉬워서, 자연스럽고 빠르게 홍보**가 될듯하다",
+    "이 밖에도 여우야카페 같은 미용 관련 카페에도 리쥬란과 리투오 관련 글 내용을 확인해봤을 때, **리쥬란은 매일 20~30건 리투오 10~15건정도 글**이 올라오고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjAw/MDAxNzYxMTA4NDQ0Njk4.MtzaraF2g1GS3XvHgxHUswM228cwla0W7lTf5VNExmQg.SQCCrSBZydFPGsy5V0aEAXaaynKIl_qA-6YUq4b6o9Ig.JPEG/9_%EB%A6%AC%ED%88%AC%EC%98%A4_%EC%B9%B4%ED%8E%98.jpg?type=w800"
+    },
+    "거기에 성형 관련 어플 **강남언니**에서도 리투오 시술이 중상위권에 조금씩 올라오고 있는걸 보면 홍보가 꽤나 잘되고 있는듯 하다.",
+    {
+     "type": "h",
+     "text": "해외시장 진출 노력"
+    },
+    "엘앤씨바이오 차이나를 통해 **중국시장 진출**뿐만 아니라 지난달에는 **일본 미용시장**에도 진출해서 납품 중인 것으로 알려졌다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTU5/MDAxNzYxMTA4NTM4NDY3.iHv5PrNArZqm0zYYBZ6M6VxsTo0uqB4v5md0SMyucxkg.Ly5re4mVdALBNRc4aohYeMTMxD5mR3fq5HFDZrJtEoAg.JPEG/10_%EB%A6%AC%ED%88%AC%EC%98%A4_%ED%95%B4%EC%99%B8_%EC%A7%84%EC%B6%9C.jpg?type=w800"
+    }
+   ]
+  },
+  {
+   "title": "사업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "제품 포트폴리오"
+    },
+    "엘앤씨바이오는 조직은행과의 원재료 공급 계약을 바탕으로 인체조직이식재 사업을 하는 기업으로, 메가덤 메가필 메가본 메가카티 등 '메가' 브랜드를 가져가고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTcz/MDAxNzYxMTA4NjE0NDcy.DdRfamucGcRTGzRoWeJhJWCb2e-U9IyYoIPmktENwvAg.BiwAMYQ4LmGmYV1Ra2qK6hpqbwgC97BoUWyBEsxSNkAg.JPEG/11_%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4_%EC%82%AC%EC%97%85_%ED%8F%AC%ED%8A%B8%ED%8F%B4%EB%A6%AC%EC%98%A4.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "인체조직 이식재"
+    },
+    {
+     "type": "sub",
+     "text": "이식재 산업환경"
+    },
+    "리투오로 인해 주가가 크게 상승하긴 했지만, 엘앤씨바이오의 주 사업매출은 메가덤에서 나온다.",
+    "주요 적응증인 유방재건, 이식에 사용되는 피부 **이식재 시장이 연평균 20% 이상 성장**하고 있으며, 외상 화상 당뇨환자 등에도 적용될 수 있어 확장성을 크게 보고있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTE5/MDAxNzYxMTA4Njk3Mzgw.Rd34hZohzr4-JBul4xjl3_aXgzaaLeCInSBBVTNvS0Ag.ZeluY4VpYNEJSWoFILk0vg6CAQpEIRCZuBa5AezlW20g.JPEG/12_%EC%9D%B8%EC%B2%B4%EC%A1%B0%EC%A7%81%EC%9E%AC_%EC%9D%B4%EC%8B%9D%EC%9E%AC_%EC%82%AC%EC%97%85.jpg?type=w800"
+    },
+    "특히 엘앤씨바이오는 국내 이식재 시장에서 **점유율 50% 이상**을 차지하고 있다.",
+    {
+     "type": "sub",
+     "text": "메가덤(피부), 메가필(분말)"
+    },
+    "2012년 출시된 제품으로 **엘앤씨바이오의 핵심기술인 Alloclean**을 적용하여 **부작용을 제거하고, 본인 신체처럼 회복될 수 있는 제품**이다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTMg/MDAxNzYxMTA4OTY4MjMw.FbgGjkiyKhSyU2aao5Hw7Z4LZNszDYSKOKtyXk_FIe4g.Cgde0wnQLxXk6ODyvNHVHcJAlWRmlHIT40nTQYbxhzAg.JPEG/13_%EB%A9%94%EA%B0%80%EB%8D%A4_%EB%A7%A4%EC%B6%9C.jpg?type=w800"
+    },
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTMx/MDAxNzYxMTA4OTY4MjY3.QNYbXTcDGPOOTKEF3p_QKaHmmdW0FHqXLpZBAn_JFVMg.Ck1BiE0snrBRwH7rKmQB-o3-p4i2FEXAbqJmxJ17lhQg.JPEG/14_%EC%9D%B8%EC%B2%B4%EC%A1%B0%EC%A7%81%EC%9D%B4%EC%8B%9D%EC%9E%AC_%EB%A7%A4%EC%B6%9C_%EC%B6%94%EC%9D%B4.jpg?type=w800"
+    },
+    "특히 주요 적응증인 유방재건 수술 관련 매출은 **2018년 57억에서 2023년 206억으로 연평균 29% 성장**했으며, 보험이 급여처리가 되면서 비용도 올라가서 좋은 상태다.",
+    "최근 2025년 1월에는 메가덤 플러스가 중국 수입허가가 나면서 엘앤씨차이나 매출도 상승할 것으로 예상됨.",
+    {
+     "type": "sub",
+     "text": "메가너브 프라임(신경)"
+    },
+    "이뿐만 아니라 말초 신경은 동종신경 이식이 필요한 구조인데, 수술 후 경과가 좋은 제품을 만들어서 판매 중인 것으로 나타났다.",
+    "나도 예전에 손가락 수술했었는데 이걸 사용한거였을지 궁금하다...",
+    {
+     "type": "h",
+     "text": "퇴행성 관절염"
+    },
+    {
+     "type": "sub",
+     "text": "관절염 산업환경"
+    },
+    "엘앤씨바이오를 좋게 보는 분들이 주장하는 두번째 캐시카우, 메가카티에 대한 내용이다.",
+    "고령화 추세로 인해 퇴행성 관절염 **환자수는 꾸준히 증가하고 있고, 진료비마저 빠른 속도로 상승**하고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTE2/MDAxNzYxMTA5MjUwMDkx.MFbeAx4vMHBR3pJ-2njU9yr6yd6OVOO2ClCILbl35Osg.xszuw4Ulx1VJM6zy2sy2efTc6S5fPvuXC2P9eKJoqw0g.JPEG/15_%ED%87%B4%ED%96%89%EC%84%B1_%EA%B4%80%EC%A0%88%EC%97%BC_%EC%8B%9C%EC%9E%A5.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "메가카티"
+    },
+    "엘앤씨바이오의 중장기 아이템인 메가카티는 **2023년부터 판매된 무릎 연골 재생 의료기기**다. 2024년 말 기준 전국 200개 병원에서 시술이 가능하고 한다.",
+    "손상된 연골 부위에 구멍을 뚫고 메가카티를 주입해서, 내 연골이 생성되는 것을 유도하는 식으로 흉터가 적고 회복이 빨라 **경쟁제품인 카티스템, 카티리젠보다 좋은 효과**를 보인다고 알려져있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjAg/MDAxNzYxMTA5MzY0MDg4.jfQ2NGYPpL9BnerfK8RQGwWD8BzcwCuahLxOlWNI1-Ug.nOSbfxdH1rmOhc9ccJLP_hMxGTBi7rXg9KOatPeICGkg.JPEG/16_%EB%A9%94%EA%B0%80%EC%B9%B4%ED%8B%B0_%EC%9E%91%EC%9A%A9%EA%B8%B0%EC%A0%84.jpg?type=w800"
+    },
+    "영업이익률도 50% 이상인 것으로 알려져있어, **고령화 사회에 따른 시장 확대에 중장기적인 수혜**를 받을 수도 있다고 판단되고 있음."
+   ]
+  },
+  {
+   "title": "기업 분석",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "매출 분석"
+    },
+    "매출 그래프를 살펴보면 **아름다운 우상향**을 보여주고 있다. (실적 대비 주가가 너무 높긴 하지만)",
+    "이 중에서 인체조직 이식재 매출이 전체의 80% 이상을 차지하고 있으며, 메가덤만으로 200억 가까운 매출을 내고 있어 **캐시카우(메가덤) + 성장(리투오)** 그림이 완성되면 좋겠다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfOSAg/MDAxNzYxMTA5NDY3MzUy.VW3GxhMpsU7vyYWLtN67xv1D9oWHavabgxgtRviEHscg.FGKclCADYblayL05CrzFmY5mdAzkTRF8KQD6jd7lumQg.JPEG/17_%EB%A7%A4%EC%B6%9C%EB%B6%84%EC%84%9D.jpg?type=w800"
+    },
+    "다만 2분기까지 리투오 실적은 크게 반영되고 있지 않으며, 엘앤씨바이오 3분기 실적발표가 있는 11월 중순까지 기다려보아야 할 듯하다.",
+    "중요한건 **국내 판매 판권은 휴메딕스가 가지고 있고, 생산기술 + 해외시장 판매를 엘앤씨바이오**가 가지고 있어 국내 시장 확장이 얼마나 매출에 영향을 줄지 의문이다.",
+    {
+     "type": "sub",
+     "text": "인체조직 이식재 매출"
+    },
+    "굳이 사업별로 나눌 필요가 없어보일 정도로 집중되어 있는 매출이지만, 살펴보면 꾸준히 잘 성장해주고 있다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfOTkg/MDAxNzYxMTA5ODM1MjIz.iMM034jaKItaBD23CKQmTY6Buy3vrqDV3PpiENzbt9wg.qPuxphuCqEtQJriFUHIrlu0RDKKnytNhFEfR69NsqwAg.JPEG/18_%EC%9D%B8%EC%B2%B4%EC%A1%B0%EC%A7%81%EC%9D%B4%EC%8B%9D%EC%9E%AC_%EB%A7%A4%EC%B6%9C.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "의료기기 매출"
+    },
+    "메가카티가 포함되어있는 의료기기 매출은 상대적으로 저조한 편인데, **2023년 3분기 메가카티 출시하면서 35억 매출**을 낸 이후 지지부진한 상태다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjIx/MDAxNzYxMTA5ODcyNzU1.A8gQqRLLZHddSz4NaoK08xkVDiWN5VddeHlwnIcF-IEg.pnfetA8jzv0_VdooipIMhbfqsEcNml24GuoM_QdQKtgg.JPEG/19_%EC%9D%98%EB%A3%8C%EA%B8%B0%EA%B8%B0_%EB%A7%A4%EC%B6%9C.jpg?type=w800"
+    },
+    "이 때 주가가 급등했다가 다시 계속 조정받으면서 흘러내렸는데, 실제로 메가카티가 시장에서는 큰 인기를 끌지 못하고 있는건가 싶기도 함.",
+    {
+     "type": "h",
+     "text": "가동율"
+    },
+    "엘앤씨바이오 매출이 꾸준히 상승하고 있긴 한데, 2025년 2분기까지 공장가동률이 50% 전후밖에 되지 않았다.",
+    "**리투오 생산 이후부터 공장을 2교대, 풀로 돌리고 있다**고 하는데 3분기 실적발표 때 확인이 필요하다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjc4/MDAxNzYxMTEwMTM4MzI2.WyRFD0WhvmAenegw-6yA22ljN_m5eboNm0dGwyCe0Owg.531FpRVTTfJlOR_gNkvTdrNXahxqSSAFLLgwqXoKI2wg.JPEG/20_%EA%B3%B5%EC%9E%A5_%EA%B0%80%EB%8F%99%EB%A5%A0.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "재무분석"
+    },
+    {
+     "type": "sub",
+     "text": "손익계산서"
+    },
+    "**GPM이 꾸준히 낮아지고 있다**는게 아쉬운 점이라고 판단되는데, 회사측에서는 조직은행으로부터 우선 안정적으로 원재료 수급이 가능하다고 했으니 믿어보는 수 밖에 없을듯.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTM2/MDAxNzYxMTEwMjkwNjg0.ATHY4Cya1yTbjNkAS4uRQNlLz7i0MU5rJPKPjROwalMg.1amITIpS7XphSRBiFlsZNaUIhITlUJoridEcadxveYMg.JPEG/21_%EC%86%90%EC%9D%B5%EA%B3%84%EC%82%B0%EC%84%9C.jpg?type=w800"
+    },
+    "거기에 휴메딕스를 통해 리투오 판매 홍보를 추진하고 있기 때문에, **판매수수료 비용이 많이 지출**되면서 영업이익에 악영향을 준 것으로 보인다.",
+    "2024년 4분기는 엘앤씨차이나 **자회사 지분에 대한 가치가 반영되면서 뻥튀기**되어서, 네이버 증권에선 PER이 엄청 낮게 나오는데 사실은 아님 ㅋ",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTE0/MDAxNzYxMTEwMzc1ODM5.de_ExrgDNl2bBbrCapF2_tEG45cwRPec0F9oMkqS9P8g.bz9n4Y_hGQxwCqdCQDmd-y_eqwi5Woky73IxY6dLFLog.JPEG/22_%EC%88%9C%EC%9D%B4%EC%9D%B5_%EC%B6%94%EC%9D%B4.jpg?type=w800"
+    },
+    "2025년 2분기에는 순이익이 크게 손실로 돌아섰는데, 여기서 **전환사채로 인한 회계처리로 악영향**을 받고있다.",
+    "계산방법을 정확히 모르지만 전환가 대비 주가가 많이 오르면 나중에 이걸 전환했을 때를 대비한 금액만큼을 선제적으로 마이너스 잡아두는 것이다.. **주가가 올라도 문제...**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTAz/MDAxNzYxMTEwNDU3MTI5.jr2OkAz4jDqogkPJVLcC61iSI-usEGlxplouOtY0mEkg.cDwHgj8F94FhPUZseQSXyiNHH7pjPL5KVnJOir3lnjsg.JPEG/23_%EC%A0%84%ED%99%98%EC%82%AC%EC%B1%84.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "현금흐름표"
+    },
+    "주요한 이슈(중국 공장 신설, 설비투자 등)가 있을 때마다 CAPEX 투자 금액이 꽤나 크게 반영되고 있다.",
+    "리투오가 정말 잘되어서 **파마리서치처럼 공장을 계속 더 지어야하는 상황**이 되면 얼마나 좋게요... 하지만 아직 공장가동율이 낮아 충분히 커버 가능할듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTAz/MDAxNzYxMTEwNTI2MDUy.o3il0iyKKqmR7uR4vS6swpwMraBQ8esR-OquIfyIE-gg.a7S09FwsuginYC-dUadkWcFZ0sARDaXOCxRCLK9B4y4g.JPEG/24_%ED%98%84%EA%B8%88%ED%9D%90%EB%A6%84%ED%91%9C.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "재무상태표"
+    },
+    "바이오기업이다보니 부채에 대한 리스크가 클 것이라고 판단하고 살펴봤는데, **부채비율이 50%정도 수준**으로 상당히 양호하게 나왔다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjA4/MDAxNzYxMTEwNTk1ODEx.M9BGCcxag2NYKjSGoboL2BJm78nFAnDp0uzG45iJ2Gkg.F5i9iXXxNLWqe3Mo0UmzuU9xCRCL4492kTVIbHRWQVQg.JPEG/25_%EC%9E%AC%EB%AC%B4%EC%83%81%ED%83%9C%ED%91%9C.jpg?type=w800"
+    },
+    "사업이 좋지 않더라도 고정비(금융비용)가 크게 발생하지 않아, 안정적으로 성장할 수 있는 기반이 될 수 있을듯??"
+   ]
+  },
+  {
+   "title": "투자 리스크",
+   "blocks": [
+    {
+     "type": "h",
+     "text": "경쟁제품 출시"
+    },
+    "리투오가 인기를 끌자마자 한스바이오메드에서 '셀르디엠'이라는 유사한 스킨부스터 제품을 출시했다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjgw/MDAxNzYxMTEwNzAwMDU3.albELngJsDPzDg3H4kiw0J0PPjw-NjyLOissVPCQUPUg.1fWNMQipAg5Mxyfz_4Llr03y4QwVF2O_9ej4OReERdYg.JPEG/26_%EA%B2%BD%EC%9F%81%EC%A0%9C%ED%92%88_%EC%B6%9C%EC%8B%9C.jpg?type=w800"
+    },
+    "이미 많이 주가가 오른 엘앤씨바이오에서 빠져나가서 한스바이오메드로 자금이 흘러가서 투자경고종목까지 지정된 상태다. **원조는 리투오**인데... 어떻게 될지 지켜봐야할듯",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTgx/MDAxNzYxMTEwNzg3NTY2.zNMl_CZdDDeTfm-iBq0aJKhmQp2ntqZ_7BuortfImQAg.G_29fHBHQwv9C_wmyOp7PjaSIkSOz_tyEElBMPrfUy8g.JPEG/%ED%95%9C%EC%8A%A4%EB%B0%94%EC%9D%B4%EC%98%A4%EB%A9%94%EB%93%9C.jpg?type=w800"
+    },
+    {
+     "type": "h",
+     "text": "기증사체 원료, 윤리문제"
+    },
+    "리투오의 원료는 기증받은 시신으로부터 추출하는데, **윤리적인 문제로 인해 소비자의 거부감과 법적 규제**를 받을 수 있다는 우려가 나오면서 9월 중순에 주가가 큰 조정을 받기도 했다.",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjI1/MDAxNzYxMTEwODg2ODU4.9PVQeUQU9NDU58cgLNaq9p0CrM3ICnoGTGKqFpd3nckg.InaSdy95PNNHhbypA49-3bMIkRqfJFuO-mmsgyxUzrsg.JPEG/27_%EC%9C%A4%EB%A6%AC%EB%AC%B8%EC%A0%9C.jpg?type=w800"
+    },
+    "보건복지부에서는 기증된 시신의 활용처가 치료인지 피부미용 목적인지 구분이 애매하기 때문에, **법적 규제까지는 어려운 상황이라는 발표**를 해주면서 약간 안정을 보여주고 있는 상황이다.",
+    "나는 결국에 윤리문제가 있다고 하더라도 실제 **효과가 너무 좋으면 예뻐지고 싶은 사람의 욕망을 이기기 어렵다고 생각**하고 있다."
+   ]
+  },
+  {
+   "title": "밸류에이션, 목표주가",
+   "blocks": [
+    "아직 투자포인트인 리투오의 매출액과 매출성장세를 확인하기 어려운 상태라 **매출 예상치와 리쥬란, 쥬베룩의 매출성장률을 바탕으로 목표주가를 계산**해보려고 했다.",
+    {
+     "type": "sub",
+     "text": "리쥬란"
+    },
+    "파마리서치는 리쥬란과 리쥬란 베이스 화장품까지 마케팅이 되면서 매출이 급격하게 상승하고 있다.",
+    "리쥬란이 본격적으로 인기를 끌기 시작한 2020년부터 2025년까지 **연평균 매출 성장률 38%, OPM 30~40%를 가정.**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjUy/MDAxNzYxMTExMTA0MTIw.EURkuHXQYsvHd74uvIjXzH-gbFtUsOX2_Xt7SEGttGEg.JovGRrOdeIJ7y0wskeD73T9jdi7QS3I8MAsmS9CcI7Ag.JPEG/28_%ED%8C%8C%EB%A7%88%EB%A6%AC%EC%84%9C%EC%B9%98_%EC%9E%AC%EB%AC%B4%EC%A0%95%EB%B3%B4.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "쥬베룩"
+    },
+    {
+     "type": "link",
+     "title": "쥬베룩 사례로 본 엘라비에 리투오 예상매출",
+     "url": "https://blog.naver.com/kucpa80/223922256817",
+     "site": "blog.naver.com"
+    },
+    "엘앤씨바이오를 정말 오랫동안 팔로우업한 투자자분의 글에서 참고해보면 **쥬베룩 매출 성장률은 연평균 100%를 월등히 넘어버리고 있음.**",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMTYy/MDAxNzYxMTExMjcyMjQz.-AihUjBsuuvplogVQ9ghGHgdA858BC9xPzJhtPeoCCAg.jxVpwbbolmFwLo1tOec982vnxx3mADQICwT9tU5p1h0g.JPEG/29_%EC%A5%AC%EB%B2%A0%EB%A3%A9_%EB%A7%A4%EC%B6%9C.jpg?type=w800"
+    },
+    {
+     "type": "sub",
+     "text": "리투오"
+    },
+    "그러면 리쥬란, 쥬베룩 중간 어느정도의 **연평균 성장률 50%, OPM 20%**를 감안하고, 회사측에서 제시한 **2025년 매출액 30억**을 잡으면 아래와 같이 매출이 예상됨.",
+    "2026년 45억",
+    "2027년 68억",
+    "생각보다 너무 작은 수치로 계산이 되어서, 도저히 감잡을 수가 없다",
+    "그래서 다른 방식으로 리쥬란 매출 4천억 + 쥬베룩 매출 1천억의 10% 정도만 M/S를 가져온다고 가정하고, **2026년 매출 500억 영업이익 100억원을 예상**해보려고 한다... (왕초보의 그냥 생각)",
+    {
+     "type": "img",
+     "src": "https://mblogthumb-phinf.pstatic.net/MjAyNTEwMjJfMjMw/MDAxNzYxMTExMzY0OTAx.EkNCmVfHFb_WTbvfcdjYYGSBKUHCpYqv8zewc5W5hPsg.avmtM_1iZEoAeu7aSTRpRY3kyuN9Jxs3eNR4JC9iaVcg.JPEG/30_%EC%97%98%EC%95%A4%EC%94%A8%EB%B0%94%EC%9D%B4%EC%98%A4_%EC%98%88%EC%83%81_%EC%9E%AC%EB%AC%B4%EC%A0%95%EB%B3%B4.jpg?type=w800"
+    },
+    "네이버증권에 나온 컨센서스와 파마리서치 Forward PER 34배를 반영하면, 2027년 시가총액 1조 2천억원정도로 예상된다.",
+    "2027년 매출실적정도는 되어야 지금의 시총이 인정될 수 있는 수준이라는 듯....",
+    "아무튼 3분기 실적발표가 상당히 기대되고, **실적발표 기대감으로 상승할 수 있으니 일부 매수**하고 기다려보는 것도 좋을듯하다.",
+    "의견 좀 줍서",
+    {
+     "type": "sub",
+     "text": "함께 읽으면 도움되는 글"
+    },
+    {
+     "type": "link",
+     "title": "제2의 삼양식품? 바이오포트 2분기 실적 분석",
+     "url": "https://blog.naver.com/whtjdqls45/223972617151",
+     "site": "blog.naver.com"
+    }
+   ]
+  }
+ ],
+ "sources": [
+  "[엘앤씨바이오 블로그 원문](https://m.blog.naver.com/whtjdqls45/224049913878) · 2025-10-26"
+ ],
+ "disclaimer": "파이어족 빈봉 블로그에 쓴 글을 옮겨온 개인 기록이며 주식 추천이 아니에요. 글 작성 당시 기준이에요."
+}
