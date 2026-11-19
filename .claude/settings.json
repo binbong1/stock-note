@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./local/config.json)",
+      "Read(./pc-sync/config.json)",
+      "Edit(./local/config.json)",
+      "Edit(./pc-sync/config.json)",
+      "Bash(git reset --hard*)",
+      "Bash(git push --force*)"
+    ]
+  }
+}
