@@ -1,0 +1,17 @@
+name: probe
+on: { workflow_dispatch: {} }
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: |
+          cat > p.mjs <<'JS'
+          const H = { 'User-Agent': 'Mozilla/5.0' };
+          for (const u of ['https://m.stock.naver.com/api/stocks/up/KOSDAQ?page=1&pageSize=5', 'https://m.stock.naver.com/api/stocks/up/KOSPI?page=1&pageSize=3']) {
+            const r = await fetch(u, { headers: H }); const t = await r.text(); console.log('UP', u, r.status, t.slice(0, 1800));
+          }
+          const r2 = await fetch('https://m.stock.naver.com/api/news/stock/005930?pageSize=3&page=1', { headers: H }); console.log('NEWS', r2.status, (await r2.text()).slice(0, 1500));
+          JS
+          node p.mjs
