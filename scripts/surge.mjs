@@ -1,5 +1,5 @@
 // 급등주 정리 — 코스피·코스닥에서 전일 대비 N% 이상 오른 개별 종목(ETF·ETN·스팩 제외)을 텔레그램으로
-//   node scripts/surge.mjs           텔레그램으로 보내기 (평일 10:30·13:00·15:00, local/run.mjs 가 실행)
+//   node scripts/surge.mjs           텔레그램으로 보내기 (평일 10:30·15:00, local/run.mjs 가 실행)
 //   node scripts/surge.mjs --print   보내지 않고 화면에만 출력 (Claude가 "지금 급등주" 요청에 사용)
 // 상승 이유는 그 종목의 오늘 뉴스 제목(특징주 기사 우선)으로 적어요. 매수·매도 추천은 하지 않아요.
 // 기준값: config/alerts.json 의 surge.minPct (기본 25), 끄기: surge.enabled=false

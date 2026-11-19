@@ -12,7 +12,7 @@
 //   · 07:00~21:45  15분마다 보유 종목 공시·리포트 확인 (news)
 //   · 16:10        키움·토스 잔고 → 전체 수집(collect) → 장 마감 스캔(daily) → 신용잔고 그래프
 //                  (PC가 꺼져 있었으면 켜진 뒤 그날 밤 12시 전까지 따라잡아 실행)
-//   · 10:30·13:00·15:00  급등주 정리 (25% 이상 상승 개별 종목)
+//   · 10:30·15:00  급등주 정리 (25% 이상 상승 개별 종목)
 //   · 토요일 07:00  미국 금요일 종가 반영 (잔고·시세만)
 //   · 텔레그램 봇 상시 실행 (꺼지면 다시 켬)
 //   · http://localhost:8080 에서 사이트 열기
@@ -245,8 +245,8 @@ function tick() {
   if (wd && m >= 9 * 60 && m < 15 * 60 + 55 && every('intraday', 10)) enqueue('intraday');
   if (wd && m >= 7 * 60 && m < 22 * 60 && every('news', 15)) enqueue('news');
   if (wd && m >= EVENING_AT && Date.now() >= (STATE.eveningRetryAt || 0) && once('evening')) enqueue('evening');
-  // 급등주 정리: 10:30 · 13:00 · 15:00 (늦게 켜졌으면 30분 안에만 보냄)
-  for (const t of [10 * 60 + 30, 13 * 60, 15 * 60]) if (wd && m >= t && m < t + 30 && once(`surge${t}`)) enqueue('surge');
+  // 급등주 정리: 10:30 · 15:00 (늦게 켜졌으면 30분 안에만 보냄)
+  for (const t of [10 * 60 + 30, 15 * 60]) if (wd && m >= t && m < t + 30 && once(`surge${t}`)) enqueue('surge');
   // 토요일 아침: 미국 금요일 종가(한국 토요일 새벽 마감)를 반영하려고 잔고·시세만 한 번 더
   if (kst().getUTCDay() === 6 && m >= 7 * 60 && once('saturday')) enqueue('weekend');
   if (m >= 6 * 60 && once('pull')) enqueue('pull');

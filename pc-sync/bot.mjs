@@ -141,7 +141,7 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>알림 끄기</b> [오늘·3일·계속] / <b>알림 켜기</b> — 돌파 알림
 • <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림
 • <b>신용</b> — 코스피·코스닥 신용잔고 최근 5일 · <b>신용알림 끄기/켜기</b>
-• <b>급등알림 끄기/켜기</b> · <b>급등 20</b> — 급등주 정리(10:30·13:00·15:00)와 기준(%)
+• <b>급등알림 끄기/켜기</b> · <b>급등 20</b> — 급등주 정리(10:30·15:00)와 기준(%)
 ${CFG.claude?.apiKey || CFG.anthropicKey ? '\n💬 그 밖에는 평소 말하듯 보내도 돼요. 예) "이번 달 한투1 실현손익 얼마야?", "보유 종목 중 52주 고가 근처인 거 있어?", "SNT다이내믹스 감시 걸어줘"\n바꾸는 일은 "네"라고 확인한 뒤에 실행해요. 주문은 할 수 없어요.' : ''}`;
 
 const KEYS = {
@@ -425,7 +425,7 @@ async function handle(text) {
     const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
     alerts.surge = { ...(alerts.surge || {}), enabled: on };
     await saveJSON('config/alerts.json', alerts, `봇: 급등주 알림 ${on ? '켜기' : '끄기'}`);
-    return on ? '🚀 급등주 정리(10:30·13:00·15:00)를 켰어요.' : '급등주 정리를 껐어요. "급등알림 켜기"로 다시 켤 수 있어요.';
+    return on ? '🚀 급등주 정리(10:30·15:00)를 켰어요.' : '급등주 정리를 껐어요. "급등알림 켜기"로 다시 켤 수 있어요.';
   }
   if (/^(급등|급등주)$/.test(cmd) && /^\d+$/.test(args[0] || '')) {
     const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
