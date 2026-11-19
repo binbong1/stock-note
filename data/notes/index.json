@@ -1,9 +1,15 @@
 {
   "items": [
-    { "id": "blog-224453143604", "title": "LS 기업분석 (2) 투자 아이디어, 밸류에이션", "name": "LS", "code": "006260", "date": "2026-10-28", "summary": "미국 전력인프라·서해안 HVDC·구리, 리스크와 NAV 밸류에이션", "blog": "https://m.blog.naver.com/whtjdqls45/224453143604" },
-    { "id": "blog-224453105757", "title": "LS 기업분석 (1) 지분구조, 자회사 사업내용", "name": "LS", "code": "006260", "date": "2026-10-25", "summary": "LS전선·LS일렉트릭·LS MnM 등 계열사 정리", "blog": "https://m.blog.naver.com/whtjdqls45/224453105757" },
-    { "id": "blog-224117317389", "title": "지엔씨에너지 기업 분석 주가전망", "name": "지엔씨에너지", "code": "119850", "date": "2025-12-21", "summary": "데이터센터 비상발전기, 수주잔고 3,877억", "blog": "https://m.blog.naver.com/whtjdqls45/224117317389" },
-    { "id": "blog-224049913878", "title": "엘라비에 리투오, 엘앤씨바이오 기업분석 주가전망", "name": "엘앤씨바이오", "code": "290650", "date": "2025-10-26", "summary": "스킨부스터 리투오, CB·EB, 경쟁제품 비교", "blog": "https://m.blog.naver.com/whtjdqls45/224049913878" },
-    { "id": "blog-223973337297", "title": "LNG관련주 SNT에너지 기업 분석 주가전망", "name": "SNT에너지", "code": "100840", "date": "2025-08-17", "summary": "공랭식 열교환기·HRSG, 수주잔고와 매출 환산비율", "blog": "https://m.blog.naver.com/whtjdqls45/223973337297" }
+    { "id": "ls", "title": "LS 기업분석", "name": "LS", "code": "006260", "date": "2026-10-28", "summary": "지분구조·계열사 정리, 투자 아이디어(미국 전력인프라·서해안 HVDC·구리), 리스크, NAV 밸류에이션",
+      "blogs": [
+        { "label": "(1) 지분구조, 자회사 사업내용", "url": "https://m.blog.naver.com/whtjdqls45/224453105757", "date": "2026-10-25" },
+        { "label": "(2) 투자 아이디어, 밸류에이션", "url": "https://m.blog.naver.com/whtjdqls45/224453143604", "date": "2026-10-28" }
+      ] },
+    { "id": "gnc", "title": "지엔씨에너지 기업 분석 주가전망", "name": "지엔씨에너지", "code": "119850", "date": "2025-12-21", "summary": "데이터센터 비상발전기, 수주잔고 3,877억",
+      "blogs": [ { "label": "블로그 글", "url": "https://m.blog.naver.com/whtjdqls45/224117317389", "date": "2025-12-21" } ] },
+    { "id": "lncbio", "title": "엘라비에 리투오, 엘앤씨바이오 기업분석 주가전망", "name": "엘앤씨바이오", "code": "290650", "date": "2025-10-26", "summary": "스킨부스터 리투오, CB·EB, 경쟁제품 비교",
+      "blogs": [ { "label": "블로그 글", "url": "https://m.blog.naver.com/whtjdqls45/224049913878", "date": "2025-10-26" } ] },
+    { "id": "sntenergy", "title": "LNG관련주 SNT에너지 기업 분석 주가전망", "name": "SNT에너지", "code": "100840", "date": "2025-08-17", "summary": "공랭식 열교환기·HRSG, 수주잔고와 매출 환산비율",
+      "blogs": [ { "label": "블로그 글", "url": "https://m.blog.naver.com/whtjdqls45/223973337297", "date": "2025-08-17" } ] }
   ]
 }
