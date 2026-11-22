@@ -955,7 +955,7 @@ function noteBlock(b) {
   if (b.type === 'chart') return noteChart(b);
   if (b.type === 'callout') return `<div class="banner" style="margin:8px 0">${inlineMd(b.text)}</div>`;
   if (b.type === 'sub') return `<h4 style="margin:14px 0 4px;font-size:15px">${esc(b.text)}</h4>`;
-  if (b.type === 'img' && /^https:\/\//.test(b.src)) return `<img src="${esc(b.src)}" alt="${esc(b.alt || '분석 자료 그림')}" loading="lazy" referrerpolicy="no-referrer" style="display:block;max-width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid var(--line2)">`;
+  if (b.type === 'img' && /^(https:\/\/|data\/[\w\/.-]+\.(svg|png|jpe?g|webp)$)/.test(b.src)) return `<img src="${esc(b.src)}" alt="${esc(b.alt || '분석 자료 그림')}" loading="lazy" referrerpolicy="no-referrer" style="display:block;max-width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid var(--line2)">`;
   if (b.type === 'caption') return `<p class="mute" style="font-size:12px;margin:-4px 0 8px">${inlineMd(b.text)}</p>`;
   if (b.type === 'chain') return noteChain(b);
   if (b.type === 'link' && /^https?:\/\//.test(b.url)) return `<a href="${esc(b.url)}" target="_blank" rel="noopener" style="display:block;margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFAF8;color:var(--ink)"><span style="font-weight:600;font-size:14px">${esc(b.title)}</span>${b.site ? `<br><span class="sub">${esc(b.site)}</span>` : ''}</a>`;
