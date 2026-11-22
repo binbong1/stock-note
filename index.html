@@ -1013,7 +1013,7 @@ async function viewSectors() {
       <div style="min-width:0"><a class="name" href="#/sector/${encodeURIComponent(it.id)}">${esc(it.title)}</a>
       <div class="sub">${esc(it.date || '')}${it.summary ? ' — ' + esc(it.summary) : ''}</div>
       ${blogs.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:13px">${blogs.map((b) => `<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.label)}</a>`).join('')}</div>` : ''}</div>
-      <span class="tag" style="flex:none">${it.source === 'blog' ? (blogs.length > 1 ? `블로그 ${blogs.length}편 합본` : '블로그') : 'Claude 분석'}</span></li>`;
+      <span class="tag" style="flex:none">${esc(it.label || (it.source === 'blog' ? (blogs.length > 1 ? `블로그 ${blogs.length}편 합본` : '블로그') : 'Claude 분석'))}</span></li>`;
   };
   $app.innerHTML = `<h1>산업 분석</h1>
     <section class="card"><p class="mute" style="margin:0 0 6px;font-size:14px">섹터·테마별 산업 분석 기록이에요. 텔레그램에서 "OO 산업분석 해줘"라고 하면 Claude가 같은 틀(투자 아이디어 → 사이클 → 밸류체인 → 단계별 관련 종목·병목 기술 → 리스크)로 만들어 여기에 저장해요.</p>
