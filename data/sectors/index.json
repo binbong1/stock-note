@@ -1,0 +1,112 @@
+{
+ "items": [
+  {
+   "id": "shipbuilding",
+   "title": "조선 산업분석",
+   "name": "조선",
+   "date": "2026-06-18",
+   "summary": "MASGA·LNG선·IMO 규제 투자 아이디어, 2번의 수퍼사이클, 기자재→조선사→해운·AM 밸류체인",
+   "file": "shipbuilding.json",
+   "source": "blog",
+   "blogs": [
+    {
+     "label": "(1) 투자 아이디어, 사이클",
+     "url": "https://m.blog.naver.com/whtjdqls45/224299126203",
+     "date": "2026-06-04"
+    },
+    {
+     "label": "(2) 업스트림 밸류체인 기자재",
+     "url": "https://m.blog.naver.com/whtjdqls45/224305779173",
+     "date": "2026-06-05"
+    },
+    {
+     "label": "(3) 조선업 투자지표와 주요 선종",
+     "url": "https://m.blog.naver.com/whtjdqls45/224311857732",
+     "date": "2026-06-13"
+    },
+    {
+     "label": "(4) 국내 조선사 비교",
+     "url": "https://m.blog.naver.com/whtjdqls45/224312970697",
+     "date": "2026-06-15"
+    },
+    {
+     "label": "(5) 전방산업 해운업 선박 수리 AM",
+     "url": "https://m.blog.naver.com/whtjdqls45/224318797122",
+     "date": "2026-06-18"
+    }
+   ]
+  },
+  {
+   "id": "aerospace",
+   "title": "우주항공 산업분석",
+   "name": "우주항공",
+   "date": "2026-03-30",
+   "summary": "우주경제·미중 경쟁·스페이스X 상장, 발사체→위성→다운스트림 밸류체인과 병목기술, 우주 데이터센터",
+   "file": "aerospace.json",
+   "source": "blog",
+   "blogs": [
+    {
+     "label": "(1) 투자 아이디어",
+     "url": "https://m.blog.naver.com/whtjdqls45/224219809720",
+     "date": "2026-03-21"
+    },
+    {
+     "label": "(2) 업스트림 개요, 핵심기업",
+     "url": "https://m.blog.naver.com/whtjdqls45/224226556448",
+     "date": "2026-03-24"
+    },
+    {
+     "label": "(3) 업스트림 - 발사체",
+     "url": "https://m.blog.naver.com/whtjdqls45/224227573460",
+     "date": "2026-03-25"
+    },
+    {
+     "label": "(4) 업스트림 - 위성",
+     "url": "https://m.blog.naver.com/whtjdqls45/224229021150",
+     "date": "2026-03-26"
+    },
+    {
+     "label": "(5) 다운스트림",
+     "url": "https://m.blog.naver.com/whtjdqls45/224229052289",
+     "date": "2026-03-29"
+    },
+    {
+     "label": "(6) 우주 데이터센터",
+     "url": "https://m.blog.naver.com/whtjdqls45/224233374342",
+     "date": "2026-03-30"
+    }
+   ]
+  },
+  {
+   "id": "hvdc800v",
+   "title": "데이터센터 800VDC 서버랙",
+   "name": "800V 서버랙",
+   "date": "2026-02-17",
+   "summary": "루빈 울트라 1MW 랙 → 800V DC 전환, 전력망→파워룸→랙→SST·커패시터·ESS·냉각 밸류체인",
+   "file": "hvdc800v.json",
+   "source": "blog",
+   "blogs": [
+    {
+     "label": "(1) 데이터센터 전력망",
+     "url": "https://m.blog.naver.com/whtjdqls45/224177592415",
+     "date": "2026-02-10"
+    },
+    {
+     "label": "(2) 랙 내부 구성요소",
+     "url": "https://m.blog.naver.com/whtjdqls45/224178777152",
+     "date": "2026-02-11"
+    },
+    {
+     "label": "(3) 전력 아키텍처 변화",
+     "url": "https://m.blog.naver.com/whtjdqls45/224180014465",
+     "date": "2026-02-14"
+    },
+    {
+     "label": "(4) 냉각",
+     "url": "https://m.blog.naver.com/whtjdqls45/224185721233",
+     "date": "2026-02-17"
+    }
+   ]
+  }
+ ]
+}
