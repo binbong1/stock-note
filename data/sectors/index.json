@@ -1,6 +1,23 @@
 {
  "items": [
   {
+   "id": "robot",
+   "title": "로봇 섹터 산업분석",
+   "name": "로봇",
+   "date": "2026-11-22",
+   "summary": "피지컬 AI·양산 전환, 관절 공정별 밸류체인·병목·국내외 종목, 리스크·체크포인트",
+   "file": "robot.json",
+   "source": "study",
+   "label": "내 스터디 + 보완",
+   "blogs": [
+    {
+     "label": "참고: 로봇 산업 알아보기 1부",
+     "url": "https://blog.naver.com/dhgusdnd44/224461463070",
+     "date": "2026-11-01"
+    }
+   ]
+  },
+  {
    "id": "shipbuilding",
    "title": "조선 산업분석",
    "name": "조선",
