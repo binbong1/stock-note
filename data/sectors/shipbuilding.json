@@ -264,14 +264,13 @@
    "blocks": [
     "조선업은 아래와 같은 특징들로 인해서 엄청나게 긴 사이클을 가지고 있기 때문에, **과거 조선업 수퍼사이클을 이해하는 것이 중요**함.",
     {
-     "type": "sub",
-     "text": "높은 선박 가격"
+     "type": "list",
+     "items": [
+      "**높은 선박 가격**",
+      "**20년 이상 사용**",
+      "**수주부터 인도까지 2년 이상 걸리는 Heavy tail 산업**"
+     ]
     },
-    {
-     "type": "sub",
-     "text": "20년 이상 사용"
-    },
-    "**수주부터 인도까지 2년 이상 걸리는 Heavy tail 산업**",
     {
      "type": "h",
      "text": "2003년 ~ 2011년"
@@ -310,16 +309,12 @@
     },
     "코로나 이후에는 다시 한번 조선 섹터에 수퍼사이클이 찾아왔다고 이야기하는데, 그 이유는 다음과 같음",
     {
-     "type": "sub",
-     "text": "코로나 팬데믹 이후 보복소비, 물동량 폭등"
-    },
-    {
-     "type": "sub",
-     "text": "러우전쟁으로 인한 LNG선 발주 증가"
-    },
-    {
-     "type": "sub",
-     "text": "1차 수퍼사이클에 만든 배 노후화 + IMO 환경규제"
+     "type": "list",
+     "items": [
+      "**코로나 팬데믹 이후 보복소비, 물동량 폭등**",
+      "**러우전쟁으로 인한 LNG선 발주 증가**",
+      "**1차 수퍼사이클에 만든 배 노후화 + IMO 환경규제**"
+     ]
     },
     "그 덕에 위 사진에서 봤던 것처럼 2024년 10월 **클락슨 신조선가지수가 189pt까지 오르면서 두번째 수퍼사이클을 지나고 있는 상황**임",
     "과연 이 두번째 수퍼사이클의 상승 파동이 한번 더 올 수 있을지는 차차 고민해봐야할 듯...",
@@ -342,11 +337,13 @@
     },
     "선체 뼈대와 외벽의 핵심 자재인 후판을 제조하는 **철강업체**가 대표적인 조선업 후방산업임",
     {
-     "type": "sub",
-     "text": "선체 건조 원가의 15 ~ 20% 금액 차지"
+     "type": "list",
+     "items": [
+      "**선체 건조 원가의 15 ~ 20% 금액 차지**",
+      "**후판 가격 상승 → 조선업 영업이익률 저하 원인이 될 수 있음**",
+      "**수 년간 후판 가격이 낮았으나, 2026년 다양한 이유로 10% 가량 금액 상승**"
+     ]
     },
-    "**후판 가격 상승 → 조선업 영업이익률 저하 원인이 될 수 있음**",
-    "**수 년간 후판 가격이 낮았으나, 2026년 다양한 이유로 10% 가량 금액 상승**",
     "조선업 영업이익률이 보통 10% 이하인 경우가 많은데, 선체 건조 원가의 큰 부분을 차지하는 후판 가격이 상승하면 영업이익률이 1~2% 하락할 수 있음.",
     "다만 IM증권 애널리스트님의 이야기로는 **최근 후판 가격 상승은 전체 영업이익 대비 큰 금액은 아니기에 드라마틱한 영향을 주지 않을 것**이라고 함.",
     "다만 철강 관련기업들은 복잡한 지정학적 이슈, 물가 상승 등의 영향을 받는 업종으로 예측이 어려운 경우가 많음.",
@@ -355,14 +352,31 @@
      "text": "엔진"
     },
     {
-     "type": "sub",
-     "text": "선가 10 ~ 15% 금액 차지"
+     "type": "list",
+     "items": [
+      "**선가 10 ~ 15% 금액 차지**",
+      "환경 규제로 인한 이중연료(LNG, 메탄올, 암모니아 등) 엔진 수요 급증"
+     ]
     },
-    "환경 규제로 인한 이중연료(LNG, 메탄올, 암모니아 등) 엔진 수요 급증",
-    "엔진 종류",
-    "2행정 저속엔진 : 대형 선박 추진 엔진",
-    "4행정 중속엔진 : 선박 내 발전기용 보조엔진",
-    "**중속엔진 → AI데이터센터 발전원용 발주로 AI 내러티브 편입**",
+    {
+     "type": "sub",
+     "text": "엔진 종류"
+    },
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "2행정 저속엔진 : 대형 선박 추진 엔진",
+       "items": []
+      },
+      {
+       "text": "4행정 중속엔진 : 선박 내 발전기용 보조엔진",
+       "items": [
+        "**중속엔진 → AI데이터센터 발전원용 발주로 AI 내러티브 편입**"
+       ]
+      }
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MDRfNTYg/MDAxNzgwNTUwNjc2MTA0.tl8-bMrnatISSnTzs3c1Cm0cDqXU_wme0HQxaWDSaYwg.sQcBQyTlehA2R9iXgDJpTNV6Vzl0CGHwU2GgvvtEBWcg.JPEG/1_%ED%9E%98%EC%8E%88%EC%97%94%EC%A7%84.jpg?type=w800"
@@ -373,28 +387,40 @@
      "type": "sub",
      "text": "선박엔진 및 부품 관련기업"
     },
-    "**HD현대중공업** : 글로벌 대형 선박 1위",
-    "한화엔진 : 글로벌 2위",
-    "STX엔진",
-    "인화정공, 케이프, 케이에스피, 태웅, 삼영엠텍, 금강공업 등",
+    {
+     "type": "list",
+     "items": [
+      "**HD현대중공업** : 글로벌 대형 선박 1위",
+      "한화엔진 : 글로벌 2위",
+      "STX엔진",
+      "인화정공, 케이프, 케이에스피, 태웅, 삼영엠텍, 금강공업 등"
+     ]
+    },
     {
      "type": "h",
      "text": "배관 및 피팅"
     },
     {
-     "type": "sub",
-     "text": "선체 외 기계 및 장치 원가 30% 이상 차지"
+     "type": "list",
+     "items": [
+      "**선체 외 기계 및 장치 원가 30% 이상 차지**",
+      "**VLCC의 경우, 배관 길이만 수 km 수준**",
+      "친환경 선박 교체 수혜 → 초저온, 고압/내부식성 배관 수요 증가"
+     ]
     },
     {
      "type": "sub",
-     "text": "VLCC의 경우, 배관 길이만 수 km 수준"
+     "text": "관련기업"
     },
-    "친환경 선박 교체 수혜 → 초저온, 고압/내부식성 배관 수요 증가",
-    "관련기업",
-    "**하이록코리아**, 디케이락 : 설비 및 장치 연결 계장용 피팅 기업",
-    "**성광벤드, 태광** : 글로벌 1, 2위 용접용 피팅 기업",
-    "세진중공업 : 엔진룸 Unit 등 초대형 블록 및 배관 제작",
-    "동방선기 : 순수 배관 가공 업체",
+    {
+     "type": "list",
+     "items": [
+      "**하이록코리아**, 디케이락 : 설비 및 장치 연결 계장용 피팅 기업",
+      "**성광벤드, 태광** : 글로벌 1, 2위 용접용 피팅 기업",
+      "세진중공업 : 엔진룸 Unit 등 초대형 블록 및 배관 제작",
+      "동방선기 : 순수 배관 가공 업체"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MDRfMTEw/MDAxNzgwNTUxODgxNjA4.ET3gcEKb4fkTP0HFk7aAge8YFr4jh23WfVxzq7gcmz8g.vKodDT1650bAn3g-lCzaYSIGMJ-P_ITHvUOrSSpdFuEg.PNG/2-1_%ED%94%BC%ED%8C%85%EB%B0%B8%EB%B8%8C.png?type=w800"
@@ -409,10 +435,23 @@
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MDRfMjg4/MDAxNzgwNTUxNzg3OTY4.RAZXS3GjOcfqIjxBoImAZ6Idl0m8SioSCoM9RvbnQR4g.3O9znzuIhBUmQ9Vjflj0xDfBMTSY2RzoLpKatgUcziMg.JPEG/2_LNG_%EB%B3%B4%EB%83%89%EC%9E%AC.jpg?type=w800"
     },
-    "영하 163도 극저온 LNG 운반 → LNG 보냉재, 화물창 기술 필요",
-    "관련기업",
-    "라이센서 : **프랑스 GTT **→ 1분기 국내 LNGC 19건 중 18건 설계 담당",
-    "라이센시 : **동성화인텍, 한국카본 **→ 글로벌 독과점",
+    {
+     "type": "list",
+     "items": [
+      "영하 163도 극저온 LNG 운반 → LNG 보냉재, 화물창 기술 필요"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "관련기업"
+    },
+    {
+     "type": "list",
+     "items": [
+      "라이센서 : **프랑스 GTT **→ 1분기 국내 LNGC 19건 중 18건 설계 담당",
+      "라이센시 : **동성화인텍, 한국카본 **→ 글로벌 독과점"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MDRfMTc3/MDAxNzgwNTUxODg4MjEz.xHvnt09NbgUq1KofAbNllbMqSd4CeW5h1Q8KobTh6-Ug.KXVO6vGwfnlKtV1wyL2VcTMgIojxeSlYLN5npewsxtcg.JPEG/3_GTT.jpg?type=w800"
@@ -425,15 +464,29 @@
     },
     "그 외에 펌프도 있지만 IMO 국제해사기구 환경 규제로 인해 중요성이 대두된 환경 설비들에 대한 관심이 많다.",
     "엄경아 위원님 이야기에 따르면 현재 전체 선박 중 **친환경 선박이 40%도 되지 않는다**고 하니, 앞으로 60~70%까지 늘어나려면 계속해서 실적은 나올 것으로 보임.",
-    "스크러버(탈황장치) : 배기가스를 물로 세정하여 황산화물(SOX) 제거",
     {
      "type": "sub",
-     "text": "(국내) 현대중공업"
+     "text": "스크러버(탈황장치) : 배기가스를 물로 세정하여 황산화물(SOX) 제거"
     },
-    "(해외) 파나시아, 바르질라 등",
-    "BWTS(평형수 처리설비) : 바닷물 속 미세 생물 살균하여 배출할 수 있도록 함",
-    "(국내) 테크로스, **한라IMS**",
-    "(해외) 알파라발",
+    {
+     "type": "list",
+     "items": [
+      "**(국내) 현대중공업**",
+      "(해외) 파나시아, 바르질라 등"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "BWTS(평형수 처리설비) : 바닷물 속 미세 생물 살균하여 배출할 수 있도록 함",
+       "items": [
+        "(국내) 테크로스, **한라IMS**",
+        "(해외) 알파라발"
+       ]
+      }
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MDRfNyAg/MDAxNzgwNTUzMTY1ODY4.xT1eQUCV1gG6wePl_CCa06mh0KCll03NQb0q2n_3zaMg.Pali-NEXgb0xRkYBZdzxxOtklWr0TlT8mWmUfmjzCDog.JPEG/4_BWTS.jpg?type=w800"
@@ -476,29 +529,53 @@
      "type": "sub",
      "text": "벌크선"
     },
-    "**BDI(Baltic Dry Index)** : 전체 벌크선 운임비",
-    "BCI(Capesize) : 주로 철광석 나르는 대형선, 18만톤 이상",
-    "BPI(Panamax) : 파나마 운하 통과하는 최대 선박, 6~8만톤",
-    "BDRYFF : 벌크선 선물 운임",
+    {
+     "type": "list",
+     "items": [
+      "**BDI(Baltic Dry Index)** : 전체 벌크선 운임비",
+      "BCI(Capesize) : 주로 철광석 나르는 대형선, 18만톤 이상",
+      "BPI(Panamax) : 파나마 운하 통과하는 최대 선박, 6~8만톤",
+      "BDRYFF : 벌크선 선물 운임"
+     ]
+    },
     {
      "type": "sub",
      "text": "컨테이너선"
     },
-    "**SCFI** : 상해 컨테이너 단기 운임지수, 대표적인 컨테이너 운임지수",
-    "미서해안, 미동해안, 유럽, 지중해, 중동쪽으로 가는 15개 노선",
-    "**CCFI** : 중국 컨테이너 운임지수, 단기 + 장기 계약 포함",
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "**SCFI** : 상해 컨테이너 단기 운임지수, 대표적인 컨테이너 운임지수",
+       "items": [
+        "미서해안, 미동해안, 유럽, 지중해, 중동쪽으로 가는 15개 노선"
+       ]
+      },
+      "**CCFI** : 중국 컨테이너 운임지수, 단기 + 장기 계약 포함"
+     ]
+    },
     {
      "type": "sub",
      "text": "탱커선"
     },
-    "**BDTI(Baltic Dirty Tanker Index)** : 원유 유조선 운임, 국제 유가에 민감하게 반응",
-    "BCTI(Clean Tanker) : 정제된 석유제품 운임, 중소형 탱커 시황과 연관",
+    {
+     "type": "list",
+     "items": [
+      "**BDTI(Baltic Dirty Tanker Index)** : 원유 유조선 운임, 국제 유가에 민감하게 반응",
+      "BCTI(Clean Tanker) : 정제된 석유제품 운임, 중소형 탱커 시황과 연관"
+     ]
+    },
     {
      "type": "sub",
      "text": "LNG 등 가스선"
     },
-    "174k-CBM급 LNGC 스팟 운임 활용",
-    "다만 80~90% 장기 계약이며, 나머지가 스팟 계약으로 진행되는 편",
+    {
+     "type": "list",
+     "items": [
+      "174k-CBM급 LNGC 스팟 운임 활용",
+      "다만 80~90% 장기 계약이며, 나머지가 스팟 계약으로 진행되는 편"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTBfMiAg/MDAxNzgxMDcyOTQyOTYw.9K9suhqG2JwMV6b2sUxu-v5JVt3FSrFzd28erkxPa7Eg.4dZRLZ12DZ9uk18kRdNwAgrd9yx2MWsBhepVKMUjYdIg.JPEG/2_LNG%EC%84%A0_%EC%9A%B4%EC%9E%84.jpg?type=w800"
@@ -525,12 +602,14 @@
      "type": "h",
      "text": "그 외 투자지표"
     },
-    "신규 발주량(인도량) vs 해체량",
     {
-     "type": "sub",
-     "text": "수주잔고(Backlog)"
+     "type": "list",
+     "items": [
+      "신규 발주량(인도량) vs 해체량",
+      "**수주잔고(Backlog)**",
+      "후판 및 원자재 가격"
+     ]
     },
-    "후판 및 원자재 가격",
     "사실 수주산업에서 가장 중요한 것이 수주잔고가 꺾이지 않는 것인데, 현재 조선업은 너무나도 수주가 꽉 차있어서 중요성이 조금 떨어져보이는 느낌!!"
    ],
    "part": "(3) 조선업 투자지표와 주요 선종"
@@ -547,14 +626,36 @@
      "type": "h",
      "text": "가스선"
     },
-    "가스를 액체 상태로 유지(-162도)해야하므로 **기술 장벽이 높은 한국 조선업 주력 선종**",
-    "종류",
-    "**LNGC** : M-type(large), Q-Max(카타르 노선 전용 초대형선)",
-    "LPGC, 암모니아 운반선 : VLGC, VLAC",
-    "아래는 25년 말 전망으로 현재는 미국 이란 전쟁으로 인해 **LNG 프로젝트들이 더욱 가속화 **",
-    "1MTPA당 1.5척정도가 필요함",
-    "28년 56.5MTPA 물량까지 인도예정 LNG선으로 모두 매칭되어있는 상황",
-    "**26년 LNG선 발주전망 110척 → 4월까지 37척 발주**",
+    {
+     "type": "list",
+     "items": [
+      "가스를 액체 상태로 유지(-162도)해야하므로 **기술 장벽이 높은 한국 조선업 주력 선종**"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "종류"
+    },
+    {
+     "type": "list",
+     "items": [
+      "**LNGC** : M-type(large), Q-Max(카타르 노선 전용 초대형선)",
+      "LPGC, 암모니아 운반선 : VLGC, VLAC"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "아래는 25년 말 전망으로 현재는 미국 이란 전쟁으로 인해 **LNG 프로젝트들이 더욱 가속화 **",
+       "items": [
+        "1MTPA당 1.5척정도가 필요함",
+        "28년 56.5MTPA 물량까지 인도예정 LNG선으로 모두 매칭되어있는 상황",
+        "**26년 LNG선 발주전망 110척 → 4월까지 37척 발주**"
+       ]
+      }
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTBfMjYy/MDAxNzgxMDc0MjQyNzQz.8vscPz1gUpYmCmITpDeZBu6Wpeaq8rbLcUlyZJUVpS8g.t-fiF0tZ0xslbhNB3im0EfPq65HOj90Y9OxyjDi5E6cg.JPEG/4_LNG%EC%84%A0_%EB%B0%9C%EC%A3%BC_%EC%98%88%EC%B8%A1.jpg?type=w800"
@@ -567,9 +668,14 @@
      "type": "h",
      "text": "탱커(유조선)"
     },
-    "**베네수엘라 공격 이후에 탱커가 많이 필요해질 것**이라고 생각함!!",
-    "원유 및 석유류 같은 액체를 운반하는 선박으로 경기와 지정학적 이슈에 민감하게 반응하는 편",
-    "크기별로 부르는 이름이 다른데, **어느 운하를 통과할 수 있는지가 중요**해짐!!",
+    {
+     "type": "list",
+     "items": [
+      "**베네수엘라 공격 이후에 탱커가 많이 필요해질 것**이라고 생각함!!",
+      "원유 및 석유류 같은 액체를 운반하는 선박으로 경기와 지정학적 이슈에 민감하게 반응하는 편",
+      "크기별로 부르는 이름이 다른데, **어느 운하를 통과할 수 있는지가 중요**해짐!!"
+     ]
+    },
     {
      "type": "table",
      "head": [
@@ -619,9 +725,14 @@
      "type": "h",
      "text": "벌크선"
     },
-    "철광석, 석탄, 곡물 등 원자재 운반하는 대표적인 선종",
-    "과거 중국, 브릭스 국가들이 부흥기에 많이 건조되어 노후화가 꽤나 진행되어있는 상태",
-    "다만 벌크선은 **고도의 기술을 요하는 선박이 아니기에 영업마진이 가장 낮은 선종**",
+    {
+     "type": "list",
+     "items": [
+      "철광석, 석탄, 곡물 등 원자재 운반하는 대표적인 선종",
+      "과거 중국, 브릭스 국가들이 부흥기에 많이 건조되어 노후화가 꽤나 진행되어있는 상태",
+      "다만 벌크선은 **고도의 기술을 요하는 선박이 아니기에 영업마진이 가장 낮은 선종**"
+     ]
+    },
     {
      "type": "table",
      "head": [
@@ -671,9 +782,14 @@
      "type": "h",
      "text": "컨테이너선"
     },
-    "컨테이너를 얼마나 실을 수 있는지에 따라 크기가 결정(TEU : 20피트 컨테이너 박스 수)",
-    "경기 호황으로 전세계 물동량이 증가할 때 가격이 올라가는 특징",
-    "신선 식품 등을 운반하는 경우가 있어 전력 공급 장치 등 **기술 필요하여 벌크선보다 부가가치 높은 편**",
+    {
+     "type": "list",
+     "items": [
+      "컨테이너를 얼마나 실을 수 있는지에 따라 크기가 결정(TEU : 20피트 컨테이너 박스 수)",
+      "경기 호황으로 전세계 물동량이 증가할 때 가격이 올라가는 특징",
+      "신선 식품 등을 운반하는 경우가 있어 전력 공급 장치 등 **기술 필요하여 벌크선보다 부가가치 높은 편**"
+     ]
+    },
     {
      "type": "table",
      "head": [
@@ -717,14 +833,40 @@
      "type": "sub",
      "text": "FLNG(부유식 LNG 생산설비)"
     },
-    "바다 위 가스전 + 액화까지 → **삼성중공업 주력**",
-    "FSRU(부유식 저장, 재기화 설비)",
-    "LNG를 가스형태로 다시 만들어서 육상으로 보내는 설비",
-    "바다 위의 LNG 터미널이라고 보면 되는데, 육상 터미널은 오래 걸리지만 이건 금방 가능",
-    "FPSO(부유식 원유 생산 저장 하역 설비)",
-    "원유 생산, 저장, 셔틀 탱커로 옮겨주는 설비",
-    "**쇄빙선** → 북극 항로 관련 이슈",
-    "**핵잠수함, 군함** → 대미 투자 관련해서 2025년 조선산업 상승을 이끌었던 테마",
+    {
+     "type": "list",
+     "items": [
+      "바다 위 가스전 + 액화까지 → **삼성중공업 주력**"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "FSRU(부유식 저장, 재기화 설비)"
+    },
+    {
+     "type": "list",
+     "items": [
+      "LNG를 가스형태로 다시 만들어서 육상으로 보내는 설비",
+      "바다 위의 LNG 터미널이라고 보면 되는데, 육상 터미널은 오래 걸리지만 이건 금방 가능"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "FPSO(부유식 원유 생산 저장 하역 설비)"
+    },
+    {
+     "type": "list",
+     "items": [
+      "원유 생산, 저장, 셔틀 탱커로 옮겨주는 설비"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "**쇄빙선** → 북극 항로 관련 이슈",
+      "**핵잠수함, 군함** → 대미 투자 관련해서 2025년 조선산업 상승을 이끌었던 테마"
+     ]
+    },
     "바다 위에 띄우는 것들은 싹다 조선사에서 만든다고 보면 되는데, 앞으로 FLNG 핵잠수함 군함 이슈가 계속 나올테니 기다려봐야겠다...",
     "다음은 국내 조선업 핵심 플레이어들에 대해서 간단하게 정리해보겠음!!"
    ],
@@ -805,15 +947,25 @@
      "type": "h",
      "text": "현대중공업"
     },
-    "현대중공업 + 현대미포 합병을 통해 **국내 최대 도크수**를 가진 조선사",
+    {
+     "type": "list",
+     "items": [
+      "현대중공업 + 현대미포 합병을 통해 **국내 최대 도크수**를 가진 조선사",
+      "**초대형선 위주 현대중공업 + 중형선 강점 현대미포**",
+      "조선업 + 함정 및 중형선, 엔진기계사업부(선박엔진) +AM 시장(HD현대마린솔루션) **수직계열화**"
+     ]
+    },
     {
      "type": "sub",
-     "text": "초대형선 위주 현대중공업 + 중형선 강점 현대미포"
+     "text": "도크수"
     },
-    "조선업 + 함정 및 중형선, 엔진기계사업부(선박엔진) +AM 시장(HD현대마린솔루션) **수직계열화**",
-    "도크수",
-    "현대중공업 울산 - 드라이도크 7개(상선 7개, 특수선 2개), 플로팅 도크 1개",
-    "군산 - 드라이도크 1개",
+    {
+     "type": "list",
+     "items": [
+      "현대중공업 울산 - 드라이도크 7개(상선 7개, 특수선 2개), 플로팅 도크 1개",
+      "군산 - 드라이도크 1개"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMjEx/MDAxNzgxMTYyNDc1ODUx.tr7h05DBn5ko9tINqSPghmoLZu6jG3juYcRlI36b-2Mg.rSkZXHnT1QmV5-Qma4ua7Xec9Xd-aSk25t6DWoJxjf8g.JPEG/10_%ED%98%84%EB%8C%80%EC%A4%91%EA%B3%B5%EC%97%85_%ED%95%9C%EA%B5%AD%EC%A1%B0%EC%84%A0%ED%95%B4%EC%96%91.jpg?type=w800"
@@ -824,11 +976,24 @@
      "type": "h",
      "text": "한화오션"
     },
-    "미국 필리조선소를 시작으로 **MASGA 프로젝트 대장주**",
-    "현대중공업처럼 다양한 선종을 제작할 수 있으며, 한화 계열사로 방산(함정, 잠수함)쪽 내러티브",
-    "도크수",
-    "거제 - 드라이도크 2개, 플로팅 도크 3개",
-    "1도크 : LNG 4척 동시 건조 가능한 세계 최대 크기",
+    {
+     "type": "list",
+     "items": [
+      "미국 필리조선소를 시작으로 **MASGA 프로젝트 대장주**",
+      "현대중공업처럼 다양한 선종을 제작할 수 있으며, 한화 계열사로 방산(함정, 잠수함)쪽 내러티브"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "도크수"
+    },
+    {
+     "type": "list",
+     "items": [
+      "거제 - 드라이도크 2개, 플로팅 도크 3개",
+      "1도크 : LNG 4척 동시 건조 가능한 세계 최대 크기"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMjY2/MDAxNzgxMTYyNjk0ODk3.aIManEhWW6I7P6GXmlnPG_wiIItLcY6SOibcAyOkijsg.13Ety6FNCnsrlA83HHiOcSEkYzRJIMOERxJJhx1nIQMg.JPEG/11_%ED%95%9C%ED%99%94%EC%98%A4%EC%85%98_%EB%A7%88%EC%8A%A4%EA%B0%80.jpg?type=w800"
@@ -839,14 +1004,20 @@
      "type": "h",
      "text": "삼성중공업"
     },
-    "해양플랜트 시장이 좋지 않을 때도 꾸준히 수주를 해온 **FLNG 해양플랜트 강점**을 가진 조선사",
-    "**전세계 FLNG 9기 중 5기를 삼성 수주**했음(세계 최대 크기 포함)",
-    "동시에 LNG선 강점을 가진 곳(연간 20척 생산가능, 국내 2위)",
     {
-     "type": "sub",
-     "text": "FDC"
+     "type": "list",
+     "items": [
+      {
+       "text": "해양플랜트 시장이 좋지 않을 때도 꾸준히 수주를 해온 **FLNG 해양플랜트 강점**을 가진 조선사",
+       "items": [
+        "**전세계 FLNG 9기 중 5기를 삼성 수주**했음(세계 최대 크기 포함)",
+        "동시에 LNG선 강점을 가진 곳(연간 20척 생산가능, 국내 2위)",
+        "**FDC**"
+       ]
+      },
+      "도크수 : 거제 - 드라이 3개, 플로팅 5개"
+     ]
     },
-    "도크수 : 거제 - 드라이 3개, 플로팅 5개",
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMjQ0/MDAxNzgxMTYyNzk4ODY1.nt853EENtCMBFf0ruaKCYj2nMTQC0852KOVEuWWsm88g.uIMfZuUhZ_5PPC_Yne660WZNO9ypzaL11ipiWgQ01mYg.JPEG/12_%EC%82%BC%EC%84%B1%EC%A4%91%EA%B3%B5%EC%97%85_FDC.jpg?type=w800"
@@ -858,20 +1029,38 @@
      "text": "대한조선"
     },
     "마지막은 대형조선사는 아니지만 투자했었던 곳이라 한번 더 찾아본 대한조선",
-    "글로벌 중형 탱커 강자",
-    "LNG선 등 고부가가치 선박으로 도크 물량이 가득찬 대형 조선사 → 탱커 발주가 중형 조선사로 몰릴 수 있는 환경",
-    "VLCC보다 작은 수에즈막스, 아프라막스 규모 탱커 + 수익성 높은 셔틀탱커(최근 진행 중)",
+    {
+     "type": "sub",
+     "text": "글로벌 중형 탱커 강자"
+    },
+    {
+     "type": "list",
+     "items": [
+      "LNG선 등 고부가가치 선박으로 도크 물량이 가득찬 대형 조선사 → 탱커 발주가 중형 조선사로 몰릴 수 있는 환경",
+      "VLCC보다 작은 수에즈막스, 아프라막스 규모 탱커 + 수익성 높은 셔틀탱커(최근 진행 중)"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMjc4/MDAxNzgxMTYzMzI1NDY3.r3eNfRyZgi0V7WZXFdaWBPYfaJoYlITu1bb0JTVEw_sg.lvlhaoY6lo2IhipDM6dtVwNqyUXSV_lwUV3Kt7Gz16Mg.JPEG/13_%EB%8C%80%ED%95%9C%EC%A1%B0%EC%84%A0_%ED%8F%AC%ED%8A%B8%ED%8F%B4%EB%A6%AC%EC%98%A4.jpg?type=w800"
     },
-    "26년 1분기동안 12척 수주, 연간 목표 수주량 달성",
+    {
+     "type": "list",
+     "items": [
+      "26년 1분기동안 12척 수주, 연간 목표 수주량 달성"
+     ]
+    },
     {
      "type": "sub",
      "text": "탱커 투자 확인 지표"
     },
-    "Breakwave Tanker Shipping ETF",
-    "Breakwave X에서 확인하는 VLCC 가격들 (신조선가 vs 중고선가 확인)",
+    {
+     "type": "list",
+     "items": [
+      "Breakwave Tanker Shipping ETF",
+      "Breakwave X에서 확인하는 VLCC 가격들 (신조선가 vs 중고선가 확인)"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMTk5/MDAxNzgxMTYzMzY2OTE5.UJiZ_GrF27211c8l-Hii9U5OzkUV9oVZn7r3KjE5XAQg.h9pr7dikNukghJJ51TgUmw1KBFIkY0JCl3kDaa3AeBAg.JPEG/14_%ED%83%B1%EC%BB%A4_VLCC_%EC%9A%B4%EC%9E%84.jpg?type=w800"
@@ -880,8 +1069,13 @@
      "type": "sub",
      "text": "리스크"
     },
-    "보호예수물량 (26년 2월 물량 풀린 이후, 주가 눌림 사라지면서 10만원까지 급등)",
-    "도크수 확장이 어려워 **성장성 한계**",
+    {
+     "type": "list",
+     "items": [
+      "보호예수물량 (26년 2월 물량 풀린 이후, 주가 눌림 사라지면서 10만원까지 급등)",
+      "도크수 확장이 어려워 **성장성 한계**"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTFfMTkx/MDAxNzgxMTYzMzk3MjE4.nvLiccdaw_wzskRrl-fmILFYlaZaZsNW8GtTjwcyyVMg.h5LIg_oUQEyzdlUadIODhj-eDE__Gx3LcrNkUPPv78cg.JPEG/15_%EB%8C%80%ED%95%9C%EC%A1%B0%EC%84%A0_%EB%B3%B4%ED%98%B8%EC%98%88%EC%88%98.jpg?type=w800"
@@ -910,12 +1104,19 @@
      "type": "sub",
      "text": "투자 지표"
     },
-    "운임지수 : 조선업 투자 지표에서 살펴봄(항로에 따라 운임 상이)",
-    "신조선 인도 물량(배 공급 사이클) : 건조까지 오래 걸리기 때문에 신규 선박 공급에 영향",
-    "노후 선박 스크랩 : 보통 20~25년 이상 선박 스크랩(폐선)",
     {
-     "type": "sub",
-     "text": "핵심 해운사"
+     "type": "list",
+     "items": [
+      "운임지수 : 조선업 투자 지표에서 살펴봄(항로에 따라 운임 상이)",
+      "신조선 인도 물량(배 공급 사이클) : 건조까지 오래 걸리기 때문에 신규 선박 공급에 영향",
+      "노후 선박 스크랩 : 보통 20~25년 이상 선박 스크랩(폐선)"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "**핵심 해운사**"
+     ]
     },
     "일일이 모든 기업들에 대해서 찾아보려고 했으나 너무 많은 기업들이 존재해서 제미나이에게 부탁했음...",
     "**해운사마다 보유한 선박의 종류와 규모가 상이하기 때문에, 상황에 따라 수혜를 받는 기업들이 달라진다.**",
@@ -1041,28 +1242,52 @@
     },
     "선박 수리 및 부품 관련된 AM(After Market) 사업은 **선박 수나 선박 연령이 늘어날수록 지속적으로 매출이 발생하는 고마진 사업**이다.",
     "이러한 사업을 하는 기업들에 투자할 때 살펴보아야할 지표들은 다음과 같다.",
-    "글로벌 선복량, 선령(노후선 비중)",
-    "IMO 환경 규제 → 탄소 배출 감축에 따른 친환경 연료 엔진(이중연료 DF) 개조 수요 증가",
-    "**기존 연료선 vs 친환경 연료선 인센티브** → 격차가 커지면 개조 후에도 수익성 나오면 개조 수요 증가",
+    {
+     "type": "list",
+     "items": [
+      "글로벌 선복량, 선령(노후선 비중)",
+      "IMO 환경 규제 → 탄소 배출 감축에 따른 친환경 연료 엔진(이중연료 DF) 개조 수요 증가",
+      "**기존 연료선 vs 친환경 연료선 인센티브** → 격차가 커지면 개조 후에도 수익성 나오면 개조 수요 증가"
+     ]
+    },
     "기존 연료선을 사용했을 때도 충분히 수익성이 나온다면, 엔진을 교체할 필요성은 줄어들지만 어쩔 수 없이 점차 개조해나가야하는 것은 **변하지 않는 미래**",
     {
      "type": "sub",
      "text": "핵심 플레이어"
     },
     {
-     "type": "sub",
-     "text": "HD현대마린솔루션"
+     "type": "list",
+     "items": [
+      {
+       "text": "**HD현대마린솔루션**",
+       "items": [
+        "자체 라이센스 힘센 엔진 보유 HD현대중공업 물량 100%",
+        "탈탄소 솔루션(친환경 연료엔진 개조 등)",
+        "매출비중"
+       ]
+      }
+     ]
     },
-    "자체 라이센스 힘센 엔진 보유 HD현대중공업 물량 100%",
-    "탈탄소 솔루션(친환경 연료엔진 개조 등)",
-    "매출비중",
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTdfMjM5/MDAxNzgxNjYzNTQzNTIx.FWxDuYS2vshZgAgXjZcRbwxTb4vPyjRSEqk4vFlToqog.otCpE4Fh4-2URH2QBdzKXBUZZ7buO3u445piZkjq9Dgg.JPEG/%ED%98%84%EB%8C%80%EB%A7%88%EB%A6%B0%EC%86%94%EB%A3%A8%EC%85%98.jpg?type=w800"
     },
-    "한화엔진",
-    "선박용 엔진을 판매하기도 하고, 이를 수리하기도 하는 기업!",
-    "AM 매출 비중 : 10%",
+    {
+     "type": "sub",
+     "text": ""
+    },
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "한화엔진",
+       "items": [
+        "선박용 엔진을 판매하기도 하고, 이를 수리하기도 하는 기업!",
+        "AM 매출 비중 : 10%"
+       ]
+      }
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjA2MTdfMTQ4/MDAxNzgxNjYzNTQ1Njkw.-AwOE_AxKbpknoPX80hCjy13wuB5Mldun87osaYN9Ukg.fIyRC4Y0k-5NMXoYXVUKQobjiV9Mwb5RwZHlE6s55nYg.JPEG/%ED%95%9C%ED%99%94%EC%97%94%EC%A7%84.jpg?type=w800"

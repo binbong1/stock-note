@@ -235,10 +235,15 @@
      "type": "sub",
      "text": "용어 정리"
     },
-    "중압 스위치기어 : 전력 분배, 회로 제어, 계통 보호(차단기)",
-    "UPS(Uninterruptible Power Supply) : 비상 전력 공급 + 외부 전기 노이즈 및 전압 변동 제거",
-    "PDU(Power Distribution Unit) : 전력 분배기 (멀티탭 같은거)",
-    "PSU(Power Supply Unit) : 전력 변환 장치, 교류/직류 변환 (블랙웰 서버랙에서는 Power Shelf 1개에 6개 PSU)",
+    {
+     "type": "list",
+     "items": [
+      "중압 스위치기어 : 전력 분배, 회로 제어, 계통 보호(차단기)",
+      "UPS(Uninterruptible Power Supply) : 비상 전력 공급 + 외부 전기 노이즈 및 전압 변동 제거",
+      "PDU(Power Distribution Unit) : 전력 분배기 (멀티탭 같은거)",
+      "PSU(Power Supply Unit) : 전력 변환 장치, 교류/직류 변환 (블랙웰 서버랙에서는 Power Shelf 1개에 6개 PSU)"
+     ]
+    },
     {
      "type": "link",
      "title": "LS 대한전선, 전선주 투자 아이디어 정리 및 분석",
@@ -295,14 +300,41 @@
      "type": "h",
      "text": "랙 구성요소"
     },
-    "**VBB(수직 버스바)** : PSU에서 변환된 직류 전류를 위아래로 뿌려줌",
-    "**HBB(수평 버스바)** : VBB로부터 받은 전류를 IT Rack으로 전달",
-    "**케이블 대신 버스바 → 단면적 확대, 전류 감소 → 전력 손실 & 구리 사용량 감소**",
-    "**PSU Shelf** : AC/DC 컨버터 → **미래 800V 랙에서는 필요없어질 친구(?)**",
-    "**BBU(Battery Backup Unit, ESS)** : 랙 단위 소형 UPS 역할, 수 초 ~ 분",
-    "**CBU(Capacitor Bank Unit) : 아주 짧은 시간 전력 스파이크 대응, 밀리초 ~ 수 초 **",
-    "과거에는 데이터센터 전체 단위 → 전력 사용량 늘어나며 랙 단위로 늘어남 **(랙 수준 커패시터 뱅크, RLCB)**",
-    "커패시터 수요 수십 ~ 수백배 증가 예상",
+    {
+     "type": "list",
+     "items": [
+      "**VBB(수직 버스바)** : PSU에서 변환된 직류 전류를 위아래로 뿌려줌"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "HBB(수평 버스바) : VBB로부터 받은 전류를 IT Rack으로 전달"
+    },
+    {
+     "type": "list",
+     "items": [
+      "**케이블 대신 버스바 → 단면적 확대, 전류 감소 → 전력 손실 & 구리 사용량 감소**"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "**PSU Shelf** : AC/DC 컨버터 → **미래 800V 랙에서는 필요없어질 친구(?)**"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "**BBU(Battery Backup Unit, ESS)** : 랙 단위 소형 UPS 역할, 수 초 ~ 분",
+      {
+       "text": "**CBU(Capacitor Bank Unit) : 아주 짧은 시간 전력 스파이크 대응, 밀리초 ~ 수 초 **",
+       "items": [
+        "과거에는 데이터센터 전체 단위 → 전력 사용량 늘어나며 랙 단위로 늘어남 **(랙 수준 커패시터 뱅크, RLCB)**",
+        "커패시터 수요 수십 ~ 수백배 증가 예상"
+       ]
+      }
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjAyMTBfMjgx/MDAxNzcwNzAzMTcxNjA3.PstMxkjocpGrhx6Osgk-3Mo_qgIEtu4glQ6EqdyPqdwg.3s_KhlGMKM7NPjvv15N7VBegBXCL5wnQgD8T4e3xNawg.JPEG/BBU_CBU.jpg?type=w800"
@@ -410,11 +442,16 @@
     },
     "서버랙이 변화하면서 우리가 꼭 살펴봐야할 변화는 빨간색으로 표시해보았음.",
     "**※ 참고 엔비디아 제품명 뜻 (ex. GB200 NVL72)**",
-    "G(그레이스, 엔비디아 CPU)",
-    "B(블랙웰, 엔비디아 GPU)",
-    "200(모델번호, CPU 1개 GPU 2개 기판 단위)",
-    "NVL : NVLink 칩끼리 연결하는 기술",
-    "72 : 랙 전체 72개 GPU 들어감 ex. GB200이 36개 들어가면 NVL72",
+    {
+     "type": "list",
+     "items": [
+      "G(그레이스, 엔비디아 CPU)",
+      "B(블랙웰, 엔비디아 GPU)",
+      "200(모델번호, CPU 1개 GPU 2개 기판 단위)",
+      "NVL : NVLink 칩끼리 연결하는 기술",
+      "72 : 랙 전체 72개 GPU 들어감 ex. GB200이 36개 들어가면 NVL72"
+     ]
+    },
     {
      "type": "h",
      "text": "발전에 따른 문제점"
@@ -499,12 +536,11 @@
     "이렇게 800V 직류 전력으로 받아서 칩으로 들어가는 1V 미만 전력으로 강압하기 위해서는 **SST 반도체 변압기가 필수적**임",
     "이 때 활용되는 것이 SiC&GaN 반도체로 각각의 주된 역할은 아래와 같음",
     {
-     "type": "sub",
-     "text": "SiC 반도체: 고전압 → 800V 강압"
-    },
-    {
-     "type": "sub",
-     "text": "GaN 반도체: 800V → 48V and 0.8V"
+     "type": "list",
+     "items": [
+      "**SiC 반도체: 고전압 → 800V 강압**",
+      "**GaN 반도체: 800V → 48V and 0.8V**"
+     ]
     },
     {
      "type": "img",
@@ -515,34 +551,53 @@
      "text": "전력 부하 커버"
     },
     "전력 사용량이 최대 1MW까지 커지면서, 전력량 부하 커버를 위한 **다층 구조 필요**",
-    "**유휴 상태 : 30%, 약 300kW (블랙웰 최대 50kW)**",
-    "**가동 상태 : 95%, 약 950kW (블랙웰 최대 135kW)**",
-    "**차이가 최대 650kW로 현재 85kW에 비해 엄청난 규모**",
-    "심각한 경우 대규모 정전이 발생 (ex. 25년 이베리아반도 대규모 정전)",
+    {
+     "type": "list",
+     "items": [
+      "**유휴 상태 : 30%, 약 300kW (블랙웰 최대 50kW)**",
+      "**가동 상태 : 95%, 약 950kW (블랙웰 최대 135kW)**",
+      "**차이가 최대 650kW로 현재 85kW에 비해 엄청난 규모**",
+      "심각한 경우 대규모 정전이 발생 (ex. 25년 이베리아반도 대규모 정전)"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjAyMTFfMSAg/MDAxNzcwNzgzNTAzMTQ1.jZ_DCa2wx2BMwOby76JlF9Qcz_HW0v1DIEThonNnseAg.kLLz0qZRyatoemhe1NeO26yZ_DHbRJmWBn87qdeV_9kg.JPEG/800VDC_%EC%A0%84%EB%A0%A5%EB%B6%80%ED%95%98_%EC%BB%A4%EB%B2%84.jpg?type=w800"
     },
     "엔비디아에서는 이러한 **Power swing 문제로 인해 부하 평활화(Load leveling)**을 중요하게 생각하고 있고, 아래와 같은 4가지 방법을 활용하고자 함",
     {
-     "type": "sub",
-     "text": "0.01초 ~ 0.1초 : 전해 커패시터"
+     "type": "list",
+     "items": [
+      "**0.01초 ~ 0.1초 : 전해 커패시터**"
+     ]
     },
-    "**0.1초 ~ 10초 : 슈퍼 커패시터(울트라 커패시터, EDLC)**",
-    "엔비디아는 델타 일렉트로닉스 납품(이곳에 국내 기업 **코칩**이 납품)",
     {
      "type": "sub",
-     "text": "중대형 커패시터 글로벌 1위 LS머트리얼즈"
+     "text": "0.1초 ~ 10초 : 슈퍼 커패시터(울트라 커패시터, EDLC)"
+    },
+    {
+     "type": "list",
+     "items": [
+      "엔비디아는 델타 일렉트로닉스 납품(이곳에 국내 기업 **코칩**이 납품)",
+      "**중대형 커패시터 글로벌 1위 LS머트리얼즈**"
+     ]
     },
     {
      "type": "sub",
      "text": "10초 이상 : ESS"
     },
-    "순간적인 전력 충격(마이크로 버스트)에 배터리는 반응 속도가 느려 반응하지 못함",
-    "커패시터가 짧은 시간을 커버하게 됨",
     {
-     "type": "sub",
-     "text": "긴 시간 : 엔진형 비상발전기"
+     "type": "list",
+     "items": [
+      "순간적인 전력 충격(마이크로 버스트)에 배터리는 반응 속도가 느려 반응하지 못함",
+      "커패시터가 짧은 시간을 커버하게 됨"
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "**긴 시간 : 엔진형 비상발전기**"
+     ]
     },
     {
      "type": "sub",
@@ -568,15 +623,22 @@
     },
     "위에서 이야기한 것처럼 고전압을 중압, 저압으로 변환하는 과정에서 SST가 필요하고, 그거에 필요한게 전력반도체다.",
     "전력반도체는 전기차 시장에서 가장 크게 활용되고 있지만, **800V DC 서버랙이 상용화되면 새로운 시장에 진출**하게 되는 것",
-    "**2024년 1.5~2.4억달러 시장에서 2028년 ~ 2033년까지 10~30% CAGR 성장 전망**",
-    "**주요 전력장비사(ABB, Eaton, Schneider, Vertiv 등) SST 계획 발표함**",
+    {
+     "type": "list",
+     "items": [
+      "**2024년 1.5~2.4억달러 시장에서 2028년 ~ 2033년까지 10~30% CAGR 성장 전망**",
+      "**주요 전력장비사(ABB, Eaton, Schneider, Vertiv 등) SST 계획 발표함**"
+     ]
+    },
     {
      "type": "sub",
      "text": "관련기업"
     },
     {
-     "type": "sub",
-     "text": "SiC 반도체 : 고압 → 중압 강압용"
+     "type": "list",
+     "items": [
+      "**SiC 반도체 : 고압 → 중압 강압용**"
+     ]
     },
     {
      "type": "table",
@@ -615,7 +677,13 @@
     },
     {
      "type": "sub",
-     "text": "GaN 반도체 : 랙내 DC-DC 강압"
+     "text": ""
+    },
+    {
+     "type": "list",
+     "items": [
+      "**GaN 반도체 : 랙내 DC-DC 강압**"
+     ]
     },
     {
      "type": "table",
@@ -647,23 +715,61 @@
       ]
      ]
     },
-    "국내 : SK실트론, DB하이텍, LS일렉트릭, LX세미콘",
+    {
+     "type": "sub",
+     "text": ""
+    },
+    {
+     "type": "list",
+     "items": [
+      "국내 : SK실트론, DB하이텍, LS일렉트릭, LX세미콘"
+     ]
+    },
     {
      "type": "h",
      "text": "커패시터"
     },
     "전력부하를 감당하기 위해 직접적으로 수혜를 받는 커패시터 관련기업들을 정리해보면 아래와 같다.",
-    "커패시터 필름 : 커패시터 원재료",
-    "도레이, 오지 홀딩스, **삼영**",
+    {
+     "type": "sub",
+     "text": "커패시터 필름 : 커패시터 원재료"
+    },
+    {
+     "type": "list",
+     "items": [
+      "도레이, 오지 홀딩스, **삼영**"
+     ]
+    },
     {
      "type": "sub",
      "text": "필름 커패시터 : 중고압용(메인)"
     },
-    "파나소닉, TDK, **삼화콘덴서, 뉴인텍**",
-    "전해 커패시터 : 저압용",
-    "니폰 케미콘, 니치콘, **삼영전자, 삼화전기(의교창님 최근 글)**",
-    "중대형 커패시터 : 데이터센터 UPS 등에 활용",
-    "**LS머트리얼즈→ 구조적 성장 초입, 24년 9월 버티브와 DC 전력솔루션 파트너십 체결**",
+    {
+     "type": "list",
+     "items": [
+      "파나소닉, TDK, **삼화콘덴서, 뉴인텍**"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "전해 커패시터 : 저압용"
+    },
+    {
+     "type": "list",
+     "items": [
+      "니폰 케미콘, 니치콘, **삼영전자, 삼화전기(의교창님 최근 글)**"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "중대형 커패시터 : 데이터센터 UPS 등에 활용"
+    },
+    {
+     "type": "list",
+     "items": [
+      "**LS머트리얼즈→ 구조적 성장 초입, 24년 9월 버티브와 DC 전력솔루션 파트너십 체결**"
+     ]
+    },
     {
      "type": "h",
      "text": "ESS"
@@ -689,10 +795,15 @@
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjAyMTZfNDcg/MDAxNzcxMjQwOTMxMjQ3.A7wL0TdSvPzcg1XrcBzavsGMZKRHariZIF0jtUyXXo8g.Sho26aOj5v8KVWjmlHrFvjP_zNwSresh3t6rnc4jAmMg.JPEG/%EC%97%94%EB%B9%84%EB%94%94%EC%95%84_%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%84%BC%ED%84%B0_GPU_TDP.jpg?type=w800"
     },
     "현재 블랙웰, 블랙웰 울트라 랙에서는 Direct-to-chip Cooling(D2C) 액체냉각 방식을 사용하고 있음",
-    "액침 냉각과 달리 직접 냉각유에 담그지 않고, 냉각판을 이용하여 GPU 열 흡수",
-    "냉각유 온도 상승 → CDU → Heat Rejection",
-    "**주요 부품 : Cold plate, CDU(Coolant Distribution Unit), QD(Quick Disconnects), 펌프, 열교환기**",
-    "한계 : Cold plate 부착되지 않은 부품은 열 컨트롤이 어려움",
+    {
+     "type": "list",
+     "items": [
+      "액침 냉각과 달리 직접 냉각유에 담그지 않고, 냉각판을 이용하여 GPU 열 흡수",
+      "냉각유 온도 상승 → CDU → Heat Rejection",
+      "**주요 부품 : Cold plate, CDU(Coolant Distribution Unit), QD(Quick Disconnects), 펌프, 열교환기**",
+      "한계 : Cold plate 부착되지 않은 부품은 열 컨트롤이 어려움"
+     ]
+    },
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjAyMTZfMjM1/MDAxNzcxMjQxMTc5OTA1.fHqT7kbP2pDelIEQcN1k11BzEGumRICzF0rX8F3Zmd8g._ugK-1b-P5H3Q7Tn0SXjjfQy9n_JHgW6stulwggKDlIg.JPEG/cold_plate.jpg?type=w800"
@@ -704,29 +815,44 @@
      "text": "냉각 방식 종류"
     },
     "냉각 방식들을 간단하게 비교해보면 아래와 같음",
-    "공기 냉각 : 설치 비용이 낮지만, 열전달 효율이 낮음",
-    "액체 냉각(liquid cooling)",
-    "**액침 냉각(immersion cooling)** : 하드웨어를 아예 액체에 담가 냉각시키는 방식",
-    "액침 냉각 침투율 2024년 14% → 2025년 33% → 2028년 95% 이상",
     {
-     "type": "sub",
-     "text": "장점"
+     "type": "list",
+     "items": [
+      "공기 냉각 : 설치 비용이 낮지만, 열전달 효율이 낮음",
+      "액체 냉각(liquid cooling)",
+      {
+       "text": "**액침 냉각(immersion cooling)** : 하드웨어를 아예 액체에 담가 냉각시키는 방식",
+       "items": [
+        "액침 냉각 침투율 2024년 14% → 2025년 33% → 2028년 95% 이상",
+        {
+         "text": "**장점**",
+         "items": [
+          "높은 냉각 효율",
+          "전력 사용효율(PUE) 1.07까지 낮추기 가능",
+          "소음 감소",
+          "공간 효율성",
+          "장기 수명 연장, 유지 보수 비용 절감"
+         ]
+        },
+        {
+         "text": "**단점**",
+         "items": [
+          "높은 초기 비용과 어려운 유지보수",
+          "환경 오염될 수 있는 냉각액",
+          "호환성 및 부식 문제(특수 코팅 필요)"
+         ]
+        },
+        {
+         "text": "단상 액침냉각 vs 이상 액침냉각",
+         "items": [
+          "단상 : 상변화없이 열교환기만 사용, 열교환기 스펙 중요",
+          "이상 : 냉각액 상변화 활용, 열전달 효율 좋으나 **특수 냉각액 필요**"
+         ]
+        }
+       ]
+      }
+     ]
     },
-    "높은 냉각 효율",
-    "전력 사용효율(PUE) 1.07까지 낮추기 가능",
-    "소음 감소",
-    "공간 효율성",
-    "장기 수명 연장, 유지 보수 비용 절감",
-    {
-     "type": "sub",
-     "text": "단점"
-    },
-    "높은 초기 비용과 어려운 유지보수",
-    "환경 오염될 수 있는 냉각액",
-    "호환성 및 부식 문제(특수 코팅 필요)",
-    "단상 액침냉각 vs 이상 액침냉각",
-    "단상 : 상변화없이 열교환기만 사용, 열교환기 스펙 중요",
-    "이상 : 냉각액 상변화 활용, 열전달 효율 좋으나 **특수 냉각액 필요**",
     {
      "type": "img",
      "src": "https://mblogthumb-phinf.pstatic.net/MjAyNjAyMTZfMTYg/MDAxNzcxMjQxNDk1MjE2.KxQL499_2DqMOhS5cPYwDzCzdoqwZHhXtjChisH5iqMg.AcoAuDKA4g2HqpzOGB04RoPU4zUxkLpjiDz03jbwrj8g.JPEG/%EB%8B%A8%EC%83%81_%EC%9D%B4%EC%83%81_%EC%95%A1%EC%B9%A8%EB%83%89%EA%B0%81.jpg?type=w800"
@@ -736,23 +862,54 @@
      "text": "관련 기업"
     },
     "위에서 언급된 기술력을 가진 기업들을 제미나이한테 물어봐서 정리해보았음",
-    "Cold plate : Cooler Master, AVC, BOYD, Auras (다 모르겠음)",
+    {
+     "type": "list",
+     "items": [
+      "Cold plate : Cooler Master, AVC, BOYD, Auras (다 모르겠음)"
+     ]
+    },
     {
      "type": "sub",
      "text": "CDU - 메인 기술"
     },
-    "사이드카형",
-    "서버랙 1:1로 관리하여 열효율은 좋으나 공간 문제 발생",
-    "관련기업 : **Delta**",
-    "인로(in-row)형",
-    "여러 대의 서버랙을 커버하여 비용 및 공간 활용에 유리함",
-    "관련기업 : **버티브**, BOYD",
-    "QD(퀵 디스커넥트) : CPC, Parker hannifin, Danfoss, Staubli",
-    "액침 냉각 기술 기업",
-    "**버티브** : 글로벌 1위 기업으로 주가도 상당히 반영되고 있는 중",
-    "**슈나이더 일렉트릭** : 버티브 경쟁사",
-    "**GST** : 국내 유일 2상형 액침냉각 기술 보유",
-    "**케이엔솔** : 단상형 액침 냉각 기술 개발",
+    {
+     "type": "list",
+     "items": [
+      {
+       "text": "사이드카형",
+       "items": [
+        "서버랙 1:1로 관리하여 열효율은 좋으나 공간 문제 발생",
+        "관련기업 : **Delta**"
+       ]
+      },
+      {
+       "text": "인로(in-row)형",
+       "items": [
+        "여러 대의 서버랙을 커버하여 비용 및 공간 활용에 유리함",
+        "관련기업 : **버티브**, BOYD"
+       ]
+      }
+     ]
+    },
+    {
+     "type": "list",
+     "items": [
+      "QD(퀵 디스커넥트) : CPC, Parker hannifin, Danfoss, Staubli"
+     ]
+    },
+    {
+     "type": "sub",
+     "text": "액침 냉각 기술 기업"
+    },
+    {
+     "type": "list",
+     "items": [
+      "**버티브** : 글로벌 1위 기업으로 주가도 상당히 반영되고 있는 중",
+      "**슈나이더 일렉트릭** : 버티브 경쟁사",
+      "**GST** : 국내 유일 2상형 액침냉각 기술 보유",
+      "**케이엔솔** : 단상형 액침 냉각 기술 개발"
+     ]
+    },
     "냉각 기술은 제대로 찾아보지 못했는데, 뭔가 너무 복잡해서 무슨 말인지 이해하기가 너무 어려웠다.",
     "그러나 한 가지 명확한 것은 루빈 울트라랙까지 출시되면 **데이터센터 내부 구조는 드라마틱하게 변화된다**는 것...!",
     {
