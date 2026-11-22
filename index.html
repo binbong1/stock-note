@@ -69,7 +69,7 @@
 <body>
 <header><div class="wrap bar">
   <a class="logo" href="#/"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg></span>내 주식 노트</a>
-  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/history" id="nav-hist">자산 추이</a><a href="#/realized" id="nav-real">실현손익</a><a href="#/signals" id="nav-sig">매매 신호</a><a href="#/holdings" id="nav-hold">보유 정보</a><a href="#/notes" id="nav-notes">종목 분석</a></nav>
+  <nav aria-label="주 메뉴"><a href="#/" id="nav-home">대시보드</a><a href="#/history" id="nav-hist">자산 추이</a><a href="#/realized" id="nav-real">실현손익</a><a href="#/signals" id="nav-sig">매매 신호</a><a href="#/holdings" id="nav-hold">보유 정보</a><a href="#/notes" id="nav-notes">종목 분석</a><a href="#/sectors" id="nav-sectors">산업 분석</a></nav>
 </div></header>
 <div id="pop" role="dialog" aria-live="polite"></div>
 <div class="wrap"><main id="app"><p class="mute">불러오는 중…</p></main></div>
@@ -895,7 +895,12 @@ function viewSignals() {
 // ================= 종목 분석 노트 (data/notes/index.json, data/notes/{id}.json) =================
 // 블로그 글은 링크로, Claude가 만든 분석은 섹션·표·그래프 JSON으로 저장해요.
 const NOTE_COLORS = ['#16161A', '#C8102E', '#1D4ED8', '#E8590C', '#2F9E44', '#7048E8'];
-const getNoteJSON = async (f) => { try { const r = await fetch('data/notes/' + f + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } };
+// 종목 분석(data/notes)과 산업 분석(data/sectors)은 같은 노트 형식·화면을 써요
+const NOTE_KINDS = {
+  note: { dir: 'data/notes/', list: '#/notes', item: '#/note/', name: '종목 분석' },
+  sector: { dir: 'data/sectors/', list: '#/sectors', item: '#/sector/', name: '산업 분석' },
+};
+const getNoteJSON = async (f, dir = 'data/notes/') => { try { const r = await fetch(dir + f + '?t=' + Date.now()); return r.ok ? await r.json() : null; } catch { return null; } };
 const nnum = (v) => v == null ? '' : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString('ko-KR') : (Math.round(v * 10) / 10).toLocaleString('ko-KR');
 const inlineMd = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
@@ -931,6 +936,17 @@ function noteChart(c) {
     <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(c.title || '그래프')}" style="display:block">${s}</svg><div class="legend" style="margin-top:6px">${legend}</div>
     ${c.note ? `<p class="mute" style="font-size:12px;margin:6px 0 0">${inlineMd(c.note)}</p>` : ''}</figure>`;
 }
+// 밸류체인: 단계(위→아래 흐름)마다 설명 · 관련 종목 · 병목 기술
+function noteChain(c) {
+  const stages = c.stages || [];
+  return `<div style="margin:10px 0">${c.title ? `<div style="font-weight:600;margin-bottom:8px">${esc(c.title)}</div>` : ''}
+    ${stages.map((st, i) => `${i ? '<div aria-hidden="true" style="text-align:center;color:var(--mute);line-height:1;margin:2px 0">↓</div>' : ''}
+    <div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#FAFAF8">
+      <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span style="font-weight:700">${esc(st.name)}</span>${st.desc ? `<span class="sub">${inlineMd(st.desc)}</span>` : ''}</div>
+      ${st.stocks?.length ? `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">${st.stocks.map((x) => `<span class="tag" style="font-weight:500">${esc(x)}</span>`).join('')}</div>` : ''}
+      ${st.bottleneck ? `<div style="margin-top:7px;font-size:13px;color:#8A4B00"><b>병목</b> · ${inlineMd(st.bottleneck)}</div>` : ''}
+    </div>`).join('')}</div>`;
+}
 function noteBlock(b) {
   if (typeof b === 'string') return `<p style="margin:6px 0">${inlineMd(b)}</p>`;
   if (b.type === 'h') return `<h3 style="margin:18px 0 6px;font-size:16px">✔ ${esc(b.text)}</h3>`;
@@ -941,6 +957,7 @@ function noteBlock(b) {
   if (b.type === 'sub') return `<h4 style="margin:14px 0 4px;font-size:15px">${esc(b.text)}</h4>`;
   if (b.type === 'img' && /^https:\/\//.test(b.src)) return `<img src="${esc(b.src)}" alt="${esc(b.alt || '분석 자료 그림')}" loading="lazy" referrerpolicy="no-referrer" style="display:block;max-width:100%;height:auto;margin:10px 0;border-radius:8px;border:1px solid var(--line2)">`;
   if (b.type === 'caption') return `<p class="mute" style="font-size:12px;margin:-4px 0 8px">${inlineMd(b.text)}</p>`;
+  if (b.type === 'chain') return noteChain(b);
   if (b.type === 'link' && /^https?:\/\//.test(b.url)) return `<a href="${esc(b.url)}" target="_blank" rel="noopener" style="display:block;margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFAF8;color:var(--ink)"><span style="font-weight:600;font-size:14px">${esc(b.title)}</span>${b.site ? `<br><span class="sub">${esc(b.site)}</span>` : ''}</a>`;
   return '';
 }
@@ -965,22 +982,43 @@ async function viewNotes() {
     ${items.length ? `<ul class="list">${items.map(row).join('')}</ul>` : '<p class="mute">아직 저장된 분석이 없어요.</p>'}</section>
     <p class="mute" style="font-size:12px">이 사이트는 공개 주소예요. 분석 기록은 누구나 볼 수 있어요. 주식 추천이 아니에요.</p>`;
 }
-async function viewNote(id) {
+async function viewNote(id, kind = 'note') {
+  const K = NOTE_KINDS[kind];
   $app.innerHTML = '<p class="mute">불러오는 중…</p>';
-  const idx = await getNoteJSON('index.json');
+  const idx = await getNoteJSON('index.json', K.dir);
   const it = (idx?.items || []).find((x) => x.id === id);
-  const n = it?.file ? await getNoteJSON(it.file) : null;
-  if (!n) { $app.innerHTML = `<div class="banner err">분석을 찾지 못했어요.</div><p><a href="#/notes">← 목록으로</a></p>`; return; }
+  const n = it?.file ? await getNoteJSON(it.file, K.dir) : null;
+  if (!n) { $app.innerHTML = `<div class="banner err">분석을 찾지 못했어요.</div><p><a href="${K.list}">← 목록으로</a></p>`; return; }
   const secs = n.sections || [];
-  $app.innerHTML = `<p style="margin:0"><a href="#/notes">← 종목 분석 목록</a></p>
+  // 여러 편을 합친 글은 섹션에 part(원래 편 제목)가 있어요 → 목차·본문에서 편 단위로 묶어 보여줘요
+  const partHead = (s, i) => s.part && s.part !== secs[i - 1]?.part;
+  const toc = secs.map((s, i) => `${partHead(s, i) ? `${i ? '</ol>' : ''}<div style="font-weight:600;font-size:13px;color:var(--mute);margin:${i ? 10 : 0}px 0 2px">${esc(s.part)}</div><ol start="${i + 1}" style="margin:0;padding-left:22px">` : (i === 0 ? '<ol style="margin:0;padding-left:22px">' : '')}<li><a href="${K.item}${encodeURIComponent(id)}" data-sec="${i}">${esc(s.title)}</a></li>`).join('') + '</ol>';
+  $app.innerHTML = `<p style="margin:0"><a href="${K.list}">← ${K.name} 목록</a></p>
     <div><h1>${esc(n.title)}</h1><p class="mute" style="margin:6px 0 0">${esc(n.name)}${n.code ? ` · <a href="#/stock/${encodeURIComponent(n.code)}">${esc(n.code)}</a>` : ''} · ${esc(n.date)} 작성${n.priceNote ? ' · ' + esc(n.priceNote) : ''}</p></div>
     ${n.summary ? `<section class="card kpi dark"><div class="l">한 줄 요약</div><div style="font-size:17px;margin-top:6px">${inlineMd(n.summary)}</div></section>` : ''}
     ${n.kpis?.length ? `<div class="cards">${n.kpis.map((k) => `<section class="card kpi"><div class="l">${esc(k.label)}</div><div class="v num" style="font-size:22px">${esc(k.value)}</div>${k.sub ? `<div class="s mute">${esc(k.sub)}</div>` : ''}</section>`).join('')}</div>` : ''}
-    ${secs.length > 2 ? `<section class="card"><h2 style="margin-bottom:6px">목차</h2><ol style="margin:0;padding-left:20px">${secs.map((s, i) => `<li><a href="#/note/${encodeURIComponent(id)}" data-sec="${i}">${esc(s.title)}</a></li>`).join('')}</ol></section>` : ''}
-    ${secs.map((s, i) => `<section class="card" id="sec-${i}"><h2 style="margin-bottom:8px">${i + 1}. ${esc(s.title)}</h2>${(s.blocks || []).map(noteBlock).join('')}</section>`).join('')}
+    ${secs.length > 2 ? `<section class="card"><h2 style="margin-bottom:6px">목차</h2>${toc}</section>` : ''}
+    ${secs.map((s, i) => `${partHead(s, i) && s.part !== '요약' ? `<div class="tag" style="align-self:flex-start">${esc(s.part)}</div>` : ''}<section class="card" id="sec-${i}"><h2 style="margin-bottom:8px">${i + 1}. ${esc(s.title)}</h2>${(s.blocks || []).map(noteBlock).join('')}</section>`).join('')}
     ${n.sources?.length ? `<section class="card"><h2 style="margin-bottom:6px">자료 출처</h2><ul style="margin:0;padding-left:20px;font-size:14px">${n.sources.map((x) => `<li>${inlineMd(x)}</li>`).join('')}</ul></section>` : ''}
     <p class="mute" style="font-size:12px">${esc(n.disclaimer || '공개 자료로 정리한 개인 기록이며 주식 추천이 아니에요. 추정치는 따로 표시했어요.')}</p>`;
   $app.querySelectorAll('[data-sec]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sec-' + a.dataset.sec)?.scrollIntoView({ behavior: 'smooth' }); }));
+}
+async function viewSectors() {
+  $app.innerHTML = '<p class="mute">불러오는 중…</p>';
+  const idx = await getNoteJSON('index.json', NOTE_KINDS.sector.dir);
+  const items = (idx?.items || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const row = (it) => {
+    const blogs = it.blogs || [];
+    return `<li style="display:flex;gap:12px;align-items:flex-start;justify-content:space-between">
+      <div style="min-width:0"><a class="name" href="#/sector/${encodeURIComponent(it.id)}">${esc(it.title)}</a>
+      <div class="sub">${esc(it.date || '')}${it.summary ? ' — ' + esc(it.summary) : ''}</div>
+      ${blogs.length ? `<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:13px">${blogs.map((b) => `<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.label)}</a>`).join('')}</div>` : ''}</div>
+      <span class="tag" style="flex:none">${it.source === 'blog' ? (blogs.length > 1 ? `블로그 ${blogs.length}편 합본` : '블로그') : 'Claude 분석'}</span></li>`;
+  };
+  $app.innerHTML = `<h1>산업 분석</h1>
+    <section class="card"><p class="mute" style="margin:0 0 6px;font-size:14px">섹터·테마별 산업 분석 기록이에요. 텔레그램에서 "OO 산업분석 해줘"라고 하면 Claude가 같은 틀(투자 아이디어 → 사이클 → 밸류체인 → 단계별 관련 종목·병목 기술 → 리스크)로 만들어 여기에 저장해요.</p>
+    ${items.length ? `<ul class="list">${items.map(row).join('')}</ul>` : '<p class="mute">아직 저장된 분석이 없어요.</p>'}</section>
+    <p class="mute" style="font-size:12px">이 사이트는 공개 주소예요. 분석 기록은 누구나 볼 수 있어요. 주식 추천이 아니에요.</p>`;
 }
 
 function route() {
@@ -992,7 +1030,10 @@ function route() {
   document.getElementById('nav-real').className = hsh === '#/realized' ? 'on' : '';
   document.getElementById('nav-sig').className = hsh === '#/signals' ? 'on' : '';
   document.getElementById('nav-notes').className = hsh.startsWith('#/note') ? 'on' : '';
+  document.getElementById('nav-sectors').className = hsh.startsWith('#/sector') ? 'on' : '';
   if (hsh.startsWith('#/stock/')) viewStock(decodeURIComponent(hsh.slice(8)));
+  else if (hsh === '#/sectors') viewSectors();
+  else if (hsh.startsWith('#/sector/')) viewNote(decodeURIComponent(hsh.slice(9)), 'sector');
   else if (hsh === '#/notes') viewNotes();
   else if (hsh.startsWith('#/note/')) viewNote(decodeURIComponent(hsh.slice(7)));
   else if (hsh === '#/history') viewHistory();

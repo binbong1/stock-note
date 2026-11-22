@@ -30,6 +30,15 @@
   `{type:"chart",title,unit,labels,bars:[{name,data}],line:{name,unit,data},note}` (막대 + 오른쪽 축 선, 예: 매출·영업이익 + OPM%)
 - 사이트는 공개 주소라 분석에 잔고·보유 수량 같은 개인 정보는 넣지 않아요. 텔레그램에는 핵심 요약 + `https://binbong1.github.io/stock-note/#/note/{id}` 링크로 답해요.
 
+## 산업 분석 요청 ("로봇 산업분석 해줘")
+- 사용자 블로그 산업분석 시리즈(조선·우주항공·800V 서버랙, `data/sectors/`) 틀을 따라요:
+  한눈에 보기 → 투자 아이디어(✔ 소제목, 시장규모·정책·뉴스 근거) → 사이클(시클리컬이면 과거 사이클 표: 기간·흐름·배경, 지금 위치) →
+  밸류체인 전체(업스트림·미드·다운스트림) → 단계별 핵심 부품·기술과 **병목 기술** → 단계별 관련 종목(국내 + 해외, 무엇을 하는지 한 줄) → 체크할 투자지표 → 리스크.
+- 밸류체인은 `{type:"chain",title,stages:[{name,desc,stocks:[...],bottleneck}]}` 블록으로 맨 위 "한눈에 보기"에 넣고, 본문에서 단계별로 자세히 풀어요.
+- 숫자·종목 관계(납품·지분 등)는 공개 자료(뉴스·리포트·공시)로 확인한 것만, 출처를 `sources` 에. 추정은 "추정" 표시, 문체 "~함/~임", 투자 판단 단정 안 함.
+- 저장: `data/sectors/{영문id}.json` (노트 JSON과 같은 형식, 섹션에 `part` 를 넣으면 목차가 편 단위로 묶임) + `data/sectors/index.json` items 에 `{id,title,name,date,summary,file,source:"claude"}`.
+  **한 섹터 = 한 항목** (같은 섹터를 다시 분석하면 기존 항목 갱신). 텔레그램에는 핵심 요약 + `https://binbong1.github.io/stock-note/#/sector/{id}` 링크.
+
 ## 구성
 - `index.html` — 사이트 전체 (대시보드, 자산 추이, 실현손익, 매매 신호, 종목 상세)
 - `scripts/collect.mjs` 잔고·시세 수집 / `scan.mjs` 추세추종 스캔 / `news.mjs` 공시·리포트 / `credit.mjs` 신용잔고 / `surge.mjs` 급등주
