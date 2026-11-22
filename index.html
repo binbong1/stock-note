@@ -947,10 +947,25 @@ function noteChain(c) {
       ${st.bottleneck ? `<div style="margin-top:7px;font-size:13px;color:#8A4B00"><b>병목</b> · ${inlineMd(st.bottleneck)}</div>` : ''}
     </div>`).join('')}</div>`;
 }
+// 목록: 항목은 문자열 또는 {text, items}(하위 목록). 같은 단계에 하위 항목을 가진 항목이 2개 이상이면 ①②③으로 구분
+const CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
+function noteList(items, depth = 0, ordered = false) {
+  const groups = items.filter((x) => x && typeof x === 'object').length >= 2;
+  let k = 0;
+  const lis = items.map((x) => {
+    if (!x || typeof x !== 'object') return `<li style="margin:3px 0">${inlineMd(String(x ?? ''))}</li>`;
+    let head = x.text || '';
+    if (!/\*\*/.test(head)) { const i = head.indexOf(' : '); head = i > 0 ? `**${head.slice(0, i)}**${head.slice(i)}` : `**${head}**`; }
+    const mark = groups && !ordered ? CIRCLED[k++] || '' : '';
+    return `<li style="margin:6px 0${mark ? ';list-style:none' : ''}">${mark ? `<span style="margin-right:4px">${mark}</span>` : ''}${inlineMd(head)}${x.items?.length ? noteList(x.items, depth + 1) : ''}</li>`;
+  }).join('');
+  const style = ['disc', 'circle', 'square'][Math.min(depth, 2)];
+  return ordered ? `<ol style="margin:6px 0;padding-left:22px">${lis}</ol>` : `<ul style="margin:${depth ? 3 : 6}px 0;padding-left:${depth ? 40 : 20}px;list-style:${style}">${lis}</ul>`;
+}
 function noteBlock(b) {
   if (typeof b === 'string') return `<p style="margin:6px 0">${inlineMd(b)}</p>`;
   if (b.type === 'h') return `<h3 style="margin:18px 0 6px;font-size:16px">✔ ${esc(b.text)}</h3>`;
-  if (b.type === 'list') return `<ul style="margin:6px 0;padding-left:20px">${b.items.map((x) => `<li style="margin:3px 0">${inlineMd(x)}</li>`).join('')}</ul>`;
+  if (b.type === 'list') return noteList(b.items, 0, b.ordered);
   if (b.type === 'table') return `<div class="scroll" style="margin:8px 0">${b.title ? `<div style="font-weight:600;margin-bottom:4px">${esc(b.title)}${b.unit ? ` <span class="mute" style="font-weight:400;font-size:12px">(${esc(b.unit)})</span>` : ''}</div>` : ''}<table><thead><tr>${b.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((r) => `<tr>${r.map((v) => `<td class="${typeof v === 'number' ? 'num' : ''}">${typeof v === 'number' ? nnum(v) : inlineMd(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   if (b.type === 'chart') return noteChart(b);
   if (b.type === 'callout') return `<div class="banner" style="margin:8px 0">${inlineMd(b.text)}</div>`;
