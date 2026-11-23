@@ -142,6 +142,7 @@ const HELP = `<b>내 주식 노트 봇</b> — 이렇게 보내 보세요
 • <b>공시알림 끄기</b> / <b>공시알림 켜기</b> — 보유 종목 공시·리포트 알림
 • <b>신용</b> — 코스피·코스닥 신용잔고 최근 5일 · <b>신용알림 끄기/켜기</b>
 • <b>급등알림 끄기/켜기</b> · <b>급등 20</b> — 급등주 정리(10:30·15:00)와 기준(%)
+• <b>미국지표알림 끄기/켜기</b> — 아침 6시 미국 회사채 스프레드·10년물·WTI 그래프
 ${CFG.claude?.apiKey || CFG.anthropicKey ? '\n💬 그 밖에는 평소 말하듯 보내도 돼요. 예) "이번 달 한투1 실현손익 얼마야?", "보유 종목 중 52주 고가 근처인 거 있어?", "SNT다이내믹스 감시 걸어줘"\n바꾸는 일은 "네"라고 확인한 뒤에 실행해요. 주문은 할 수 없어요.' : ''}`;
 
 const KEYS = {
@@ -420,6 +421,13 @@ async function handle(text) {
   if (/^(공시알림|공시|리포트알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) return cmdNews(/켜/.test(args[0]));
   if (/^(신용알림|신용잔고알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) return cmdCreditAlert(/켜/.test(args[0]));
   if (/^(신용|신용잔고|빚투)$/.test(cmd)) return cmdCredit();
+  if (/^(미국지표알림|미국알림|회사채알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) {
+    const on = /켜/.test(args[0]);
+    const alerts = (await file('config/alerts.json', 0)) || { custom: [] };
+    alerts.usmacro = on;
+    await saveJSON('config/alerts.json', alerts, `봇: 미국 지표 알림 ${on ? '켜기' : '끄기'}`);
+    return on ? '🇺🇸 아침 미국 지표 그래프(회사채 스프레드·10년물·WTI)를 켰어요.' : '미국 지표 그래프를 껐어요. "미국지표알림 켜기"로 다시 켤 수 있어요.';
+  }
   if (/^(급등알림|급등주알림)$/.test(cmd) && /끄|켜/.test(args[0] || '')) {
     const on = /켜/.test(args[0]);
     const alerts = (await file('config/alerts.json', 0)) || { custom: [] };

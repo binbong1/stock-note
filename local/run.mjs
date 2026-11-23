@@ -2,7 +2,7 @@
 //
 //   node local/run.mjs daemon        상시 실행 (start.cmd 가 자동으로 켬)
 //   node local/run.mjs job <이름>     작업 하나만 바로 실행
-//        이름: sync | collect | daily | intraday | news | credit | evening | publish | pull
+//        이름: sync | collect | daily | intraday | news | credit | usmacro | evening | publish | pull
 //   node local/run.mjs mode local     GitHub 자동 실행을 쉬게 하고 이 PC가 맡기
 //   node local/run.mjs mode github    다시 GitHub이 맡기
 //   node local/run.mjs status         최근 실행 기록 보기
@@ -13,6 +13,7 @@
 //   · 16:10        키움·토스 잔고 → 전체 수집(collect) → 장 마감 스캔(daily) → 신용잔고 그래프
 //                  (PC가 꺼져 있었으면 켜진 뒤 그날 밤 12시 전까지 따라잡아 실행)
 //   · 10:30·15:00  급등주 정리 (25% 이상 상승 개별 종목)
+//   · 화~토 06:10  미국 장 마감 뒤 미국 지표 그래프 (회사채 스프레드·10년물·WTI, 08:00에 한 번 더 확인)
 //   · 토요일 07:00  미국 금요일 종가 반영 (잔고·시세만)
 //   · 텔레그램 봇 상시 실행 (꺼지면 다시 켬)
 //   · http://localhost:8080 에서 사이트 열기
@@ -127,7 +128,7 @@ async function online() {
   try { const r = await fetch('https://m.stock.naver.com/', { method: 'HEAD', signal: AbortSignal.timeout(8000) }); return r.status < 500; }
   catch { return false; }
 }
-const NEEDS_NET = new Set(['sync', 'collect', 'daily', 'intraday', 'news', 'credit', 'evening', 'weekend', 'surge']);
+const NEEDS_NET = new Set(['sync', 'collect', 'daily', 'intraday', 'news', 'credit', 'evening', 'weekend', 'surge', 'usmacro']);
 
 // ---------------------------------------------------------------- 작업
 const JOBS = {
@@ -144,6 +145,7 @@ const JOBS = {
   },
   async surge() { return node(['scripts/surge.mjs'], { timeoutMin: 5 }); },
   async credit() { return node(['scripts/credit.mjs'], { timeoutMin: 5 }); },
+  async usmacro() { return node(['scripts/usmacro.mjs'], { timeoutMin: 5 }); },
   async evening() {
     const a = await JOBS.sync();
     const b = await JOBS.collect();
@@ -247,6 +249,9 @@ function tick() {
   if (wd && m >= EVENING_AT && Date.now() >= (STATE.eveningRetryAt || 0) && once('evening')) enqueue('evening');
   // 급등주 정리: 10:30 · 15:00 (늦게 켜졌으면 30분 안에만 보냄)
   for (const t of [10 * 60 + 30, 15 * 60]) if (wd && m >= t && m < t + 30 && once(`surge${t}`)) enqueue('surge');
+  // 미국 지표: 한국 화~토 아침(미국 월~금 장 마감 뒤). FRED 갱신이 늦으면 08:00에 한 번 더 (이미 보낸 날짜는 스크립트가 건너뜀)
+  const kd = kst().getUTCDay();
+  if (kd >= 2 && kd <= 6 && m < 12 * 60) for (const t of [6 * 60 + 10, 8 * 60]) if (m >= t && once(`usmacro${t}`)) enqueue('usmacro');
   // 토요일 아침: 미국 금요일 종가(한국 토요일 새벽 마감)를 반영하려고 잔고·시세만 한 번 더
   if (kst().getUTCDay() === 6 && m >= 7 * 60 && once('saturday')) enqueue('weekend');
   if (m >= 6 * 60 && once('pull')) enqueue('pull');
@@ -333,7 +338,7 @@ if (cmd === 'job') {
   if (NEEDS_NET.has(arg) && !(await online())) { log('인터넷(네이버 증권)에 연결이 안 돼요. 연결을 확인해 주세요.'); process.exit(1); }
   log(`▶ ${arg} (직접 실행)`);
   const r = await JOBS[arg]();
-  if (['sync', 'collect', 'daily', 'intraday', 'news', 'credit'].includes(arg)) await JOBS.publish();
+  if (['sync', 'collect', 'daily', 'intraday', 'news', 'credit', 'usmacro'].includes(arg)) await JOBS.publish();
   // surge 는 텔레그램만 보내고 올릴 데이터가 없음
   log(r.code === 0 ? '✔ 끝' : '✖ 실패 — 위 메시지를 확인하세요');
   process.exit(r.code === 0 ? 0 : 1);
