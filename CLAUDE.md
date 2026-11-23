@@ -37,7 +37,9 @@
 - 밸류체인은 `{type:"chain",title,stages:[{name,desc,stocks:[...],bottleneck}]}` 블록으로 맨 위 "한눈에 보기"에 넣고, 본문에서 단계별로 자세히 풀어요.
 - 숫자·종목 관계(납품·지분 등)는 공개 자료(뉴스·리포트·공시)로 확인한 것만, 출처를 `sources` 에. 추정은 "추정" 표시, 문체 "~함/~임", 투자 판단 단정 안 함.
 - 저장: `data/sectors/{영문id}.json` (노트 JSON과 같은 형식, 섹션에 `part` 를 넣으면 목차가 편 단위로 묶임) + `data/sectors/index.json` items 에 `{id,title,name,date,summary,file,source:"claude"}`.
-  **한 섹터 = 한 항목** (같은 섹터를 다시 분석하면 기존 항목 갱신). 텔레그램에는 핵심 요약 + `https://binbong1.github.io/stock-note/#/sector/{id}` 링크.
+  **한 섹터 = 한 항목** (같은 섹터를 다시 분석하면 기존 항목 갱신).
+- "최신 내용으로 업데이트해줘" → 본문은 그대로 두고 날짜별 업데이트 페이지를 추가: `data/sectors/updates/{id}-{YYYYMMDD}.json`(노트 형식: 기존 글 대비 바뀐 점 → 최신 숫자·실적 → 체크포인트, 출처는 직접 연 리포트·기사 링크) + `data/sectors/updates/index.json` items 에 `{sector,date,title,summary,file}`.
+  섹터 페이지 "한눈에 보기" 맨 위에 날짜별 버튼이 생기고, 주소는 `#/sector/{id}/update/{YYYY-MM-DD}`. 텔레그램에는 핵심 요약 + `https://binbong1.github.io/stock-note/#/sector/{id}` 링크.
 
 ## 구성
 - `index.html` — 사이트 전체 (대시보드, 자산 추이, 실현손익, 매매 신호, 종목 상세)

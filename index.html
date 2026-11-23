@@ -997,23 +997,30 @@ async function viewNotes() {
     ${items.length ? `<ul class="list">${items.map(row).join('')}</ul>` : '<p class="mute">아직 저장된 분석이 없어요.</p>'}</section>
     <p class="mute" style="font-size:12px">이 사이트는 공개 주소예요. 분석 기록은 누구나 볼 수 있어요. 주식 추천이 아니에요.</p>`;
 }
-async function viewNote(id, kind = 'note') {
+// upd: 산업 분석의 날짜별 업데이트 페이지(#/sector/{id}/update/{YYYY-MM-DD}, data/sectors/updates/index.json)
+async function viewNote(id, kind = 'note', upd = null) {
   const K = NOTE_KINDS[kind];
   $app.innerHTML = '<p class="mute">불러오는 중…</p>';
   const idx = await getNoteJSON('index.json', K.dir);
   const it = (idx?.items || []).find((x) => x.id === id);
-  const n = it?.file ? await getNoteJSON(it.file, K.dir) : null;
-  if (!n) { $app.innerHTML = `<div class="banner err">분석을 찾지 못했어요.</div><p><a href="${K.list}">← 목록으로</a></p>`; return; }
+  const updIdx = kind === 'sector' ? await getNoteJSON('updates/index.json', K.dir) : null;
+  const updates = (updIdx?.items || []).filter((u) => u.sector === id).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const u = upd ? updates.find((x) => x.date === upd) : null;
+  const n = upd ? (u?.file ? await getNoteJSON(u.file, K.dir) : null) : (it?.file ? await getNoteJSON(it.file, K.dir) : null);
+  const back = upd ? `<a href="${K.item}${encodeURIComponent(id)}">← ${esc(it?.title || K.name)} 본문</a>` : `<a href="${K.list}">← ${K.name} 목록</a>`;
+  if (!n) { $app.innerHTML = `<div class="banner err">분석을 찾지 못했어요.</div><p>${back}</p>`; return; }
+  const self = upd ? `${K.item}${encodeURIComponent(id)}/update/${upd}` : `${K.item}${encodeURIComponent(id)}`;
+  const updCards = !upd && updates.length ? `<div style="display:flex;flex-direction:column;gap:6px;margin:0 0 12px">${updates.map((x, i) => `<a href="${K.item}${encodeURIComponent(id)}/update/${x.date}" style="display:block;padding:10px 12px;border-radius:10px;border:1px solid ${i ? 'var(--line)' : 'var(--ink)'};background:${i ? '#FAFAF8' : 'var(--ink)'};color:${i ? 'var(--ink)' : '#fff'}"><b>📌 ${esc(x.date)} 업데이트${i ? '' : ' (최신)'}</b><br><span style="font-size:13px;opacity:.85">${esc(x.summary || '')}</span></a>`).join('')}</div>` : '';
   const secs = n.sections || [];
   // 여러 편을 합친 글은 섹션에 part(원래 편 제목)가 있어요 → 목차·본문에서 편 단위로 묶어 보여줘요
   const partHead = (s, i) => s.part && s.part !== secs[i - 1]?.part;
-  const toc = secs.map((s, i) => `${partHead(s, i) ? `${i ? '</ol>' : ''}<div style="font-weight:600;font-size:13px;color:var(--mute);margin:${i ? 10 : 0}px 0 2px">${esc(s.part)}</div><ol start="${i + 1}" style="margin:0;padding-left:22px">` : (i === 0 ? '<ol style="margin:0;padding-left:22px">' : '')}<li><a href="${K.item}${encodeURIComponent(id)}" data-sec="${i}">${esc(s.title)}</a></li>`).join('') + '</ol>';
-  $app.innerHTML = `<p style="margin:0"><a href="${K.list}">← ${K.name} 목록</a></p>
+  const toc = secs.map((s, i) => `${partHead(s, i) ? `${i ? '</ol>' : ''}<div style="font-weight:600;font-size:13px;color:var(--mute);margin:${i ? 10 : 0}px 0 2px">${esc(s.part)}</div><ol start="${i + 1}" style="margin:0;padding-left:22px">` : (i === 0 ? '<ol style="margin:0;padding-left:22px">' : '')}<li><a href="${self}" data-sec="${i}">${esc(s.title)}</a></li>`).join('') + '</ol>';
+  $app.innerHTML = `<p style="margin:0">${back}</p>
     <div><h1>${esc(n.title)}</h1><p class="mute" style="margin:6px 0 0">${esc(n.name)}${n.code ? ` · <a href="#/stock/${encodeURIComponent(n.code)}">${esc(n.code)}</a>` : ''} · ${esc(n.date)} 작성${n.priceNote ? ' · ' + esc(n.priceNote) : ''}</p></div>
     ${n.summary ? `<section class="card kpi dark"><div class="l">한 줄 요약</div><div style="font-size:17px;margin-top:6px">${inlineMd(n.summary)}</div></section>` : ''}
     ${n.kpis?.length ? `<div class="cards">${n.kpis.map((k) => `<section class="card kpi"><div class="l">${esc(k.label)}</div><div class="v num" style="font-size:22px">${esc(k.value)}</div>${k.sub ? `<div class="s mute">${esc(k.sub)}</div>` : ''}</section>`).join('')}</div>` : ''}
     ${secs.length > 2 ? `<section class="card"><h2 style="margin-bottom:6px">목차</h2>${toc}</section>` : ''}
-    ${secs.map((s, i) => `${partHead(s, i) && s.part !== '요약' ? `<div class="tag" style="align-self:flex-start">${esc(s.part)}</div>` : ''}<section class="card" id="sec-${i}"><h2 style="margin-bottom:8px">${i + 1}. ${esc(s.title)}</h2>${(s.blocks || []).map(noteBlock).join('')}</section>`).join('')}
+    ${secs.map((s, i) => `${partHead(s, i) && s.part !== '요약' ? `<div class="tag" style="align-self:flex-start">${esc(s.part)}</div>` : ''}<section class="card" id="sec-${i}"><h2 style="margin-bottom:8px">${i + 1}. ${esc(s.title)}</h2>${i === 0 ? updCards : ''}${(s.blocks || []).map(noteBlock).join('')}</section>`).join('')}
     ${n.sources?.length ? `<section class="card"><h2 style="margin-bottom:6px">자료 출처</h2><ul style="margin:0;padding-left:20px;font-size:14px">${n.sources.map((x) => `<li>${inlineMd(x)}</li>`).join('')}</ul></section>` : ''}
     <p class="mute" style="font-size:12px">${esc(n.disclaimer || '공개 자료로 정리한 개인 기록이며 주식 추천이 아니에요. 추정치는 따로 표시했어요.')}</p>`;
   $app.querySelectorAll('[data-sec]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('sec-' + a.dataset.sec)?.scrollIntoView({ behavior: 'smooth' }); }));
@@ -1048,7 +1055,7 @@ function route() {
   document.getElementById('nav-sectors').className = hsh.startsWith('#/sector') ? 'on' : '';
   if (hsh.startsWith('#/stock/')) viewStock(decodeURIComponent(hsh.slice(8)));
   else if (hsh === '#/sectors') viewSectors();
-  else if (hsh.startsWith('#/sector/')) viewNote(decodeURIComponent(hsh.slice(9)), 'sector');
+  else if (hsh.startsWith('#/sector/')) { const [sid, , d] = hsh.slice(9).split('/'); viewNote(decodeURIComponent(sid), 'sector', d || null); }
   else if (hsh === '#/notes') viewNotes();
   else if (hsh.startsWith('#/note/')) viewNote(decodeURIComponent(hsh.slice(7)));
   else if (hsh === '#/history') viewHistory();
