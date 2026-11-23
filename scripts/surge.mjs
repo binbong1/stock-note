@@ -1,4 +1,4 @@
-// 급등주 정리 — 코스피·코스닥에서 전일 대비 N% 이상 오른 개별 종목(ETF·ETN·스팩 제외)을 텔레그램으로
+// 급등주 정리 — 코스피·코스닥에서 전일 대비 N% 이상 오른 개별 종목 + 오늘 52주 신고가 종목(ETF·ETN·스팩 제외)을 텔레그램으로
 //   node scripts/surge.mjs           텔레그램으로 보내기 (평일 10:30·15:00, local/run.mjs 가 실행)
 //   node scripts/surge.mjs --print   보내지 않고 화면에만 출력 (Claude가 "지금 급등주" 요청에 사용)
 // 상승 이유는 그 종목의 오늘 뉴스 제목(특징주 기사 우선)으로 적어요. 매수·매도 추천은 하지 않아요.
@@ -18,6 +18,25 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 const unesc = (s) => String(s ?? '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 const getJSON = async (u) => { const r = await fetch(u, { headers: H, signal: AbortSignal.timeout(15000) }); if (!r.ok) throw new Error(`HTTP ${r.status} ${u}`); return r.json(); };
 
+const isStock = (s) => s.stockEndType === 'stock' && !/스팩|SPAC|ETN|ETF|클래스/i.test(s.stockName);
+const capText = (raw, fallback) => { const v = Number(raw); if (!v) return String(fallback || '').replace(/원$/, '');
+  return v >= 1e12 ? `${(v / 1e12).toFixed(1)}조` : `${Math.round(v / 1e8).toLocaleString('ko-KR')}억`; };
+const item = (s, market) => ({ code: s.itemCode, name: s.stockName, market: market === 'KOSPI' ? '코스피' : '코스닥', pct: parseFloat(s.fluctuationsRatio),
+  upper: s.compareToPreviousPrice?.name === 'UPPER_LIMIT', price: s.closePrice, cap: capText(s.marketValueRaw, s.marketValueHangeul),
+  value: String(s.accumulatedTradingValueKrwHangeul || '').replace(/원$/, '') });
+
+// 오늘 52주 신고가 (네이버 증권 52주 신고가 목록)
+async function newHighs(market) {
+  const out = [];
+  for (let page = 1; page <= 5; page++) {
+    const j = await getJSON(`https://m.stock.naver.com/api/stocks/high52week/${market}?page=${page}&pageSize=100`);
+    const list = j.stocks || [];
+    for (const s of list) if (isStock(s)) out.push(item(s, market));
+    if (list.length < 100) break;
+  }
+  return out;
+}
+
 async function gainers(market, minPct) {
   const out = [];
   for (let page = 1; page <= 5; page++) {
@@ -26,9 +45,8 @@ async function gainers(market, minPct) {
     for (const s of list) {
       const pct = parseFloat(s.fluctuationsRatio);
       if (!(pct >= minPct)) return out;
-      if (s.stockEndType !== 'stock' || /스팩|SPAC|ETN|ETF/i.test(s.stockName)) continue;
-      out.push({ code: s.itemCode, name: s.stockName, market: market === 'KOSPI' ? '코스피' : '코스닥', pct, upper: s.compareToPreviousPrice?.name === 'UPPER_LIMIT',
-        price: s.closePrice, cap: s.marketValueHangeul, value: s.accumulatedTradingValueKrwHangeul, tradedAt: s.localTradedAt, status: s.marketStatus });
+      if (!isStock(s)) continue;
+      out.push(item(s, market));
     }
     if (list.length < 100) break;
   }
@@ -41,9 +59,12 @@ async function reason(s) {
     const items = j.flatMap((g) => g.items || []);
     const ymd = today().replace(/-/g, '');
     const todays = items.filter((n) => String(n.datetime || '').startsWith(ymd));
-    const pick = todays.find((n) => /특징주|급등|상한가|강세/.test(n.title)) || todays[0];
+    // 오늘 뉴스 우선(특징주 기사 먼저), 없으면 최근 3일 안 가장 새 기사에 날짜를 붙여요
+    const since = new Date(Date.now() + 9 * 3600000 - 3 * 86400000).toISOString().slice(0, 10).replace(/-/g, '');
+    const pick = todays.find((n) => /특징주|급등|상한가|강세|신고가/.test(n.title)) || todays[0] || items.find((n) => String(n.datetime || '').slice(0, 8) >= since);
     if (!pick) return null;
-    return { title: unesc(pick.titleFull || pick.title), url: pick.mobileNewsUrl, office: pick.officeName };
+    const d = String(pick.datetime || '');
+    return { title: unesc(pick.titleFull || pick.title), url: pick.mobileNewsUrl, office: pick.officeName, day: d.startsWith(ymd) ? '' : `${+d.slice(4, 6)}/${+d.slice(6, 8)}` };
   } catch { return null; }
 }
 
@@ -66,22 +87,36 @@ async function main() {
     return;
   }
 
-  for (const s of all) s.why = await reason(s);
-  const lines = [`<b>🚀 급등주 정리</b> (${today().slice(5).replace('-', '/')} ${hm} 기준 · ${minPct}% 이상)`];
-  if (!all.length) lines.push('', `${minPct}% 이상 오른 종목이 없어요.`);
-  else {
-    lines.push(`코스피 ${kospi.length} · 코스닥 ${kosdaq.length}종목`, '');
-    for (const s of all) {
-      lines.push(`<b>${esc(s.name)}</b> ${s.market} <b>+${s.pct.toFixed(2)}%</b>${s.upper ? ' 상한가' : ''} · ${esc(s.price)}원`);
-      lines.push(`  시총 ${esc(s.cap)} · 거래대금 ${esc(s.value)}`);
-      lines.push(s.why ? `  └ ${esc(s.why.title)} (<a href="${esc(s.why.url)}">${esc(s.why.office)}</a>)` : '  └ 뚜렷한 재료 확인 안 됨');
-    }
-  }
-  lines.push('', '<i>시세는 조회 시점 기준이며 지연될 수 있어요 · 자료: 네이버 증권</i>');
+  const highs = [...(await newHighs('KOSPI').catch(() => [])), ...(await newHighs('KOSDAQ').catch(() => []))].sort((x, y) => y.pct - x.pct);
+  const highCodes = new Set(highs.map((h) => h.code));
+  const highOnly = highs.filter((h) => !all.some((g) => g.code === h.code));
+  const MAX_HIGH = 30;
+  for (const s of [...all, ...highOnly.slice(0, MAX_HIGH)]) s.why = await reason(s);
+
+  const LINE = '━━━━━━━━━━━━━━';
+  const pct = (p) => `${p > 0 ? '+' : ''}${p.toFixed(1)}%`;
+  const news = (s) => s.why ? `📰 ${s.why.day ? `<i>(${s.why.day})</i> ` : ''}<a href="${esc(s.why.url)}">${esc(s.why.title)}</a>` : '📰 <i>최근 뉴스 없음</i>';
+  const lines = [`<b>🚀 급등주 · 신고가</b>  ${today().slice(5).replace('-', '/')} ${hm}`, LINE];
+  lines.push(`<b>🔥 급등 ${minPct}%↑</b>  ${all.length}종목`, '');
+  if (!all.length) lines.push(`${minPct}% 이상 오른 종목이 없어요.`, '');
+  all.forEach((s, i) => {
+    lines.push(`<b>${i + 1}. ${esc(s.name)}  ${pct(s.pct)}</b>${s.upper ? ' 🔺상한가' : ''}${highCodes.has(s.code) ? ' 🏔신고가' : ''}`);
+    lines.push(`${s.market} · ${esc(s.price)}원 · 시총 ${esc(s.cap)} · 대금 ${esc(s.value)}`);
+    lines.push(news(s), '');
+  });
+  lines.push(LINE, `<b>🏔 52주 신고가</b>  ${highs.length}종목${highs.length > highOnly.length ? ` (급등주 ${highs.length - highOnly.length}개 포함)` : ''}`, '');
+  if (!highOnly.length) lines.push(highs.length ? '위 급등주 외에는 없어요.' : '오늘 신고가 종목이 없어요.', '');
+  highOnly.slice(0, MAX_HIGH).forEach((s) => {
+    lines.push(`<b>${esc(s.name)}  ${pct(s.pct)}</b>`);
+    lines.push(`${s.market} · ${esc(s.price)}원 · 시총 ${esc(s.cap)}`);
+    lines.push(news(s), '');
+  });
+  if (highOnly.length > MAX_HIGH) lines.push(`외 ${highOnly.length - MAX_HIGH}종목: ${highOnly.slice(MAX_HIGH).map((s) => esc(s.name)).join(', ')}`, '');
+  lines.push('<i>조회 시점 시세 · ETF·ETN·스팩 제외 · 자료: 네이버 증권</i>');
   const text = lines.join('\n');
   if (PRINT) { console.log(text.replace(/<a href="([^"]+)">([^<]*)<\/a>/g, '$2 $1').replace(/<[^>]+>/g, '')); return; }
   await send(text);
-  console.log(`[surge] ${all.length}종목 보냈어요`);
+  console.log(`[surge] 급등 ${all.length} · 신고가 ${highs.length}종목 보냈어요`);
 }
 
 async function send(text) {

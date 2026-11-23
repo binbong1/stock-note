@@ -1,4 +1,4 @@
-// 코스피·코스닥 신용거래융자 잔고 → 6개월 그래프 + 최근 5일 표를 텔레그램으로 보냅니다.
+// 코스피·코스닥 신용거래융자 잔고 → 1년 그래프 + 최근 5일 표를 텔레그램으로 보냅니다.
 //   node scripts/credit.mjs          새 기준일 자료가 나왔으면 보냄 (이미 보낸 날짜면 건너뜀)
 //   node scripts/credit.mjs --force  다시 보냄
 // 자료: 금융투자협회 종합통계(freesis) '신용공여 잔고 추이' (단위 백만원). 보통 하루 늦게(전 거래일 기준) 나와요.
@@ -35,7 +35,7 @@ const pct = (a, b) => (b ? ((a / b - 1) * 100) : 0);
 const pad = (s, n) => { s = String(s); return s.length >= n ? s : ' '.repeat(n - s.length) + s; };
 
 async function chartPng(rows) {
-  const labels = rows.map((r) => r.date.slice(5).replace('-', '/'));
+  const labels = rows.map((r) => r.date.slice(2).replace(/-/g, '/'));
   const cfg = {
     type: 'line',
     data: { labels, datasets: [
@@ -43,7 +43,7 @@ async function chartPng(rows) {
       { label: '코스닥', data: rows.map((r) => +(r.kosdaq / 1e6).toFixed(3)), borderColor: '#1c7ed6', pointRadius: 0, borderWidth: 2, yAxisID: 'y1' },
     ] },
     options: {
-      plugins: { title: { display: true, text: `신용거래융자 잔고 (최근 6개월, ${rows.at(-1).date} 기준)`, font: { size: 16 } }, legend: { position: 'bottom' } },
+      plugins: { title: { display: true, text: `신용거래융자 잔고 (최근 1년, ${rows.at(-1).date} 기준)`, font: { size: 16 } }, legend: { position: 'bottom' } },
       scales: {
         x: { ticks: { maxTicksLimit: 8 }, grid: { display: false } },
         y: { position: 'left', title: { display: true, text: '코스피 (조원)' }, ticks: { color: '#d9480f' } },
@@ -61,7 +61,8 @@ async function chartPng(rows) {
 
 function caption(rows) {
   const last = rows.at(-1), prev = rows.at(-2);
-  const m6 = rows[0];
+  const y1 = rows[0];
+  const m6 = rows.find((r) => r.date >= new Date(Date.parse(last.date) - 182 * 86400000).toISOString().slice(0, 10)) || rows[0];
   const recent = rows.slice(-6); // 5일 + 비교용 하루
   const lines = [];
   for (let i = recent.length - 1; i >= 1; i--) {
@@ -72,7 +73,9 @@ function caption(rows) {
     `<b>📊 신용거래융자 잔고</b> (${last.date} 기준)`,
     `코스피 <b>${jo(last.kospi)}</b> ${eok(last.kospi - prev.kospi)} (${pct(last.kospi, prev.kospi).toFixed(2)}%)`,
     `코스닥 <b>${jo(last.kosdaq)}</b> ${eok(last.kosdaq - prev.kosdaq)} (${pct(last.kosdaq, prev.kosdaq).toFixed(2)}%)`,
-    `합계 ${jo(last.kospi + last.kosdaq)} · 6개월 전 대비 코스피 ${pct(last.kospi, m6.kospi).toFixed(1)}%, 코스닥 ${pct(last.kosdaq, m6.kosdaq).toFixed(1)}%`,
+    `합계 ${jo(last.kospi + last.kosdaq)}`,
+    `6개월 전 대비 코스피 ${pct(last.kospi, m6.kospi).toFixed(1)}%, 코스닥 ${pct(last.kosdaq, m6.kosdaq).toFixed(1)}%`,
+    `1년 전 대비 코스피 ${pct(last.kospi, y1.kospi).toFixed(1)}%, 코스닥 ${pct(last.kosdaq, y1.kosdaq).toFixed(1)}% · 1년 최고 코스피 ${jo(Math.max(...rows.map((r) => r.kospi)))}, 코스닥 ${jo(Math.max(...rows.map((r) => r.kosdaq)))}`,
     '',
     '<b>최근 5거래일</b> (전일 대비)',
     `<pre>날짜     코스피    증감    코스닥    증감\n${lines.join('\n')}</pre>`,
@@ -94,7 +97,7 @@ async function main() {
   const alerts = JSON.parse(await fs.readFile(path.join(ROOT, 'config', 'alerts.json'), 'utf8').catch(() => '{}'));
   const prev = JSON.parse(await fs.readFile(FILE, 'utf8').catch(() => '{}'));
   const now = kst();
-  const from = new Date(now.getTime() - 190 * 86400000);
+  const from = new Date(now.getTime() - 370 * 86400000);
   const rows = await fetchKofia(ymd(from), ymd(now));
   if (rows.length < 6) throw new Error(`자료가 너무 적어요 (${rows.length}일)`);
   const last = rows.at(-1);

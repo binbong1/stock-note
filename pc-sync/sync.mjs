@@ -10,7 +10,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decryptJSON } from './brokers.mjs';
-import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, fetchToss, weekdays, encryptJSON } from './brokers.mjs';
+import { fetchKiwoom, fetchKiwoomRealized, fetchKiwoomUS, fetchKiwoomUSRealized, fetchKIS, fetchKISRealized, fetchKISBuys, fetchKiwoomBuys, fetchToss, weekdays, encryptJSON } from './brokers.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 // 윈도우 PC 로컬 모드: --local 이면 GitHub에 올리지 않고 저장소 폴더의 data 에 바로 저장
@@ -44,7 +44,7 @@ async function main() {
 
   const kst = new Date(Date.now() + 9 * 3600000);
   const today = kst.toISOString().slice(0, 10);
-  const items = [], accounts = [], realized = [];
+  const items = [], accounts = [], realized = [], buys = [];
   const skipped = new Set();
   const skippedLabels = [];
 
@@ -85,6 +85,16 @@ async function main() {
         state[key] = today;
         log(`키움 계좌 ${n} 국내 실현손익: ${rr.rows.length}건`);
       } catch (e) { log(`키움 계좌 ${n} 국내 실현손익 실패: ${e.message}`); }
+      // 매수 체결내역 (실현손익의 '최초 매수일' 계산용): 처음 1년치, 이후 최근 14일
+      try {
+        const key = `kiwoom-buy:${i}`;
+        const from = new Date(kst.getTime() - (state[key] ? 14 : 365) * 86400000);
+        if (!state[key]) log(`키움 계좌 ${n} 국내: 처음이라 1년치 매수 체결내역을 가져와요 (1~2분)`);
+        const rb = await fetchKiwoomBuys(k, weekdays(from, kst), i);
+        buys.push({ broker: '키움', account: rb.account, from: from.toISOString().slice(0, 10), to: today, rows: rb.rows });
+        state[key] = today;
+        log(`키움 계좌 ${n} 국내 매수 체결: ${rb.rows.length}건`);
+      } catch (e) { log(`키움 계좌 ${n} 국내 매수 체결내역 실패: ${e.message}`); }
     }
     if (mode !== 'kr') {
       try {
@@ -115,6 +125,13 @@ async function main() {
     const rr = await fetchKISRealized(cfg.kis, from.replace(/-/g, ''), today.replace(/-/g, ''));
     realized.push({ broker: 'KIS', account: rr.account, from, to: today, rows: rr.rows });
     state.kis = today;
+    try {
+      const bfrom = new Date(kst.getTime() - (state.kisBuy ? 14 : 365) * 86400000).toISOString().slice(0, 10);
+      const rb = await fetchKISBuys(cfg.kis, bfrom.replace(/-/g, ''), today.replace(/-/g, ''));
+      buys.push({ broker: 'KIS', account: rb.account, from: bfrom, to: today, rows: rb.rows });
+      state.kisBuy = today;
+      log(`한국투자증권 매수 체결: ${rb.rows.length}건`);
+    } catch (e) { log(`한국투자증권 매수 체결내역 실패: ${e.message}`); }
     log(`한국투자증권: ${r.items.length}종목, 실현손익 ${rr.rows.length}건`);
   }
 
@@ -132,7 +149,7 @@ async function main() {
       log(`접속 실패 계좌(${skippedLabels.join(', ')})는 지난번 값을 유지해요`);
     } catch (e) { log('지난번 값을 불러오지 못했어요:', e.message); }
   }
-  const box = encryptJSON({ updatedAt: new Date().toISOString(), items, accounts, realized }, cfg.password);
+  const box = encryptJSON({ updatedAt: new Date().toISOString(), items, accounts, realized, buys }, cfg.password);
   if (LOCAL) {
     await fs.writeFile(LOCAL_FILE, JSON.stringify(box));
     await fs.writeFile(stateFile, JSON.stringify(state, null, 2));

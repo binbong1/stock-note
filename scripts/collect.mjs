@@ -9,7 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
-import { fetchKIS, fetchKISRealized, encryptJSON, decryptJSON } from './brokers.mjs';
+import { fetchKIS, fetchKISRealized, fetchKISBuys, encryptJSON, decryptJSON } from './brokers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLE = process.argv.includes('--sample');
@@ -219,6 +219,40 @@ async function disclosures(stocks, days) {
 
 // ---------- 샘플(가짜) 데이터 ----------
 
+// 매도 내역마다 '그 보유분을 처음 산 날'(firstBuy)을 붙임.
+// 현재 보유 수량에서 거꾸로 매수(+)·매도(−)를 되돌려 날짜별 '그날 시작 수량'을 구하고,
+// 매도일에서 과거로 가며 시작 수량이 0이었던 매수일을 찾음. 매수 기록 이전까지 계속 보유 중이면 firstBuyBefore.
+function addFirstBuy(realized, holdings) {
+  const groups = {};
+  const g = (b, a, c) => (groups[`${b}|${a}|${c}`] ||= { cur: 0, ev: {}, sells: [] });
+  for (const h of holdings) if (!h.self) g(h.broker, h.account, h.code).cur += h.qty;
+  for (const r of realized.buys || []) { const o = g(r.broker, r.account, r.code); (o.ev[r.date] ||= { b: 0, s: 0 }).b += r.qty; }
+  for (const r of realized.rows) {
+    delete r.firstBuy; delete r.firstBuyBefore;
+    const from = realized.buySources?.[`${r.broker}|${r.account}`]?.from;
+    if (!from) continue;
+    const o = g(r.broker, r.account, r.code); (o.ev[r.date] ||= { b: 0, s: 0 }).s += r.qty; o.sells.push(r);
+    o.from = from;
+  }
+  for (const o of Object.values(groups)) {
+    if (!o.sells.length) continue;
+    const days = Object.keys(o.ev).sort().reverse();
+    const start = {};
+    let pos = o.cur;
+    for (const d of days) { pos = pos - o.ev[d].b + o.ev[d].s; start[d] = pos; }
+    for (const r of o.sells) {
+      if (r.date < o.from) { r.firstBuyBefore = o.from; continue; }
+      let found = null;
+      for (const d of days) {
+        if (d > r.date) continue;
+        if (d < o.from) break;
+        if (start[d] <= 1e-6 && o.ev[d].b > 0) { found = d; break; }
+      }
+      if (found) r.firstBuy = found; else r.firstBuyBefore = o.from;
+    }
+  }
+}
+
 function fakeBars(seed, startPrice, drift) {
   let x = seed, p = startPrice;
   const rand = () => ((x = (x * 16807) % 2147483647) / 2147483647);
@@ -268,6 +302,15 @@ async function main() {
     realized.rows = realized.rows.filter((r) => !(`${r.broker}|${r.account}` === key && r.date >= src.from && r.date <= src.to)).concat(src.rows);
     const st = realized.sources[key] || {};
     realized.sources[key] = { from: st.from && st.from < src.from ? st.from : src.from, to: src.to, updatedAt: result.updatedAt };
+  };
+  // 매수 체결내역 (매도 내역의 '최초 매수일' 계산용, 암호화 파일 안에만 저장)
+  realized.buys ||= []; realized.buySources ||= {};
+  const mergeBuys = (src) => {
+    const key = `${src.broker}|${src.account}`;
+    realized.buys = realized.buys.filter((r) => !(`${r.broker}|${r.account}` === key && r.date >= src.from && r.date <= src.to))
+      .concat(src.rows.map((r) => ({ ...r, broker: src.broker, account: src.account })));
+    const st = realized.buySources[key] || {};
+    realized.buySources[key] = { from: st.from && st.from < src.from ? st.from : src.from, to: src.to };
   };
 
   if (SAMPLE) {
@@ -334,6 +377,14 @@ async function main() {
         mergeRealized({ broker: 'KIS', account: r.account, from: fromD, to: today, rows: r.rows });
         log(`한국투자증권 계좌 ${i + 1} 실현손익 ${r.rows.length}건 (${fromD}~)`);
       } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 실현손익: ${e.message}`); }
+      try {
+        const label = accounts.at(-1).account;
+        const first = !realized.buySources[`KIS|${label}`];
+        const fromD = new Date(kstNow.getTime() - (first ? 365 : 14) * 86400000).toISOString().slice(0, 10);
+        const b = await fetchKISBuys(kcfg, fromD.replace(/-/g, ''), today.replace(/-/g, ''));
+        mergeBuys({ broker: 'KIS', account: b.account, from: fromD, to: today, rows: b.rows });
+        log(`한국투자증권 계좌 ${i + 1} 매수 체결 ${b.rows.length}건 (${fromD}~)`);
+      } catch (e) { result.errors.push(`한국투자증권 계좌 ${i + 1} 매수 체결내역: ${e.message}`); }
     }
     if (kisFailed) {
       // 실패한 한투 계좌는 지난번 잔고를 그대로 유지 (사이트에서 사라지지 않게)
@@ -351,6 +402,7 @@ async function main() {
       holdings.push(...local.items.filter((h) => useLocalKIS || h.broker !== 'KIS'));
       accounts.push(...(local.accounts || []).filter((a) => useLocalKIS || a.broker !== 'KIS'));
       for (const src of local.realized || []) if (useLocalKIS || src.broker !== 'KIS') mergeRealized(src);
+      for (const src of local.buys || []) if (useLocalKIS || src.broker !== 'KIS') mergeBuys(src);
       result.localSyncAt = local.updatedAt;
       log(`PC 동기화 잔고 ${local.items.length}종목 (${local.updatedAt})`);
     } catch (e) {
@@ -461,6 +513,7 @@ async function main() {
     }
     await fs.writeFile(histFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...history, aliases }, pw)));
     realized.rows.sort((x, y) => y.date.localeCompare(x.date));
+    addFirstBuy(realized, holdings);
     await fs.writeFile(realFile, JSON.stringify(encryptJSON({ updatedAt: result.updatedAt, sample: SAMPLE, ...realized }, pw)));
   } else if (!pw) {
     for (const f of [holdFile, histFile, realFile]) await fs.rm(f, { force: true });

@@ -362,7 +362,7 @@ async function holdingsJSON() {
 async function realizedRows({ from, to, account, stock } = {}) {
   const R = await enc('data/realized.enc.json');
   if (!R) return { rows: [] };
-  let rows = R.rows.map((r) => ({ date: r.date, account: acctName(r.broker, r.account), name: r.name, code: r.code, qty: r.qty, sellAmt: r.sellAmt, pl: r.pl, net: r.pl - (r.fee || 0) - (r.tax || 0), rate: r.rate }));
+  let rows = R.rows.map((r) => ({ date: r.date, account: acctName(r.broker, r.account), name: r.name, code: r.code, firstBuy: r.firstBuy || (r.firstBuyBefore ? r.firstBuyBefore + ' 이전' : undefined), qty: r.qty, sellAmt: r.sellAmt, pl: r.pl, net: r.pl - (r.fee || 0) - (r.tax || 0), rate: r.rate }));
   if (from) rows = rows.filter((r) => r.date >= from);
   if (to) rows = rows.filter((r) => r.date <= to);
   if (account) rows = rows.filter((r) => r.account.replace(/\s/g, '').includes(account.replace(/\s/g, '')));
@@ -393,7 +393,7 @@ const AI = createAI({
   config: CFG.claude || (CFG.anthropicKey ? { apiKey: CFG.anthropicKey } : {}),
   log, today, cmdStatus, cmdRealized, cmdSignals, cmdAnalyze, cmdWatch, cmdCriteria, cmdFlow, cmdAlerts, cmdNews,
   holdingsJSON, realizedRows, historyRows, stockInfo, disclosures,
-  creditData: async () => { const c = await file('data/credit.json', 300000); return c ? { asOf: c.asOf, unit: c.unit, rows: c.rows.slice(-130) } : { error: '자료 없음' }; },
+  creditData: async () => { const c = await file('data/credit.json', 300000); return c ? { asOf: c.asOf, unit: c.unit, rows: c.rows.slice(-260) } : { error: '자료 없음' }; },
   accountNames: () => [...new Set(Object.values(ALIASES))],
   criteriaKeys: () => Object.keys(KEYS),
   criteriaLabel: (k) => KEYS[k]?.[1] || k,
@@ -517,7 +517,7 @@ async function markForwarded(id) {
 }
 
 // ---------------------------------------------------------------- 실행 루프
-export { handle, channelPosts };
+export { handle, channelPosts, realizedRows };
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.env.STOCKNOTE_BOT_MODE === 'notify') {
   // 알림 전용: 텔레그램 대화는 Claude Code(텔레그램 채널)가 맡고, 여기서는 공시 채널 감시·전달만
   log('알림 전용 모드: 공시 채널 감시만 해요 (대화는 Claude가 처리)');

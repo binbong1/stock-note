@@ -158,6 +158,49 @@ export async function fetchKISRealized(cfg, fromYmd, toYmd) {
   return { account: c.label, rows };
 }
 
+// 국내 매수 체결내역: 3개월 이내 TTTC0081R(예전 TTTC8001R), 그 이전 CTSC9215R. 한 달 단위로 조회.
+// 결과: [{date, code, name, qty}] (같은 날·같은 종목은 합침) — 실현손익 '최초 매수일' 계산용
+export async function fetchKISBuys(cfg, fromYmd, toYmd) {
+  const c = await kisClient(cfg);
+  const agg = new Map();
+  const end = new Date(`${dash(toYmd)}T00:00:00Z`);
+  const recent = new Date(end.getTime() - 88 * 86400000); // 이 날부터는 '3개월 이내' TR
+  const chunks = [];
+  for (let s = new Date(`${dash(fromYmd)}T00:00:00Z`); s <= end;) {
+    let e = new Date(Math.min(end.getTime(), Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 0)));
+    if (s < recent && e >= recent) e = new Date(recent.getTime() - 86400000);
+    chunks.push([s, e, s >= recent]);
+    s = new Date(e.getTime() + 86400000);
+  }
+  for (const [s, e, isRecent] of chunks) {
+    const trs = isRecent ? ['TTTC0081R', 'TTTC8001R'] : ['CTSC9215R', 'CTSC9115R'];
+    let fk = '', nk = '', cont = '', ti = 0;
+    for (let page = 0; page < 30; page++) {
+      let res;
+      try {
+        res = await c.get('/uapi/domestic-stock/v1/trading/inquire-daily-ccld', trs[ti], {
+          CANO: c.cano, ACNT_PRDT_CD: c.prdt, INQR_STRT_DT: ymd(s), INQR_END_DT: ymd(e), SLL_BUY_DVSN_CD: '02', INQR_DVSN: '01',
+          PDNO: '', CCLD_DVSN: '01', ORD_GNO_BRNO: '', ODNO: '', INQR_DVSN_3: '00', INQR_DVSN_1: '', EXCG_ID_DVSN_CD: 'ALL',
+          CTX_AREA_FK100: fk, CTX_AREA_NK100: nk,
+        }, cont);
+      } catch (err) {
+        if (page === 0 && ti === 0) { ti = 1; page--; continue; } // 예전 TR 이름으로 한 번 더
+        throw err;
+      }
+      for (const r of res.json.output1 || []) {
+        const qty = num(r.tot_ccld_qty);
+        if (!qty || !r.ord_dt || (r.sll_buy_dvsn_cd && r.sll_buy_dvsn_cd !== '02')) continue;
+        const k = `${r.ord_dt}|${r.pdno}`;
+        const o = agg.get(k) || { date: dash(r.ord_dt), code: r.pdno, name: r.prdt_name, qty: 0 };
+        o.qty += qty; agg.set(k, o);
+      }
+      if (!res.more) break;
+      fk = res.json.ctx_area_fk100 || ''; nk = res.json.ctx_area_nk100 || ''; cont = 'N';
+    }
+  }
+  return { account: c.label, rows: [...agg.values()] };
+}
+
 // ======================= 키움증권 =======================
 const KW_BASE = 'https://api.kiwoom.com';
 const kwClients = new Map();
@@ -237,6 +280,31 @@ export async function fetchKiwoomRealized(cfg, days, index = 0) {
     await sleep(220);
   }
   return { account: c.label, rows };
+}
+
+// 국내 매수 체결(kt00009 계좌별주문체결현황, 매수·체결만)을 하루씩 조회 → [{date, code, name, qty}]
+export async function fetchKiwoomBuys(cfg, days, index = 0) {
+  const c = await kiwoomClient(cfg, index);
+  const agg = new Map();
+  for (const day of days) {
+    let cont = 'N', next = '';
+    for (let page = 0; page < 10; page++) {
+      const r = await c.post('kt00009', { ord_dt: day, stk_bond_tp: '1', mrkt_tp: '0', sell_tp: '2', qry_tp: '1', stk_cd: '', fr_ord_no: '', dmst_stex_tp: '%' }, cont, next);
+      for (const x of r.json.acnt_ord_cntr_prst_array || []) {
+        const qty = num(x.cntr_qty);
+        if (!qty || /매도/.test(String(x.io_tp_nm || ''))) continue;
+        const code = String(x.stk_cd || '').trim().replace(/^[A-Z]/, '');
+        const k = `${day}|${code}`;
+        const o = agg.get(k) || { date: dash(day), code, name: String(x.stk_nm || '').trim(), qty: 0 };
+        o.qty += qty; agg.set(k, o);
+      }
+      if (!r.more) break;
+      cont = 'Y'; next = r.next;
+      await sleep(220);
+    }
+    await sleep(220);
+  }
+  return { account: c.label, rows: [...agg.values()] };
 }
 
 // ----- 키움 미국주식 (공식 명세: /api/us/acnt · ust21070 잔고, ust21120 예수금, ust21640 일별 종목별 실현손익) -----
